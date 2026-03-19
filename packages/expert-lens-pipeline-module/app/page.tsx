@@ -1,0 +1,751 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import {
+  generateScript,
+  saveFullPipelineAction,
+  generateVideoFrames,
+  getSavedPipelinesAction,
+  getPipelineDetailsAction
+} from './actions'
+import { formatPipelineForExport } from '@/lib/utils/export'
+import { extractVoiceScript, synthesizeVoiceOff, generateMusicPrompt, generateGeminiMusic } from './voice-actions'
+import { logout } from './login/actions'
+import { GEMINI_VOICES } from '@/lib/audio/voices'
+import type { PipelineResult, LensResult } from '@/lib/pipeline/executor'
+
+export const maxDuration = 300;
+
+// ── Types ────────────────────────────────────────────────────────────────
+interface VideoStyle {
+  id: string
+  title: string
+  prompt: string
+  image: string
+  category: string
+}
+
+interface LensStepState {
+  lensId: string
+  status: 'pending' | 'running' | 'done' | 'error'
+  feedback?: string
+  verdict?: 'green' | 'yellow' | 'red'
+  userOpinion: string
+}
+
+// Pipeline phases
+type PipelinePhase = 'idle' | 'generating' | 'done'
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+const LENS_META: Record<string, { name: string; emoji: string; description: string }> = {
+  lens_clarity: { emoji: '🧒', name: 'Claridad', description: 'Niño de 10 años — ¿se entiende todo?' },
+  lens_neuro: { emoji: '🧠', name: 'Neuroventas', description: 'Ganchos emocionales y triggers de dolor/placer' },
+  lens_ad_copy: { emoji: '✍️', name: 'Ad-Copywriter', description: 'Hooks irresistibles que detienen el scroll' },
+  lens_pricing: { emoji: '💰', name: 'Estratega de Precios', description: 'Valor de ActivaQR vs métodos tradicionales' },
+  lens_closer: { emoji: '🤝', name: 'El Closer', description: 'Cierre para maximizar conversión inmediata' },
+  lens_seo: { emoji: '🔍', name: 'SEO & Branding', description: 'Presencia de marca y keywords estratégicos' },
+  lens_content: { emoji: '📱', name: 'Estratega de Contenido', description: 'Compartible y altamente recordable' },
+}
+
+const VERDICT_CONFIG = {
+  green: { label: '✅ Aprobado', classes: 'bg-emerald-950/40 border-emerald-700/40 text-emerald-400' },
+  yellow: { label: '⚠️ Con Reservas', classes: 'bg-amber-950/40 border-amber-700/40 text-amber-400' },
+  red: { label: '❌ Rechazado', classes: 'bg-red-950/40 border-red-700/40 text-red-400' },
+}
+
+const MAX_IDEA_LENGTH = 1500
+
+// ── Component ─────────────────────────────────────────────────────────────
+export default function PipelinePage() {
+  // ── Form state ──
+  const [idea, setIdea] = useState('')
+  const [duration, setDuration] = useState('30s')
+  const [style, setStyle] = useState('retorical')
+  const [llmProvider, setLlmProvider] = useState<'gemini' | 'deepseek'>('gemini')
+  const [seoKeywords, setSeoKeywords] = useState('')
+
+  // ── Pipeline orchestration state ──
+  const [phase, setPhase] = useState<PipelinePhase>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const [draft, setDraft] = useState<string>('')
+  const [lensSteps, setLensSteps] = useState<LensStepState[]>([])
+  const [currentLensIdx, setCurrentLensIdx] = useState(0)
+  const [lensResults, setLensResults] = useState<LensResult[]>([])
+  const [scriptOptions, setScriptOptions] = useState<string[]>([])
+  const [activeOption, setActiveOption] = useState(0)
+  const [finalScript, setFinalScript] = useState('')
+  const [isRunning, setIsRunning] = useState(false)
+
+  // Director's global note (added to orchestrator)
+  const [directorNote, setDirectorNote] = useState('')
+
+  // ── Result state ──
+  const [result, setResult] = useState<PipelineResult | null>(null)
+
+  // ── Visual style state ──
+  const [styles, setStyles] = useState<VideoStyle[]>([])
+  const [selectedStyle, setSelectedStyle] = useState<VideoStyle | null>(null)
+  const [frames, setFrames] = useState<any[]>([])
+  const [generatingFrames, setGeneratingFrames] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+
+  // ── Voice & Music state ──
+  const [voiceScript, setVoiceScript] = useState('')
+  const [voiceProfile, setVoiceProfile] = useState('')
+  const [selectedVoice, setSelectedVoice] = useState('Charon')
+  const [audioBase64, setAudioBase64] = useState<string | null>(null)
+  const [audioMime, setAudioMime] = useState('audio/wav')
+  const [extractingVoice, setExtractingVoice] = useState(false)
+  const [synthesizing, setSynthesizing] = useState(false)
+  const [sunoPrompt, setSunoPrompt] = useState('')
+  const [udioPrompt, setUdioPrompt] = useState('')
+  const [mixNotes, setMixNotes] = useState('')
+  const [generatingMusic, setGeneratingMusic] = useState(false)
+  const [geminiMusicUrl, setGeminiMusicUrl] = useState<string | null>(null)
+  const [generatingGeminiMusic, setGeneratingGeminiMusic] = useState(false)
+  const [productionData, setProductionData] = useState<any>(null)
+
+  // ── History state ──
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [historyItems, setHistoryItems] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+
+  const [mounted, setMounted] = useState(false)
+  
+  const categories = ['All', '3D & Cartoon', 'Photo-realistic', 'Satirical & Art', 'Creative Pixels']
+
+  // ── Load styles and localStorage on mount ──
+  useEffect(() => {
+    fetch('/video-styles/styles.json').then(r => r.json()).then(setStyles).catch(console.error)
+    const savedIdea = localStorage.getItem('pipeline_idea')
+    const savedDuration = localStorage.getItem('pipeline_duration')
+    const savedStyle = localStorage.getItem('pipeline_style')
+    if (savedIdea) setIdea(savedIdea)
+    if (savedDuration) setDuration(savedDuration)
+    if (savedStyle) setStyle(savedStyle)
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    localStorage.setItem('pipeline_idea', idea)
+    localStorage.setItem('pipeline_duration', duration)
+    localStorage.setItem('pipeline_style', style)
+  }, [idea, duration, style, mounted])
+
+  const filteredStyles = styles.filter(st => {
+    const matchesCategory = selectedCategory === 'All' || st.category === selectedCategory
+    const matchesSearch = st.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+
+
+  // ── Fetch History ──
+  const handleOpenHistory = async () => {
+    setIsHistoryOpen(true)
+    if (historyItems.length === 0) {
+      setLoadingHistory(true)
+      const res = await getSavedPipelinesAction()
+      if (res.success && res.scripts) setHistoryItems(res.scripts)
+      setLoadingHistory(false)
+    }
+  }
+
+  // ── Load Script from History ──
+  const loadFromHistory = async (scriptId: string) => {
+    setIsRunning(true)
+    setError(null)
+    const res = await getPipelineDetailsAction(scriptId)
+    setIsRunning(false)
+
+    if (!res.success || !res.data) {
+      setError(res.error || 'No se pudo cargar el guion del historial.')
+      return
+    }
+
+    const { script, lensResults: savedLenses, productionOutputs } = res.data
+
+    setIdea(script.original_idea || '')
+    setFinalScript(script.current_body)
+
+    if (productionOutputs) {
+      setFrames(productionOutputs.video_prompts || [])
+      setSunoPrompt(productionOutputs.music_prompt || '')
+      setVoiceScript(productionOutputs.voice_prompt || '')
+    } else {
+      setFrames([])
+      setSunoPrompt('')
+      setVoiceScript('')
+    }
+
+    setResult({
+      scriptId: script.id,
+      finalScript: script.current_body,
+      currentVersion: script.version,
+      scriptOptions: [script.current_body],
+      versions: [{ version: script.version, body: script.current_body, triggeredBy: 'restored_from_history' }],
+      lensResults: savedLenses,
+      productionPrompts: {
+        videoPrompts: productionOutputs?.video_prompts || [],
+        voicePrompt: productionOutputs?.voice_prompt || '',
+        musicPrompt: productionOutputs?.music_prompt || '',
+        tokensUsed: 0
+      },
+      visualHook: productionOutputs?.visual_hook
+    })
+
+    setPhase('done')
+    setIsHistoryOpen(false)
+  }
+
+  // ── STEP 1: Generate draft ──
+  const handleGenerateScript = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!idea.trim() || idea.length > MAX_IDEA_LENGTH) return
+
+    setIsRunning(true)
+    setError(null)
+    setPhase('generating')
+    
+    setFinalScript('')
+    setResult(null)
+    setFrames([])
+    setSelectedStyle(null)
+    setVoiceScript('')
+    setAudioBase64(null)
+
+    const res = await generateScript(idea, { duration, style })
+    setIsRunning(false)
+
+    if (!res.success || !res.data) {
+      setError(res.error || 'Error generando el guion.')
+      setPhase('idle')
+      return
+    }
+
+    setResult(res.data)
+    setFinalScript(res.data.finalScript)
+    if (res.data.productionPrompts) {
+      setProductionData(res.data.productionPrompts)
+    }
+    setPhase('done')
+  }
+
+  // ── Save / Export ──
+  const handleSaveAll = async () => {
+    if (!result || !idea) return
+    setIsRunning(true)
+
+    // Ensure result reflect correctly the active option
+    const updatedResult = {
+      ...result,
+      finalScript: result.finalScript,
+      productionPrompts: productionData || result.productionPrompts
+    }
+
+    const res = await saveFullPipelineAction(idea, updatedResult, {
+      frames: frames.length > 0 ? frames : undefined,
+      voicePrompt: voiceScript || undefined,
+      musicPrompt: sunoPrompt || undefined
+    })
+
+    setIsRunning(false)
+    if (!res.success) setError(res?.error || 'Error al guardar.')
+    else alert('¡Guardado completo en base de datos! ✅ (Guion + Escenas + Música)')
+  }
+
+  const handleExport = () => {
+    if (!result || !idea) return
+    const content = formatPipelineForExport(idea, result, {
+      frames: frames.length > 0 ? frames : undefined,
+      voiceScript: voiceScript || undefined,
+      sunoPrompt: sunoPrompt || undefined
+    })
+    const blob = new Blob([content], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `guion-produccion-${Date.now()}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleGenerateFrames = async () => {
+    if (!selectedStyle) return
+    const scriptToUse = finalScript
+    if (!scriptToUse?.trim()) { setError('No hay guion disponible.'); return }
+    setError(null); setGeneratingFrames(true)
+    const res = await generateVideoFrames(scriptToUse, selectedStyle.prompt)
+    if (res.success) setFrames(res.data || [])
+    else setError(res.error || 'Error al generar escenas.')
+    setGeneratingFrames(false)
+  }
+
+  const handleExtractVoice = async () => {
+    const script = finalScript
+    if (!script) return
+    setExtractingVoice(true); setError(null)
+    const res = await extractVoiceScript(script, duration)
+    if (res.success) { setVoiceScript(res.voiceScript || ''); setVoiceProfile(res.voiceProfile || ''); setAudioBase64(null) }
+    else setError(res.error || 'Error al extraer narración.')
+    setExtractingVoice(false)
+  }
+
+  const handleSynthesizeVoice = async () => {
+    if (!voiceScript) return
+    setSynthesizing(true); setError(null)
+    const res = await synthesizeVoiceOff(voiceScript, selectedVoice)
+    if (res.success) { setAudioBase64(res.audioBase64 || null); setAudioMime(res.mimeType || 'audio/wav') }
+    else setError(res.error || 'Error al generar audio.')
+    setSynthesizing(false)
+  }
+
+  const handleGenerateMusicPrompt = async () => {
+    const musicBrief = productionData?.musicPrompt || result?.productionPrompts?.musicPrompt
+    if (!musicBrief) { setError('No hay brief musical. Orquesta el guion primero.'); return }
+    setGeneratingMusic(true); setError(null)
+    const res = await generateMusicPrompt(musicBrief, duration)
+    if (res.success) { setSunoPrompt(res.sunoPrompt || ''); setUdioPrompt(res.udioPrompt || ''); setMixNotes(res.mixNotes || '') }
+    else setError(res.error || 'Error generando prompt de música.')
+    setGeneratingMusic(false)
+  }
+
+  const handleGenerateGeminiMusic = async () => {
+    const musicBrief = productionData?.musicPrompt || result?.productionPrompts?.musicPrompt
+    if (!musicBrief) { setError('No hay brief musical.'); return }
+    setGeneratingGeminiMusic(true); setError(null)
+    try {
+      const res = await generateGeminiMusic(musicBrief)
+      if (res.success && res.audioBase64) setGeminiMusicUrl(`data:audio/wav;base64,${res.audioBase64}`)
+      else setError(res.error || 'Error al generar música.')
+    } catch (err: any) { setError(err.message) }
+    setGeneratingGeminiMusic(false)
+  }
+
+  // ── Computed ──
+  
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <main className="min-h-screen bg-[#0a0a0f] text-neutral-100 py-12 px-4">
+      {/* Background gradient blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-900/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-900/15 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative max-w-3xl mx-auto space-y-6">
+
+        {/* ── Header ── */}
+        <header className="relative text-center space-y-3 mb-8 pt-4">
+          <div className="absolute top-0 right-0 flex items-center gap-2">
+            <button
+              onClick={handleOpenHistory}
+              className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-400 hover:text-violet-400 hover:border-violet-900/50 hover:bg-violet-950/20 transition-all flex items-center gap-2"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Historial
+            </button>
+            <button
+              onClick={() => logout()}
+              className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-400 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/20 transition-all flex items-center gap-2"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Salir
+            </button>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/60 border border-violet-800/40 text-violet-400 text-xs font-semibold tracking-widest uppercase mb-2">
+            ActivaQR.com
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-br from-white via-neutral-200 to-neutral-500 bg-clip-text text-transparent">
+            Expert Lens Pipeline™
+          </h1>
+          <p className="text-neutral-500 max-w-xl mx-auto text-sm leading-relaxed">
+            <span className="text-violet-400 font-semibold">Modo Director</span> — Tú decides cuándo avanzar. Lee cada experto. Agrega tu visión.
+          </p>
+        </header>
+
+        {/* ── Error banner ── */}
+        {error && (
+          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/40 text-red-400 text-sm flex items-start gap-3">
+            <span className="text-lg">⚠️</span>
+            <div>
+              <p className="font-bold mb-1">Error en el pipeline</p>
+              <p>{error}</p>
+              <button onClick={() => setError(null)} className="mt-2 text-xs text-red-300 hover:text-white underline">Cerrar</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 1: Idea Form ── */}
+        <section className="bg-neutral-900/60 backdrop-blur border border-neutral-800/60 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">1</span>
+            <h2 className="text-lg font-bold text-neutral-100">Tu idea</h2>
+            {phase === 'done' && (
+              <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">✓ Completado</span>
+            )}
+          </div>
+
+          <form onSubmit={handleGenerateScript} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Duración</label>
+                <select value={duration} onChange={(e) => setDuration(e.target.value)}
+                  disabled={phase !== 'idle'} className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-neutral-100 focus:border-violet-500 focus:outline-none transition-colors disabled:opacity-50">
+                  <option value="15s">15 seg — Reel Corto</option>
+                  <option value="30s">30 seg — Promocional</option>
+                  <option value="60s">60 seg — Explicativo</option>
+                  <option value="120s">2 min — Landing Page</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Estructura</label>
+                <select value={style} onChange={(e) => setStyle(e.target.value)}
+                  disabled={phase !== 'idle'} className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-neutral-100 focus:border-violet-500 focus:outline-none transition-colors disabled:opacity-50">
+                  <option value="retorical">Estructura Retórica</option>
+                  <option value="cta_disimulado">Estructura CTAs Disimulados (Conexión Directa)</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Motor de IA</label>
+                <select value={llmProvider} onChange={(e) => setLlmProvider(e.target.value as any)}
+                  disabled={phase !== 'idle'} className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-neutral-100 focus:border-violet-500 focus:outline-none transition-colors disabled:opacity-50">
+                  <option value="gemini">Turbo (Gemini)</option>
+                  <option value="deepseek">Estable (DeepSeek)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Describe tu video</label>
+                <span className={`text-[10px] font-mono transition-colors ${idea.length > MAX_IDEA_LENGTH * 0.9 ? 'text-amber-400' : 'text-neutral-600'}`}>
+                  {idea.length}/{MAX_IDEA_LENGTH}
+                </span>
+              </div>
+              <textarea
+                rows={4} value={idea}
+                onChange={(e) => setIdea(e.target.value.slice(0, MAX_IDEA_LENGTH))}
+                maxLength={MAX_IDEA_LENGTH}
+                disabled={phase !== 'idle'}
+                placeholder="Ejemplo: Soy mecánica automotriz con 15 años de experiencia. Quiero un video para TikTok..."
+                className={`w-full bg-neutral-800 border rounded-xl px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none transition-colors resize-none disabled:opacity-50 ${idea.length > MAX_IDEA_LENGTH * 0.9 ? 'border-amber-600/60 focus:border-amber-500' : 'border-neutral-700 focus:border-violet-500'}`}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
+                🔍 Keywords SEO (Palabras clave) <span className="text-neutral-600 normal-case font-normal">(Cuáles usar siempre / Cuáles son específicas)</span>
+              </label>
+              <textarea
+                rows={2} value={seoKeywords}
+                onChange={(e) => setSeoKeywords(e.target.value)}
+                disabled={phase !== 'idle'}
+                placeholder="Ej: ActivaQR, Marketing Digital, Reels, Innovación..."
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-violet-500 focus:outline-none transition-colors resize-none disabled:opacity-50"
+              />
+            </div>
+
+            {phase === 'idle' && (
+              <button type="submit" disabled={isRunning || !idea.trim() || idea.length > MAX_IDEA_LENGTH}
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition-all bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] active:scale-[0.98]">
+                {isRunning
+                  ? <span className="flex items-center justify-center gap-2"><div className="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white" />Generando borrador con IA...</span>
+                  : '⚡ Generar Guion Optimizado (Inteligencia Colectiva)'}
+              </button>
+            )}
+
+            {phase === 'generating' && isRunning && (
+              <div className="w-full py-3 rounded-xl bg-violet-950/40 border border-violet-800/40 flex items-center justify-center gap-2 text-violet-400 text-sm font-semibold">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-violet-400/30 border-t-violet-400" />
+                La IA (DeepSeek Reasoner) está debatiendo y reescribiendo tu guion... (~2 min)...
+              </div>
+            )}
+          </form>
+        </section>
+
+        {/* ── STEP 2: Guion Final ── */}
+        {phase === 'done' && finalScript && (
+          <section className="bg-neutral-900/60 backdrop-blur border border-neutral-800/60 rounded-2xl p-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-5">
+              <span className="w-7 h-7 rounded-full bg-pink-600 flex items-center justify-center text-xs font-bold">2</span>
+              <h2 className="text-lg font-bold">Guion Generado</h2>
+              <button
+                onClick={() => {
+                  setPhase('idle')
+                  setFinalScript('')
+                  setResult(null)
+                }}
+                className="ml-auto text-[10px] font-bold uppercase tracking-wider text-neutral-600 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-950/30"
+              >✕ Nuevo Pipeline</button>
+            </div>
+
+            {/* Sugerencia Visual de Grabación */}
+            {result?.visualHook && (
+              <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 to-violet-900/20 border border-indigo-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">🎥</span>
+                  <h3 className="font-bold text-indigo-300 text-xs tracking-widest uppercase">Directriz Visual (Grabación)</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-indigo-400/70 uppercase">El Plano</p>
+                    <p className="text-xs text-indigo-100"><strong className="text-indigo-300">{result.visualHook.cameraAngle.name}</strong>: {result.visualHook.cameraAngle.description}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-indigo-400/70 uppercase">La Acción Inicial</p>
+                    <p className="text-xs text-indigo-100">{result.visualHook.hook.instructions}</p>
+                  </div>
+                  {result.visualHook.microAction && (
+                    <div className="space-y-1 sm:col-span-2">
+                      <p className="text-[10px] font-bold text-indigo-400/70 uppercase">Toque Extra</p>
+                      <p className="text-xs text-indigo-100">{result.visualHook.microAction.name} — {result.visualHook.microAction.description}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <pre className="whitespace-pre-wrap text-sm text-neutral-300 bg-neutral-950/50 border border-neutral-800/60 rounded-xl p-5 font-mono leading-relaxed max-h-72 overflow-y-auto">
+              {finalScript}
+            </pre>
+
+            {/* Actions */}
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <button onClick={handleSaveAll} disabled={isRunning}
+                className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                {isRunning ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" /> : '💾 Guardar en BD'}
+              </button>
+              <button onClick={handleExport}
+                className="flex-1 py-3 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-sm border border-neutral-700 transition-all">
+                📄 Exportar Markdown
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ── STEP 3: Visual Style ── */}
+        {phase === 'done' && (
+          <section className="bg-neutral-900/60 backdrop-blur border border-neutral-800/60 rounded-2xl p-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-5">
+              <span className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">3</span>
+              <h2 className="text-lg font-bold">Estilo Visual</h2>
+              <span className="ml-auto text-xs text-neutral-500">{styles.length} estilos</span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <input type="search" placeholder="Buscar estilo..." value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-violet-500 focus:outline-none" />
+              <div className="flex gap-1.5 overflow-x-auto">
+                {categories.map(cat => (
+                  <button key={cat} onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-violet-600 text-white' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border border-neutral-700'}`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 max-h-72 overflow-y-auto pr-1">
+              {filteredStyles.map(st => (
+                <button key={st.id} onClick={() => setSelectedStyle(st)}
+                  className={`relative overflow-hidden rounded-xl aspect-square group transition-all border-2 ${selectedStyle?.id === st.id ? 'border-violet-500 ring-2 ring-violet-500/50' : 'border-transparent hover:border-neutral-600'}`}>
+                  <img src={st.image} alt={st.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent p-2 flex flex-col justify-end opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
+                    <p className="text-[9px] text-violet-400 font-bold uppercase tracking-tighter leading-none">{st.category}</p>
+                    <p className="text-white text-[10px] font-bold leading-tight mt-0.5">{st.title}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {selectedStyle && (
+              <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-violet-950/20 border border-violet-800/30 rounded-xl">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-violet-400 font-bold uppercase">{selectedStyle.category}</p>
+                  <p className="font-bold text-neutral-100 truncate">{selectedStyle.title}</p>
+                </div>
+                <button onClick={handleGenerateFrames} disabled={generatingFrames}
+                  className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2">
+                  {generatingFrames ? <><div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" /> Generando...</> : '🎬 Crear Secuencia'}
+                </button>
+              </div>
+            )}
+
+            {frames.length > 0 && (
+              <div className="mt-6 space-y-4 border-t border-neutral-800/60 pt-6">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Secuencia de Escenas — {frames.length} frames</p>
+                {frames.map((frame, idx) => (
+                  <div key={idx} className="bg-neutral-950/50 border border-neutral-800/60 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-[10px] font-bold text-violet-400">{idx + 1}</span>
+                      <p className="text-xs text-neutral-500 font-mono truncate">{frame.scene?.substring(0, 60)}...</p>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">Prompt de Imagen</p>
+                          <button onClick={() => navigator.clipboard.writeText(frame.imagePrompt)} className="text-[10px] text-violet-500 hover:text-violet-400 font-bold">Copiar</button>
+                        </div>
+                        <div className="text-xs font-mono text-neutral-400 bg-neutral-800/50 rounded-lg p-3">{frame.imagePrompt}</div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">Instrucciones de Movimiento</p>
+                        <div className="text-xs italic text-neutral-400 bg-neutral-800/50 rounded-lg p-3">{frame.motionInstructions}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── STEP 4: Voice + Music ── */}
+        {phase === 'done' && (
+          <section className="bg-neutral-900/60 backdrop-blur border border-neutral-800/60 rounded-2xl p-6 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+            <div>
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold">4a</span>
+                <h2 className="text-lg font-bold">Voz en Off</h2>
+              </div>
+
+              <button onClick={handleExtractVoice} disabled={extractingVoice}
+                className="mb-4 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2">
+                {extractingVoice ? <><div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" /> Extrayendo...</> : '✍️ Extraer Voz en Off'}
+              </button>
+
+              {voiceProfile && (
+                <div className="mb-4 p-3 bg-indigo-950/30 border border-indigo-800/30 rounded-xl">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-1.5">Perfil de Voz Sugerido</p>
+                  <pre className="text-xs text-neutral-400 font-mono whitespace-pre-wrap">{voiceProfile}</pre>
+                </div>
+              )}
+
+              {voiceScript && (
+                <div className="space-y-4">
+                  <textarea rows={7} value={voiceScript} onChange={(e) => setVoiceScript(e.target.value)}
+                    className="w-full bg-neutral-950/50 border border-neutral-800 rounded-xl px-4 py-3 text-sm font-mono text-neutral-300 focus:border-indigo-500 focus:outline-none resize-none" />
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)}
+                      className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5 text-sm text-neutral-100 focus:border-indigo-500 focus:outline-none">
+                      {GEMINI_VOICES.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
+                    </select>
+                    <button onClick={handleSynthesizeVoice} disabled={synthesizing}
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-2">
+                      {synthesizing ? <><div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" />Generando...</> : '🔊 Generar Audio'}
+                    </button>
+                  </div>
+                  {audioBase64 && (
+                    <div className="p-4 bg-emerald-950/30 border border-emerald-800/30 rounded-xl space-y-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">✅ Audio Listo</p>
+                      <audio controls className="w-full" src={`data:${audioMime};base64,${audioBase64}`} />
+                      <a href={`data:${audioMime};base64,${audioBase64}`} download="voiceover-activaqr.wav"
+                        className="inline-block px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors">
+                        ⬇️ Descargar WAV
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-neutral-800/60 pt-6">
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">4b</span>
+                <h2 className="text-lg font-bold">Música ({duration})</h2>
+              </div>
+              <div className="flex flex-wrap gap-3 mb-5">
+                <button onClick={handleGenerateMusicPrompt} disabled={generatingMusic}
+                  className="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2">
+                  {generatingMusic ? <><div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" /> Generando...</> : '🎼 Prompts Suno/Udio'}
+                </button>
+                <button onClick={handleGenerateGeminiMusic} disabled={generatingGeminiMusic}
+                  className="px-4 py-2.5 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2">
+                  {generatingGeminiMusic ? <><div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white/20 border-t-white" /> Generando...</> : '✨ Música con Gemini'}
+                </button>
+              </div>
+              {geminiMusicUrl && (
+                <div className="mb-5 p-4 bg-blue-950/30 border border-blue-800/30 rounded-xl space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400">✅ Música Generada</p>
+                  <audio controls className="w-full" src={geminiMusicUrl} />
+                </div>
+              )}
+              {sunoPrompt && (
+                <div className="space-y-3">
+                  {[{ label: 'Suno', content: sunoPrompt, color: 'purple' }, { label: 'Udio', content: udioPrompt, color: 'blue' }]
+                    .filter(p => p.content).map(({ label, content, color }) => (
+                      <div key={label} className={`p-4 bg-${color}-950/20 border border-${color}-800/30 rounded-xl`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className={`text-[10px] font-bold uppercase text-${color}-400`}>Prompt para {label}</p>
+                          <button onClick={() => navigator.clipboard.writeText(content)} className={`text-[10px] text-${color}-500 hover:text-${color}-400 font-bold`}>Copiar</button>
+                        </div>
+                        <p className="text-xs font-mono text-neutral-400 whitespace-pre-wrap">{content}</p>
+                      </div>
+                    ))}
+                  {mixNotes && (
+                    <div className="p-4 bg-amber-950/20 border border-amber-800/30 rounded-xl">
+                      <p className="text-[10px] font-bold uppercase text-amber-400 mb-2">📊 Instrucciones de Mezcla</p>
+                      <p className="text-sm text-neutral-400 whitespace-pre-wrap">{mixNotes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+      </div>
+
+      {/* ── History Sidebar Overlay ── */}
+      {isHistoryOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsHistoryOpen(false)} />
+          <div className="relative w-full max-w-md bg-neutral-900 h-full border-l border-neutral-800 shadow-2xl flex flex-col slide-in-from-right animation-duration-300">
+            <div className="p-5 border-b border-neutral-800 flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <svg className="w-5 h-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Historial de Proyectos
+              </h2>
+              <button onClick={() => setIsHistoryOpen(false)} className="text-neutral-400 hover:text-white p-2">✕</button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {loadingHistory ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-violet-500/30 border-t-violet-500" />
+                </div>
+              ) : historyItems.length === 0 ? (
+                <p className="text-center text-neutral-500 text-sm py-10">No hay proyectos guardados aún.</p>
+              ) : (
+                historyItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => loadFromHistory(item.id)}
+                    className="w-full text-left p-4 rounded-xl bg-neutral-950/50 border border-neutral-800/60 hover:border-violet-500/50 hover:bg-violet-950/20 transition-all group"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-bold text-sm text-neutral-200 group-hover:text-violet-300 truncate pr-2">{item.title}</p>
+                      <p className="text-[10px] text-neutral-500 whitespace-nowrap">{new Date(item.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <p className="text-xs text-neutral-500 line-clamp-2">{item.original_idea}</p>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+    </main>
+  )
+}

@@ -1,0 +1,198 @@
+'use server'
+
+import OpenAI from 'openai'
+import { GoogleGenAI } from '@google/genai'
+import fs from 'fs'
+import path from 'path'
+import { getNextGeminiKey } from '@/lib/pipeline/pipeline-llm/utils/gemini-keys'
+
+// Duration-to-seconds map
+const DURATION_SECONDS: Record<string, number> = {
+    '15s': 15,
+    '30s': 30,
+    '60s': 60,
+    '120s': 120,
+}
+
+// Disable file logging on Vercel
+function debugLog(msg: string) {
+    const time = new Date().toISOString()
+    console.log(`[VOICE] [${time}] ${msg}`)
+}
+
+function pcmToWavBase64(pcmBase64: string, sampleRate = 24000): string {
+    const pcmData = Buffer.from(pcmBase64, 'base64');
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    const blockAlign = numChannels * (bitsPerSample / 8);
+    const dataSize = pcmData.length;
+    const buffer = Buffer.alloc(44 + dataSize);
+
+    buffer.write('RIFF', 0);
+    buffer.writeUInt32LE(36 + dataSize, 4);
+    buffer.write('WAVE', 8);
+    buffer.write('fmt ', 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20);
+    buffer.writeUInt16LE(numChannels, 22);
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(byteRate, 28);
+    buffer.writeUInt16LE(blockAlign, 32);
+    buffer.writeUInt16LE(bitsPerSample, 34);
+    buffer.write('data', 36);
+    buffer.writeUInt32LE(dataSize, 40);
+    pcmData.copy(buffer, 44);
+
+    return buffer.toString('base64');
+}
+
+export async function extractVoiceScript(
+    finalScript: string,
+    duration: string
+): Promise<{ success: boolean; voiceScript?: string; voiceProfile?: string; error?: string }> {
+    try {
+        const durationSecs = DURATION_SECONDS[duration] ?? 30
+        const targetWords = Math.round((durationSecs / 60) * 135)
+
+        const client = new OpenAI({
+            apiKey: process.env.DEEPSEEK_API_KEY,
+            baseURL: 'https://api.deepseek.com',
+        })
+
+        const systemPrompt = `Eres un director de casting y producción de audio especializado en voz en off para videos de marketing en español.
+Extract the spoken voiceover text from the script.
+Eliminate visual instructions [Pantalla:...], scene notes, etc.
+Target words: ${targetWords}.
+Include markers like [pausa_corta], [pausa_larga], *emphasis*.
+
+FORMAT:
+PERFIL DE VOZ:
+...
+TEXTO DE VOZ EN OFF:
+...`
+
+        const response = await client.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `GUION COMPLETO:\n\n${finalScript}` },
+            ],
+        })
+
+        const content = response.choices[0]?.message?.content || ''
+        const profileMatch = content.match(/PERFIL DE VOZ:([\s\S]*?)TEXTO DE VOZ EN OFF:/i)
+        const scriptMatch = content.match(/TEXTO DE VOZ EN OFF:\s*([\s\S]+)/i)
+
+        return {
+            success: true,
+            voiceScript: scriptMatch ? scriptMatch[1].trim() : content,
+            voiceProfile: profileMatch ? profileMatch[1].trim() : ''
+        }
+    } catch (error: any) {
+        return { success: false, error: error.message }
+    }
+}
+
+export async function synthesizeVoiceOff(
+    voiceScript: string,
+    voiceId: string = 'Charon'
+): Promise<{ success: boolean; audioBase64?: string; mimeType?: string; error?: string }> {
+    try {
+        const ai = new GoogleGenAI({ apiKey: getNextGeminiKey() })
+        const cleanedScript = voiceScript
+            .replace(/\[pausa_larga\]/gi, '...')
+            .replace(/\[pausa_corta\]/gi, ',')
+            .replace(/\*(.*?)\*/g, '$1')
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-preview-tts',
+            contents: [{ parts: [{ text: cleanedScript }] }],
+            config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: voiceId },
+                    },
+                },
+            },
+        })
+
+        const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData
+        if (!data?.data) return { success: false, error: 'No audio data' }
+
+        let audioBase64 = data.data;
+        let mimeType = data.mimeType || 'audio/wav';
+
+        // Add WAV header if it's raw PCM
+        if (mimeType.includes('audio/L16') || mimeType.includes('pcm')) {
+            try {
+                audioBase64 = pcmToWavBase64(data.data, 24000);
+                mimeType = 'audio/wav';
+            } catch (e: any) {
+                debugLog(`Failed to convert PCM to WAV: ${e.message}`);
+            }
+        }
+
+        return { success: true, audioBase64, mimeType }
+    } catch (error: any) {
+        debugLog(`TTS ERROR: ${error.message}`)
+        return { success: false, error: error.message }
+    }
+}
+
+export async function generateGeminiMusic(
+    musicPrompt: string
+): Promise<{ success: boolean; audioBase64?: string; error?: string }> {
+    try {
+        const ai = new GoogleGenAI({ apiKey: getNextGeminiKey() })
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: [{ parts: [{ text: musicPrompt }] }],
+            config: { responseModalities: ['AUDIO'] },
+        })
+        const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData
+        if (!data?.data) return { success: false, error: 'No audio data' }
+        
+        let audioBase64 = data.data;
+        let mimeType = data.mimeType || 'audio/wav';
+
+        // Add WAV header if it's raw PCM
+        if (mimeType.includes('audio/L16') || mimeType.includes('pcm')) {
+            try {
+                audioBase64 = pcmToWavBase64(data.data, 24000);
+            } catch (e: any) {
+                console.error(`Failed to convert PCM to WAV: ${e.message}`);
+            }
+        }
+
+        return { success: true, audioBase64 }
+    } catch (error: any) {
+        return { success: false, error: error.message }
+    }
+}
+
+export async function generateMusicPrompt(
+    musicBrief: string,
+    duration: string
+): Promise<{ success: boolean; sunoPrompt?: string; udioPrompt?: string; mixNotes?: string; error?: string }> {
+    try {
+        const durationSecs = DURATION_SECONDS[duration] ?? 30
+        const client = new OpenAI({
+            apiKey: process.env.DEEPSEEK_API_KEY,
+            baseURL: 'https://api.deepseek.com',
+        })
+        const response = await client.chat.completions.create({
+            model: 'deepseek-chat',
+            messages: [
+                { role: 'system', content: 'You are a music supervisor. Generate Suno/Udio prompts (JSON: sunoPrompt, udioPrompt, mixNotes).' },
+                { role: 'user', content: `Brief: ${musicBrief}\nDuration: ${durationSecs}s` },
+            ],
+            response_format: { type: 'json_object' },
+        })
+        const parsed = JSON.parse(response.choices[0]?.message?.content || '{}')
+        return { success: true, ...parsed }
+    } catch (error: any) {
+        return { success: false, error: error.message }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "rrss-objetivo-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo para RRSS Objetivo",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @rrss-objetivo/main-app"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
+    "dotenv": "^17.3.1"
+  },
+  "overrides": {
+    "zod": "4.3.6"
+  }
+}
