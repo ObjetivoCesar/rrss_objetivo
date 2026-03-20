@@ -6,13 +6,11 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // ─── Helper: Auto-detect the WordPress posts table prefix ──────────────────────
-// Some cPanel hosts use 'wp_posts', others use a custom prefix like 'hp_posts'.
 async function findWpPostsTable(): Promise<string> {
   const [tables]: any = await pool.query(
     "SHOW TABLES LIKE '%_posts'"
   );
   if (tables.length === 0) throw new Error('No WordPress posts table found in MySQL');
-  // Prefer 'wp_posts', otherwise use the first match
   const tableNames: string[] = tables.map((row: any) => Object.values(row)[0] as string);
   return tableNames.find((t) => t === 'wp_posts') ?? tableNames[0];
 }
@@ -25,20 +23,26 @@ export async function GET() {
       { data: campaigns, error: campError },
       { data: articleMap, error: artError },
       { data: posts, error: postError },
+      { data: ideas, error: ideaError },
+      { data: positions, error: posError },
     ] = await Promise.all([
       supabase.from('objectives').select('id, name, description').is('archived_at', null),
       supabase.from('campaigns').select('id, name, objective_id, status').is('archived_at', null),
       supabase.from('article_strategy_map').select('id, mysql_article_id, article_title, article_slug, objective_id, campaign_id, role, strategic_notes'),
       supabase.from('social_posts').select('id, topic, platforms, status, campaign_id, objective_id, scheduled_for').not('status', 'eq', 'published').order('scheduled_for', { ascending: true }).limit(60),
+      supabase.from('map_ideas').select('*').is('archived_at', null),
+      supabase.from('map_node_positions').select('*'),
     ]);
 
-    // Supabase errors are blocker — surface them clearly
+    // Supabase errors
     if (objError) throw new Error(`Supabase objectives: ${objError.message}`);
     if (campError) throw new Error(`Supabase campaigns: ${campError.message}`);
     if (artError) throw new Error(`Supabase article_strategy_map: ${artError.message}`);
     if (postError) throw new Error(`Supabase social_posts: ${postError.message}`);
+    if (ideaError) throw new Error(`Supabase map_ideas: ${ideaError.message}`);
+    if (posError) throw new Error(`Supabase map_node_positions: ${posError.message}`);
 
-    // ─── 2. MySQL: Fetch Blog Articles (OPTIONAL — graceful fallback) ──────────
+    // ─── 2. MySQL: Fetch Blog Articles (OPTIONAL) ──────────────────────────
     let mysqlArticles: { id: number; title: string; slug: string }[] = [];
     let mysqlStatus = 'ok';
     try {
@@ -51,14 +55,12 @@ export async function GET() {
          LIMIT 100`
       );
       mysqlArticles = rows as any[];
-      console.log(`[strategy-map] Loaded ${mysqlArticles.length} articles from MySQL table: ${postsTable}`);
     } catch (mysqlErr: any) {
-      // MySQL is optional — we just log a warning and continue
       mysqlStatus = mysqlErr.message;
-      console.warn('[strategy-map] MySQL unavailable, continuing without blog articles:', mysqlErr.message);
+      console.warn('[strategy-map] MySQL unavailable:', mysqlErr.message);
     }
 
-    // ─── 3. Build React Flow Graph ─────────────────────────────────────────────
+    // ─── 3. Build Graph ───────────────────────────────────────────────────────
     const nodes: any[] = [];
     const edges: any[] = [];
     const rootId = 'root';
@@ -70,7 +72,7 @@ export async function GET() {
       position: { x: 0, y: 0 },
     });
 
-    // OBJECTIVE NODES
+    // OBJECTIVES
     (objectives ?? []).forEach((obj) => {
       nodes.push({
         id: `obj-${obj.id}`,
@@ -88,7 +90,7 @@ export async function GET() {
       });
     });
 
-    // CAMPAIGN NODES
+    // CAMPAIGNS
     (campaigns ?? []).forEach((camp) => {
       nodes.push({
         id: `camp-${camp.id}`,
@@ -106,15 +108,11 @@ export async function GET() {
       });
     });
 
-    // ARTICLE NODES — merge MySQL + Supabase mappings
+    // ARTICLES
     const uniqueArticles = new Map<number, { id: number; title: string; slug: string; mappings: any[] }>();
-
-    // Seed with MySQL articles (no mapping yet)
     mysqlArticles.forEach((art) => {
       uniqueArticles.set(Number(art.id), { id: Number(art.id), title: art.title, slug: art.slug, mappings: [] });
     });
-
-    // Overlay Supabase mappings (may reference articles not in MySQL if MySQL is down)
     (articleMap ?? []).forEach((entry) => {
       const aid = Number(entry.mysql_article_id);
       if (!uniqueArticles.has(aid)) {
@@ -139,9 +137,7 @@ export async function GET() {
 
       if (article.mappings.length > 0) {
         article.mappings.forEach((m: any) => {
-          const sourceNodeId = m.campaign_id ? `camp-${m.campaign_id}`
-            : m.objective_id ? `obj-${m.objective_id}`
-            : rootId;
+          const sourceNodeId = m.campaign_id ? `camp-${m.campaign_id}` : m.objective_id ? `obj-${m.objective_id}` : rootId;
           edges.push({
             id: `e-${sourceNodeId}-${artNodeId}-${m.id}`,
             source: sourceNodeId,
@@ -153,7 +149,6 @@ export async function GET() {
           });
         });
       } else {
-        // Orphan article: dashed red line to root
         edges.push({
           id: `e-orphan-root-${artNodeId}`,
           source: rootId,
@@ -164,7 +159,7 @@ export async function GET() {
       }
     });
 
-    // POST NODES
+    // POSTS
     (posts ?? []).forEach((post) => {
       const postNodeId = `post-${post.id}`;
       const platformList: string[] = post.platforms ?? [];
@@ -180,9 +175,7 @@ export async function GET() {
         },
         position: { x: 0, y: 0 },
       });
-      const parentPostId = post.campaign_id ? `camp-${post.campaign_id}`
-        : post.objective_id ? `obj-${post.objective_id}`
-        : null;
+      const parentPostId = post.campaign_id ? `camp-${post.campaign_id}` : post.objective_id ? `obj-${post.objective_id}` : null;
       if (parentPostId) {
         edges.push({
           id: `e-${parentPostId}-${postNodeId}`,
@@ -194,6 +187,42 @@ export async function GET() {
       }
     });
 
+    // IDEAS (Migración 06)
+    (ideas ?? []).forEach((idea: any) => {
+      const ideaNodeId = `idea-${idea.id}`;
+      nodes.push({
+        id: ideaNodeId,
+        type: idea.node_type === 'idea' ? 'ideaNode' : 'contentBlockNode',
+        data: {
+          label: idea.label,
+          description: idea.description,
+          type: idea.node_type,
+          id: idea.id,
+          raw: idea,
+        },
+        position: { x: idea.pos_x || 0, y: idea.pos_y || 0 },
+      });
+
+      if (idea.parent_id) {
+        edges.push({
+          id: `e-parent-${idea.parent_id}-${ideaNodeId}`,
+          source: idea.parent_id,
+          target: ideaNodeId,
+          type: 'smoothstep',
+          style: { stroke: '#8b5cf6', strokeWidth: 1.5, strokeDasharray: '2,2' },
+        });
+      }
+    });
+
+    // POSITIONS
+    const posMap = new Map((positions ?? []).map((p: any) => [p.node_id, p]));
+    nodes.forEach(node => {
+      const savedPos = posMap.get(node.id);
+      if (savedPos) {
+        node.position = { x: savedPos.pos_x, y: savedPos.pos_y };
+      }
+    });
+
     return NextResponse.json({
       nodes,
       edges,
@@ -202,6 +231,7 @@ export async function GET() {
         campaigns: (campaigns ?? []).length,
         articles: uniqueArticles.size,
         posts: (posts ?? []).length,
+        ideas: (ideas ?? []).length,
         mysql_status: mysqlStatus,
       }
     });

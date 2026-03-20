@@ -28,7 +28,7 @@ import {
   Loader2, X, Globe, Link2, Target, FileText, Tag, 
   Filter, Calendar, ChevronDown, Rocket, CheckCircle2, 
   AlertCircle, Info, Hash, Clock, Maximize2, Minimize2, Search, PlusCircle, Lightbulb, RefreshCw,
-  Heading1, Heading2, Type, MousePointerClick
+  Heading1, Heading2, Type, MousePointerClick, Save, Check
 } from 'lucide-react';
 
 // ─── Custom Node Types ────────────────────────────────────────────────────────
@@ -96,13 +96,19 @@ function FilterBar({
   filters, 
   setFilters,
   onAddIdea,
-  onAutoArrange
+  onAutoArrange,
+  onSave,
+  isSaving,
+  hasChanges
 }: { 
   objectives: any[], 
   filters: any, 
   setFilters: (f: any) => void,
   onAddIdea: () => void,
-  onAutoArrange: () => void
+  onAutoArrange: () => void,
+  onSave: () => void,
+  isSaving: boolean,
+  hasChanges: boolean
 }) {
   return (
     <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 items-center bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 shadow-xl">
@@ -549,6 +555,9 @@ function StrategyMapInner() {
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [forceLayout, setForceLayout] = useState(0); // Counter to trigger re-layout
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -664,16 +673,70 @@ function StrategyMapInner() {
     const nodeIds = new Set(filteredNodes.map(n => n.id));
     filteredEdges = rawData.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
 
-    const { nodes: ln, edges: le } = getLayoutedElements(filteredNodes, filteredEdges);
-    setNodes(ln);
-    setEdges(le);
-  }, [rawData, filters, setNodes, setEdges]);
+    // ONLY apply dagre if it's the first time or explicitly requested
+    // Otherwise, use the positions from rawData (which include manual ones)
+    if (forceLayout > 0 || (rawData.nodes.length > 0 && nodes.length === 0)) {
+      const { nodes: ln, edges: le } = getLayoutedElements(filteredNodes, filteredEdges);
+      setNodes(ln);
+      setEdges(le);
+      if (forceLayout > 0) setForceLayout(0);
+    } else {
+      setNodes(filteredNodes);
+      setEdges(filteredEdges);
+    }
+  }, [rawData, filters, forceLayout, setNodes, setEdges]);
 
   const handleAutoArrange = useCallback(() => {
-    const { nodes: ln, edges: le } = getLayoutedElements(nodes, edges);
-    setNodes(ln);
-    setEdges(le);
-  }, [nodes, edges, setNodes, setEdges]);
+    setForceLayout(prev => prev + 1);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      // 1. Collect positions of ALL current nodes in the map
+      const positions: Record<string, { x: number, y: number }> = {};
+      nodes.forEach(node => {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      });
+
+      // 2. Collect current custom ideas/blocks
+      const ideas = rawData.nodes
+        .filter(n => n.type === 'ideaNode' || n.type === 'contentBlockNode')
+        .map(n => {
+          const currentInNodes = nodes.find(node => node.id === n.id);
+          return {
+            id: n.id.startsWith('temp-') || n.id.includes('-') && n.id.length < 30 ? undefined : n.id.replace('idea-', '').replace('block-', ''),
+            label: n.data.label,
+            description: n.data.description,
+            node_type: n.data.type || (n.type === 'ideaNode' ? 'idea' : n.data.blockType),
+            parent_id: rawData.edges.find(e => e.target === n.id)?.source || null,
+            pos_x: currentInNodes?.position.x || 0,
+            pos_y: currentInNodes?.position.y || 0
+          };
+        });
+
+      const res = await fetch('/api/strategy-map/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positions, ideas })
+      });
+
+      if (!res.ok) throw new Error('Error al guardar');
+      
+      setHasChanges(false);
+      // Small feedback toast could go here
+    } catch (err: any) {
+      console.error('Save failed:', err);
+      alert('Error al guardar: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [nodes, rawData, isSaving]);
+
+  const onNodeDragStop = useCallback(() => {
+    setHasChanges(true);
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep', style: { stroke: '#64748b', strokeWidth: 2 } } as any, eds)),
@@ -869,15 +932,22 @@ function StrategyMapInner() {
           setFilters={setFilters} 
           onAddIdea={handleAddIdea}
           onAutoArrange={handleAutoArrange}
+          onSave={handleSave}
+          isSaving={isSaving}
+          hasChanges={hasChanges}
         />
 
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={(changes) => {
+            onNodesChange(changes);
+            if (changes.some(c => c.type === 'position')) setHasChanges(true);
+          }}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
+          onNodeDragStop={onNodeDragStop}
           onDrop={onDrop}
           onDragOver={onDragOver}
           nodeTypes={nodeTypes as any}
@@ -954,6 +1024,7 @@ function StrategyMapInner() {
                           nodes: prev.nodes.map(n => n.id === selectedNode.id ? { ...n, data: { ...n.data, label: newName } } : n)
                         }));
                         setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, label: newName } } : prev);
+                        setHasChanges(true);
                       }}
                       className={`w-full bg-slate-900 border rounded-xl px-4 py-3 text-white text-sm focus:ring-2 outline-none transition-all placeholder-slate-500 min-h-[100px] resize-y ${selectedNode.type === 'contentBlockNode' ? 'border-violet-500/30 focus:ring-violet-500' : 'border-yellow-500/30 focus:ring-yellow-500'}`}
                       placeholder="Escribe el contenido aquí..."
