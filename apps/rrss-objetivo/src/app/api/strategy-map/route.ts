@@ -2,52 +2,71 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import pool from '@/lib/mysql';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// ─── Helper: Auto-detect the WordPress posts table prefix ──────────────────────
+// Some cPanel hosts use 'wp_posts', others use a custom prefix like 'hp_posts'.
+async function findWpPostsTable(): Promise<string> {
+  const [tables]: any = await pool.query(
+    "SHOW TABLES LIKE '%_posts'"
+  );
+  if (tables.length === 0) throw new Error('No WordPress posts table found in MySQL');
+  // Prefer 'wp_posts', otherwise use the first match
+  const tableNames: string[] = tables.map((row: any) => Object.values(row)[0] as string);
+  return tableNames.find((t) => t === 'wp_posts') ?? tableNames[0];
+}
+
 export async function GET() {
   try {
-    // 1. Fetch Objectives — real column is 'description' (not 'focus')
-    const { data: objectives, error: objError } = await supabase
-      .from('objectives')
-      .select('id, name, description')
-      .is('archived_at', null);
+    // ─── 1. Supabase: Fetch Strategic Data (REQUIRED) ──────────────────────────
+    const [
+      { data: objectives, error: objError },
+      { data: campaigns, error: campError },
+      { data: articleMap, error: artError },
+      { data: posts, error: postError },
+    ] = await Promise.all([
+      supabase.from('objectives').select('id, name, description').is('archived_at', null),
+      supabase.from('campaigns').select('id, name, objective_id, status').is('archived_at', null),
+      supabase.from('article_strategy_map').select('id, mysql_article_id, article_title, article_slug, objective_id, campaign_id, role, strategic_notes'),
+      supabase.from('social_posts').select('id, topic, platforms, status, campaign_id, objective_id, scheduled_for').not('status', 'eq', 'published').order('scheduled_for', { ascending: true }).limit(60),
+    ]);
 
-    if (objError) throw objError;
+    // Supabase errors are blocker — surface them clearly
+    if (objError) throw new Error(`Supabase objectives: ${objError.message}`);
+    if (campError) throw new Error(`Supabase campaigns: ${campError.message}`);
+    if (artError) throw new Error(`Supabase article_strategy_map: ${artError.message}`);
+    if (postError) throw new Error(`Supabase social_posts: ${postError.message}`);
 
-    // 2. Fetch Campaigns
-    const { data: campaigns, error: campError } = await supabase
-      .from('campaigns')
-      .select('id, name, objective_id, status')
-      .is('archived_at', null);
+    // ─── 2. MySQL: Fetch Blog Articles (OPTIONAL — graceful fallback) ──────────
+    let mysqlArticles: { id: number; title: string; slug: string }[] = [];
+    let mysqlStatus = 'ok';
+    try {
+      const postsTable = await findWpPostsTable();
+      const [rows]: any = await pool.query(
+        `SELECT ID as id, post_title as title, post_name as slug
+         FROM \`${postsTable}\`
+         WHERE post_type = 'post' AND post_status = 'publish'
+         ORDER BY post_date DESC
+         LIMIT 100`
+      );
+      mysqlArticles = rows as any[];
+      console.log(`[strategy-map] Loaded ${mysqlArticles.length} articles from MySQL table: ${postsTable}`);
+    } catch (mysqlErr: any) {
+      // MySQL is optional — we just log a warning and continue
+      mysqlStatus = mysqlErr.message;
+      console.warn('[strategy-map] MySQL unavailable, continuing without blog articles:', mysqlErr.message);
+    }
 
-    if (campError) throw campError;
-
-    // 3. Fetch Article Map
-    const { data: articleMap, error: artError } = await supabase
-      .from('article_strategy_map')
-      .select('id, mysql_article_id, article_title, article_slug, objective_id, campaign_id, role, strategic_notes');
-
-    if (artError) throw artError;
-
-    // 4. Fetch Posts — real column is 'platforms' (TEXT[] array, not 'platform')
-    // Also real scheduling column is 'scheduled_for', not 'publish_at'
-    const { data: posts, error: postError } = await supabase
-      .from('social_posts')
-      .select('id, topic, platforms, status, campaign_id, objective_id, scheduled_for, metadata')
-      .not('status', 'eq', 'published')  // Only show non-published for the strategy view
-      .order('scheduled_for', { ascending: true })
-      .limit(80);
-
-    if (postError) throw postError;
-
-    // ─── Build React Flow graph ───────────────────────────────────────────────
+    // ─── 3. Build React Flow Graph ─────────────────────────────────────────────
     const nodes: any[] = [];
     const edges: any[] = [];
-
-    // ROOT NODE
     const rootId = 'root';
+
     nodes.push({
       id: rootId,
       type: 'rootNode',
-      data: { label: 'RRSS Objetivo 2026' },
+      data: { label: 'Cerebro Estratégico' },
       position: { x: 0, y: 0 },
     });
 
@@ -60,7 +79,7 @@ export async function GET() {
         position: { x: 0, y: 0 },
       });
       edges.push({
-        id: `e-root-${obj.id}`,
+        id: `e-root-obj-${obj.id}`,
         source: rootId,
         target: `obj-${obj.id}`,
         type: 'smoothstep',
@@ -87,38 +106,26 @@ export async function GET() {
       });
     });
 
+    // ARTICLE NODES — merge MySQL + Supabase mappings
     const uniqueArticles = new Map<number, { id: number; title: string; slug: string; mappings: any[] }>();
-    
-    // 3.5. Fetch All Articles from MySQL so we can show "orphans" in the map
-    const [rows]: any = await pool.query(
-      `SELECT ID as id, post_title as title, post_name as slug, post_date as date
-       FROM wp_posts 
-       WHERE post_type = 'post' AND post_status = 'publish'
-       ORDER BY post_date DESC
-       LIMIT 100`
-    );
-    const mysqlArticles = rows as any[];
 
-    // Seed the map with MySQL articles (they have 0 mappings initially)
-    mysqlArticles.forEach(art => {
-      uniqueArticles.set(art.id, {
-        id: art.id,
-        title: art.title,
-        slug: art.slug,
-        mappings: [],
-      });
+    // Seed with MySQL articles (no mapping yet)
+    mysqlArticles.forEach((art) => {
+      uniqueArticles.set(Number(art.id), { id: Number(art.id), title: art.title, slug: art.slug, mappings: [] });
     });
 
+    // Overlay Supabase mappings (may reference articles not in MySQL if MySQL is down)
     (articleMap ?? []).forEach((entry) => {
-      if (!uniqueArticles.has(entry.mysql_article_id)) {
-        uniqueArticles.set(entry.mysql_article_id, {
-          id: entry.mysql_article_id,
-          title: entry.article_title,
+      const aid = Number(entry.mysql_article_id);
+      if (!uniqueArticles.has(aid)) {
+        uniqueArticles.set(aid, {
+          id: aid,
+          title: entry.article_title ?? `Artículo #${aid}`,
           slug: entry.article_slug ?? '',
           mappings: [],
         });
       }
-      uniqueArticles.get(entry.mysql_article_id)!.mappings.push(entry);
+      uniqueArticles.get(aid)!.mappings.push(entry);
     });
 
     uniqueArticles.forEach((article) => {
@@ -126,22 +133,14 @@ export async function GET() {
       nodes.push({
         id: artNodeId,
         type: 'articleNode',
-        data: {
-          label: article.title,
-          slug: article.slug,
-          mappings: article.mappings,
-          id: article.id,
-        },
+        data: { label: article.title, slug: article.slug, mappings: article.mappings, id: article.id },
         position: { x: 0, y: 0 },
       });
 
-      // One edge per mapping (to campaign or objective)
-      if (article.mappings && article.mappings.length > 0) {
+      if (article.mappings.length > 0) {
         article.mappings.forEach((m: any) => {
-          const sourceNodeId = m.campaign_id
-            ? `camp-${m.campaign_id}`
-            : m.objective_id
-            ? `obj-${m.objective_id}`
+          const sourceNodeId = m.campaign_id ? `camp-${m.campaign_id}`
+            : m.objective_id ? `obj-${m.objective_id}`
             : rootId;
           edges.push({
             id: `e-${sourceNodeId}-${artNodeId}-${m.id}`,
@@ -154,42 +153,36 @@ export async function GET() {
           });
         });
       } else {
-        // ORPHAN ARTICLE: Connect it via a dashed line to the ROOT so it doesn't break layout
+        // Orphan article: dashed red line to root
         edges.push({
           id: `e-orphan-root-${artNodeId}`,
           source: rootId,
           target: artNodeId,
           type: 'smoothstep',
-          style: { stroke: '#ef4444', strokeWidth: 1.5, strokeDasharray: '5,5' }, // Red dashed line for orphans
+          style: { stroke: '#ef4444', strokeWidth: 1.5, strokeDasharray: '5,5' },
         });
       }
     });
 
-    // POST NODES — platforms is a TEXT[] array, we take first value for display
+    // POST NODES
     (posts ?? []).forEach((post) => {
       const postNodeId = `post-${post.id}`;
       const platformList: string[] = post.platforms ?? [];
-      const displayPlatform = platformList.length > 0 ? platformList.join(', ') : 'social';
-
       nodes.push({
         id: postNodeId,
         type: 'postNode',
         data: {
           label: post.topic ?? '(sin tema)',
-          platform: displayPlatform,
+          platform: platformList.join(', ') || 'social',
           status: post.status,
           publishAt: post.scheduled_for,
           raw: post,
         },
         position: { x: 0, y: 0 },
       });
-
-      const parentPostId = post.campaign_id
-        ? `camp-${post.campaign_id}`
-        : post.objective_id
-        ? `obj-${post.objective_id}`
+      const parentPostId = post.campaign_id ? `camp-${post.campaign_id}`
+        : post.objective_id ? `obj-${post.objective_id}`
         : null;
-
       if (parentPostId) {
         edges.push({
           id: `e-${parentPostId}-${postNodeId}`,
@@ -201,7 +194,17 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json({ nodes, edges });
+    return NextResponse.json({
+      nodes,
+      edges,
+      _meta: {
+        objectives: (objectives ?? []).length,
+        campaigns: (campaigns ?? []).length,
+        articles: uniqueArticles.size,
+        posts: (posts ?? []).length,
+        mysql_status: mysqlStatus,
+      }
+    });
 
   } catch (error: any) {
     console.error('[strategy-map API Error]:', error);
