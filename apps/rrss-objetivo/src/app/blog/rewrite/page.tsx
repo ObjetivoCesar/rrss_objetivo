@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { supabase } from "@/lib/supabase";
 import { 
-  FileText, Search, Loader2, Save, ExternalLink, Image as ImageIcon, CheckCircle2 
+  FileText, Search, Loader2, Save, ExternalLink, Image as ImageIcon, CheckCircle2,
+  Link2, Bold, Heading3, Undo
 } from "lucide-react";
 import toast from "react-hot-toast";
 import MediaUploader from "@/components/MediaUploader";
@@ -30,6 +30,7 @@ export default function RewriteBlogPage() {
   
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetchArticles();
@@ -38,18 +39,52 @@ export default function RewriteBlogPage() {
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('/api/articles/mysql');
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch articles');
       setArticles((data as Article[]) || []);
     } catch (error: any) {
       console.error(error);
-      toast.error('Error cargando artículos: ' + error.message);
+      toast.error('Error cargando artículos de MySQL: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const insertMarkdown = (prefix: string, suffix: string, defaultText: string = '') => {
+    if (!textareaRef.current || !selectedArticle) return;
+    const textarea = textareaRef.current;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = selectedArticle.content;
+    const selectedText = text.substring(start, end) || defaultText;
+
+    let replacement = '';
+    if (prefix === '[') {
+      let linkText = text.substring(start, end);
+      if (!linkText) {
+        linkText = window.prompt('Texto del enlace:', defaultText) || defaultText;
+      }
+      const url = window.prompt(`Ingresa la URL del enlace para "${linkText}":`, 'https://');
+      if (!url) return;
+      replacement = `[${linkText}](${url})`;
+    } else {
+      replacement = `${prefix}${selectedText}${suffix}`;
+    }
+
+    // Preserve undo history using native execCommand
+    textarea.focus();
+    textarea.setSelectionRange(start, end);
+    const success = document.execCommand('insertText', false, replacement);
+
+    if (!success) {
+      const newText = text.substring(0, start) + replacement + text.substring(end);
+      setSelectedArticle({ ...selectedArticle, content: newText });
+    } else {
+      // execCommand updates the value, so we sync the state
+      setSelectedArticle({ ...selectedArticle, content: textarea.value });
     }
   };
 
@@ -57,21 +92,23 @@ export default function RewriteBlogPage() {
     if (!selectedArticle) return;
     try {
       setIsSaving(true);
-      const { id, ...updateData } = selectedArticle;
       
-      const { error } = await supabase
-        .from('articles')
-        .update(updateData)
-        .eq('id', id);
+      const res = await fetch('/api/articles/mysql', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedArticle),
+      });
 
-      if (error) throw error;
-      toast.success('Cambios guardados correctamente');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save article');
+      
+      toast.success('Cambios guardados correctamente en MySQL');
       
       // Update local list
-      setArticles(prev => prev.map(a => a.id === id ? selectedArticle : a));
+      setArticles(prev => prev.map(a => a.id === selectedArticle.id ? selectedArticle : a));
     } catch(error: any) {
       console.error(error);
-      toast.error('Error guardando: ' + error.message);
+      toast.error('Error guardando en MySQL: ' + error.message);
     } finally {
       setIsSaving(false);
     }
@@ -287,7 +324,46 @@ export default function RewriteBlogPage() {
                           Editor Raw
                        </span>
                      </div>
+
+                     {/* Markdown Toolbar */}
+                     <div className="flex items-center gap-2 mb-3 p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-sm">
+                        <button 
+                          onMouseDown={(e) => { e.preventDefault(); document.execCommand('undo'); }}
+                          title="Deshacer (Ctrl+Z)"
+                          className="p-1.5 text-neutral-600 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-md transition-colors mr-2"
+                        >
+                          <Undo className="w-4 h-4" />
+                        </button>
+                        <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 mr-1"></div>
+                        <button 
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => insertMarkdown('**', '**', 'Texto en negrita')}
+                          title="Negrita"
+                          className="p-1.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-md transition-colors"
+                        >
+                          <Bold className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => insertMarkdown('### ', '', 'Subtítulo H3')}
+                          title="Subtítulo H3"
+                          className="p-1.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-md transition-colors"
+                        >
+                          <Heading3 className="w-4 h-4" />
+                        </button>
+                        <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 mx-1"></div>
+                        <button 
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => insertMarkdown('[', '](url)', 'Texto del enlace')}
+                          title="Insertar Enlace (Interlinking)"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-md transition-colors text-xs font-bold"
+                        >
+                          <Link2 className="w-3.5 h-3.5" /> Añadir Enlace
+                        </button>
+                     </div>
+
                      <textarea 
+                        ref={textareaRef}
                         value={selectedArticle.content || ''}
                         onChange={(e) => setSelectedArticle({...selectedArticle, content: e.target.value})}
                         className="w-full font-mono text-sm leading-loose bg-neutral-50 dark:bg-black/20 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 outline-none focus:border-blue-500 min-h-[600px] text-neutral-800 dark:text-neutral-200"

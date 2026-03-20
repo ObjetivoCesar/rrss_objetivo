@@ -1,12 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   Type, Search, BrainCircuit, PenTool, Sparkles, ChevronRight, 
   Settings2, Loader2, CheckCircle2, Globe, FileText, ArrowRight, BookOpen, AlertCircle,
-  Mic, MicOff, AlignLeft, Image as ImageIcon, X
+  Mic, MicOff, AlignLeft, Image as ImageIcon, X, Link2, Bold, Heading3, Undo
 } from "lucide-react";
 import toast from "react-hot-toast";
 import MediaUploader from "@/components/MediaUploader";
@@ -20,6 +20,7 @@ export default function SeoLabPage() {
   // -- FORMS & DATA --
   const [keyword, setKeyword] = useState('');
   const [humanExperience, setHumanExperience] = useState('');
+  const [notebookLmContext, setNotebookLmContext] = useState('');
   const [loading, setLoading] = useState(false);
   const [researchData, setResearchData] = useState<any>(null); // To hold the scraped content & analysis
   const [articleData, setArticleData] = useState<any>(null);
@@ -30,12 +31,14 @@ export default function SeoLabPage() {
   const [wordCount, setWordCount] = useState('Media (~1000 palabras)');
   const [isRecording, setIsRecording] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // -- LocalStorage Persistence --
   useEffect(() => {
     const savedStep = localStorage.getItem('seo_lab_currentStep');
     const savedKeyword = localStorage.getItem('seo_lab_keyword');
     const savedHumanExp = localStorage.getItem('seo_lab_humanExperience');
+    const savedNotebookLm = localStorage.getItem('seo_lab_notebookLmContext');
     const savedResearch = localStorage.getItem('seo_lab_researchData');
     const savedArticle = localStorage.getItem('seo_lab_articleData');
     const savedCover = localStorage.getItem('seo_lab_coverImage');
@@ -44,6 +47,7 @@ export default function SeoLabPage() {
     if (savedStep) setCurrentStep(savedStep as LabStep);
     if (savedKeyword) setKeyword(savedKeyword);
     if (savedHumanExp) setHumanExperience(savedHumanExp);
+    if (savedNotebookLm) setNotebookLmContext(savedNotebookLm);
     if (savedResearch) {
       try {
         setResearchData(JSON.parse(savedResearch));
@@ -69,12 +73,57 @@ export default function SeoLabPage() {
     localStorage.setItem('seo_lab_currentStep', currentStep);
     localStorage.setItem('seo_lab_keyword', keyword);
     localStorage.setItem('seo_lab_humanExperience', humanExperience);
+    localStorage.setItem('seo_lab_notebookLmContext', notebookLmContext);
     localStorage.setItem('seo_lab_researchData', researchData ? JSON.stringify(researchData) : '');
     localStorage.setItem('seo_lab_articleData', articleData ? JSON.stringify(articleData) : '');
     localStorage.setItem('seo_lab_coverImage', coverImage);
     localStorage.setItem('seo_lab_wordCount', wordCount);
-  }, [currentStep, keyword, humanExperience, researchData, articleData, coverImage, wordCount, mounted]);
+  }, [currentStep, keyword, humanExperience, notebookLmContext, researchData, articleData, coverImage, wordCount, mounted]);
   
+  // -- Markdown Toolbar Handlers --
+  const insertMarkdown = (prefix: string, suffix: string, defaultText: string = '') => {
+    if (!textareaRef.current || !articleData) return;
+    const textarea = textareaRef.current;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = articleData.markdown;
+    const selectedText = text.substring(start, end) || defaultText;
+
+    let replacement = '';
+    // Lógica especial para enlaces
+    if (prefix === '[') {
+      let linkText = text.substring(start, end);
+      if (!linkText) {
+        linkText = window.prompt('Texto del enlace:', defaultText) || defaultText;
+      }
+      const url = window.prompt(`Ingresa la URL del enlace para "${linkText}":`, 'https://');
+      if (!url) return; // canceló el prompt
+      replacement = `[${linkText}](${url})`;
+    } else {
+      replacement = `${prefix}${selectedText}${suffix}`;
+    }
+
+    // Truco NATIVO para mantener el historial de Ctrl+Z del navegador
+    textarea.focus();
+    textarea.setSelectionRange(start, end);
+    const success = document.execCommand('insertText', false, replacement);
+
+    if (!success) {
+      // Fallback si el navegador no soporta execCommand
+      const newText = text.substring(0, start) + replacement + text.substring(end);
+      setArticleData({ ...articleData, markdown: newText });
+    }
+
+    // Devolver el foco y seleccionar el texto formateado
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+      }
+    }, 0);
+  };
+
   // -- Handlers --
   const handleResearch = async () => {
     if (!keyword.trim()) {
@@ -145,7 +194,7 @@ export default function SeoLabPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           keyword, 
-          rawContext: researchData.rawContext, 
+          rawContext: notebookLmContext ? `${researchData.rawContext}\n\n[CONTEXTO EXTERNO NOTEBOOKLM]:\n${notebookLmContext}` : researchData.rawContext, 
           analysis: researchData.analysis,
           humanExperience,
           wordCount
@@ -310,6 +359,28 @@ export default function SeoLabPage() {
 
             </div>
 
+            {/* NotebookLM Context Input */}
+            <div className="bg-white/80 dark:bg-black/60 backdrop-blur-2xl border border-purple-200 dark:border-purple-900/30 rounded-3xl p-8 shadow-xl shadow-purple-500/5 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                 <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <Sparkles className="w-5 h-5 text-white" />
+                 </div>
+                 <div>
+                    <h2 className="text-xl font-bold text-neutral-900 dark:text-white">Contexto Externo Profundo (NotebookLM)</h2>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Pega aquí el resumen o puntos estratégicos extraídos de tus PDFs o análisis de mercado.</p>
+                 </div>
+              </div>
+
+              <div className="relative mb-2">
+                <textarea
+                  value={notebookLmContext}
+                  onChange={(e) => setNotebookLmContext(e.target.value)}
+                  placeholder="Ejemplo: Según el PDF de tendencias 2026, los usuarios buscan automatización sin código. Los 3 vacíos del mercado son..."
+                  className="w-full h-32 p-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-y shadow-inner"
+                />
+              </div>
+            </div>
+
             {/* Humanization Input */}
             <div className="bg-white/80 dark:bg-black/60 backdrop-blur-2xl border border-blue-200 dark:border-blue-900/30 rounded-3xl p-8 shadow-xl shadow-blue-500/5">
               <div className="flex items-center gap-3 mb-6">
@@ -455,7 +526,8 @@ export default function SeoLabPage() {
                           platforms: ['blog'], 
                           categoryId: 'seo-lab-article',
                           media_urls: coverImage ? [coverImage] : [],
-                          status: 'pending'
+                          status: 'pending',
+                          metadata: { notebookLmContext, humanExperience }
                         })
                       });
                       
@@ -477,6 +549,7 @@ export default function SeoLabPage() {
                   onClick={() => {
                     setKeyword('');
                     setHumanExperience('');
+                    setNotebookLmContext('');
                     setResearchData(null);
                     setArticleData(null);
                     setCoverImage('');
@@ -625,7 +698,45 @@ export default function SeoLabPage() {
                      </span>
                   </div>
 
+                  {/* Markdown Toolbar */}
+                  <div className="flex items-center gap-2 mb-3 p-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-sm">
+                    <button 
+                      onMouseDown={(e) => { e.preventDefault(); document.execCommand('undo'); }}
+                      title="Deshacer (Ctrl+Z)"
+                      className="p-1.5 text-neutral-600 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-md transition-colors mr-2"
+                    >
+                      <Undo className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 mr-1"></div>
+                    <button 
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertMarkdown('**', '**', 'Texto en negrita')}
+                      title="Negrita"
+                      className="p-1.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-md transition-colors"
+                    >
+                      <Bold className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertMarkdown('### ', '', 'Subtítulo H3')}
+                      title="Subtítulo H3"
+                      className="p-1.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 rounded-md transition-colors"
+                    >
+                      <Heading3 className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-5 bg-neutral-200 dark:bg-neutral-700 mx-1"></div>
+                    <button 
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertMarkdown('[', '](url)', 'Texto del enlace')}
+                      title="Insertar Enlace (Interlinking)"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-md transition-colors text-xs font-bold"
+                    >
+                      <Link2 className="w-3.5 h-3.5" /> Añadir Enlace
+                    </button>
+                  </div>
+
                   <textarea
+                    ref={textareaRef}
                     value={articleData.markdown}
                     onChange={(e) => setArticleData({...articleData, markdown: e.target.value})}
                     className="w-full flex-grow text-sm font-mono leading-loose bg-white dark:bg-neutral-900 p-6 rounded-xl border border-neutral-200 dark:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-y min-h-[600px] lg:min-h-full text-neutral-800 dark:text-neutral-200"

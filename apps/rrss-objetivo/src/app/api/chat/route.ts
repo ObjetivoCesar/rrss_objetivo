@@ -5,6 +5,7 @@ import { generateText, tool, jsonSchema } from 'ai';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
+import pool from '@/lib/mysql'; // Pool de MySQL para artículos reales
 
 // ============================================================
 // GEMINI KEY POOL — SELECCIÓN ALEATORIA SIN LAZY STREAM 
@@ -93,28 +94,32 @@ async function getContextSnapshot(supabase: any): Promise<string> {
       .is('archived_at', null)
       .limit(10);
 
-    // Últimos posts del banco de publicaciones
+    // Últimos posts del banco de publicaciones (Borradores y Programados)
     const { data: recentPosts } = await supabase
       .from('social_posts')
-      .select('id, status, platforms, scheduled_for, campaign_id, objective_id')
+      .select('id, topic, status, platforms, scheduled_for, campaign_id')
       .is('archived_at', null)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // Últimos artículos del blog (SEO Content Lab)
-    const { data: recentArticles } = await supabase
-      .from('articles')
-      .select('id, title, slug, published, excerpt')
       .order('created_at', { ascending: false })
       .limit(10);
 
+    // Últimos artículos publicados del blog en MYSQL (Real-Time Master)
+    let mysqlArticles: any[] = [];
+    try {
+      const [rows]: any = await pool.query(
+        'SELECT id, title, slug, published_at FROM articles ORDER BY published_at DESC LIMIT 15'
+      );
+      mysqlArticles = rows;
+    } catch (mysqlErr) {
+      console.warn('[Donna Snapshot] Error cargando MySQL:', mysqlErr);
+    }
+
     let snapshot = '=== SNAPSHOT DE LA BASE DE DATOS (REAL-TIME CONTEXT) ===\n';
     snapshot += 'Estado actual del ecosistema:\n';
-    snapshot += '- OBJETIVOS/PILARES ESTRATÉGICOS:\n' + JSON.stringify(objectives || [], null, 2) + '\n';
-    snapshot += '- CAMPAÑAS ACTIVAS:\n' + JSON.stringify(campaigns || [], null, 2) + '\n';
-    snapshot += '- ÚLTIMOS POSTS EN EL BANCO (para evitar repetir temas):\n' + JSON.stringify(recentPosts || [], null, 2) + '\n';
-    snapshot += '- ARTÍCULOS DE BLOG (SEO Content Lab):\n' + JSON.stringify(recentArticles || [], null, 2) + '\n';
-    snapshot += '- NOTA: Ahora puedes sugerir temas para artículos de blog y Donna puede ver lo que ya existe para evitar duplicados.\n';
+    snapshot += '- 🎯 OBJETIVOS/PILARES ESTRATÉGICOS:\n' + JSON.stringify(objectives || [], null, 2) + '\n';
+    snapshot += '- 📢 CAMPAÑAS ACTIVAS:\n' + JSON.stringify(campaigns || [], null, 2) + '\n';
+    snapshot += '- 📝 BORRADORES Y POSTS EN SUPABASE (social_posts):\n' + JSON.stringify(recentPosts || [], null, 2) + '\n';
+    snapshot += '- 🌐 ARTÍCULOS PUBLICADOS EN MYSQL (Blog Real):\n' + JSON.stringify(mysqlArticles || [], null, 2) + '\n';
+    snapshot += '- NOTA PARA DONNA: Los artículos en MySQL son los que ya están en vivo. Los de Supabase son borradores o posts de redes sociales. Usa esta data para evitar duplicar temas y para recomendar enlaces internos exactos.\n';
     return snapshot;
   } catch (error) {
     console.error("Error cargando Snapshot:", error);
@@ -432,6 +437,33 @@ export async function POST(req: Request) {
           };
         },
       }),
+      read_article_content: tool({
+        description: 'Lee el contenido completo de un artículo (MySQL) o borrador (Supabase). Úsalo para resumir, analizar o crear enlaces internos precisos.',
+        parameters: jsonSchema<{
+          id: string;
+          source: 'mysql' | 'supabase';
+        }>({
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'El ID o Slug del artículo a leer' },
+            source: { type: 'string', enum: ['mysql', 'supabase'], description: 'Origen del dato (mysql para publicados, supabase para borradores)' },
+          },
+          required: ['id', 'source'],
+        }),
+        // @ts-ignore
+        execute: async ({ id, source }: { id: string, source: 'mysql' | 'supabase' }) => {
+          console.log(`[Donna Tool] Leyendo contenido de ${source}: ${id}`);
+          if (source === 'mysql') {
+            const [rows]: any = await pool.query('SELECT content, title, slug FROM articles WHERE id = ? OR slug = ?', [id, id]);
+            if (!rows || rows.length === 0) return { error: 'Artículo no encontrado en MySQL.' };
+            return { title: rows[0].title, content: rows[0].content, slug: rows[0].slug };
+          } else {
+            const { data, error } = await supabase.from('social_posts').select('topic, content_text').eq('id', id).single();
+            if (error || !data) return { error: 'Borrador no encontrado en Supabase.' };
+            return { title: data.topic, content: data.content_text };
+          }
+        },
+      }),
     };
 
     let responseText = '';
@@ -519,16 +551,23 @@ export async function POST(req: Request) {
 
     if (!responseText && !uiAction) throw new Error("Agotadas todas las rutas de inferencia (Las 4 llaves de Gemini están bloqueadas por Rate Limit o Cuota).");
 
-    // Auto-guardar notas persistentes con regex
-    const noteMatch = responseText.match(/<SAVE_NOTE topic="([^"]+)">([\s\S]+?)<\/SAVE_NOTE>/);
+    // Auto-guardar notas persistentes con regex mejorado para capturar IDs relacionales
+    const noteMatch = responseText.match(/<SAVE_NOTE topic="([^"]+)"(?: objective_id="([^"]*)")?(?: campaign_id="([^"]*)")?>([\s\S]+?)<\/SAVE_NOTE>/);
     if (noteMatch) {
       try {
+        const topic = noteMatch[1].trim();
+        const objective_id = noteMatch[2]?.trim() || null;
+        const campaign_id = noteMatch[3]?.trim() || null;
+        const content = noteMatch[4].trim();
+
         await supabase.from('donna_memory').insert({
-          topic: noteMatch[1].trim(),
-          content: noteMatch[2].trim(),
+          topic,
+          content,
+          objective_id: objective_id && objective_id !== '' ? objective_id : null,
+          campaign_id: campaign_id && campaign_id !== '' ? campaign_id : null,
           added_by: 'donna',
         });
-        console.log(`[Donna Memory] ✅ Nota guardada: "${noteMatch[1]}"`);
+        console.log(`[Donna Memory] ✅ Nota guardada relacionalmente: "${topic}" (Obj: ${objective_id}, Camp: ${campaign_id})`);
       } catch (e) {
         console.error('[Donna Memory] Error:', e);
       }

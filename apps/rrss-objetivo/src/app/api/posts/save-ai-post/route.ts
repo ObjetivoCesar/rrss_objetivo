@@ -15,7 +15,8 @@ export async function POST(req: Request) {
       categoryId,
       media_urls,
       status = "pending",
-      campaign_id = null
+      campaign_id = null,
+      metadata = {}
     } = body;
 
     // Validación básica
@@ -46,7 +47,8 @@ export async function POST(req: Request) {
           media_url: realizedUrls[0] || null,
           status: status,
           scheduled_for: scheduledFor.toISOString(),
-          campaign_id: campaign_id
+          campaign_id: campaign_id,
+          metadata: metadata
         },
       ])
       .select()
