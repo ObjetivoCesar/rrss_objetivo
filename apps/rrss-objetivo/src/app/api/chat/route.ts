@@ -113,13 +113,35 @@ async function getContextSnapshot(supabase: any): Promise<string> {
       console.warn('[Donna Snapshot] Error cargando MySQL:', mysqlErr);
     }
 
+    // Mapa Estratégico: qué artículos apoyan qué objetivos/campañas
+    const { data: strategyMap } = await supabase
+      .from('article_strategy_map')
+      .select('mysql_article_id, article_title, article_slug, objective_id, campaign_id, role, strategic_notes')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    // Calcular cobertura estratégica por objetivo
+    const coverageSummary: Record<string, { name: string, articles: number, titles: string[] }> = {};
+    if (objectives && strategyMap) {
+      for (const obj of objectives) {
+        const linked = strategyMap.filter((m: any) => m.objective_id === obj.id);
+        coverageSummary[obj.id] = {
+          name: obj.name,
+          articles: linked.length,
+          titles: linked.map((m: any) => m.article_title),
+        };
+      }
+    }
+
     let snapshot = '=== SNAPSHOT DE LA BASE DE DATOS (REAL-TIME CONTEXT) ===\n';
     snapshot += 'Estado actual del ecosistema:\n';
     snapshot += '- 🎯 OBJETIVOS/PILARES ESTRATÉGICOS:\n' + JSON.stringify(objectives || [], null, 2) + '\n';
     snapshot += '- 📢 CAMPAÑAS ACTIVAS:\n' + JSON.stringify(campaigns || [], null, 2) + '\n';
     snapshot += '- 📝 BORRADORES Y POSTS EN SUPABASE (social_posts):\n' + JSON.stringify(recentPosts || [], null, 2) + '\n';
     snapshot += '- 🌐 ARTÍCULOS PUBLICADOS EN MYSQL (Blog Real):\n' + JSON.stringify(mysqlArticles || [], null, 2) + '\n';
-    snapshot += '- NOTA PARA DONNA: Los artículos en MySQL son los que ya están en vivo. Los de Supabase son borradores o posts de redes sociales. Usa esta data para evitar duplicar temas y para recomendar enlaces internos exactos.\n';
+    snapshot += '- 🗺️ MAPA ESTRATÉGICO (Artículos ↔ Objetivos):\n' + JSON.stringify(coverageSummary || {}, null, 2) + '\n';
+    snapshot += '- 📊 COBERTURA: Usa este mapa para identificar qué pilares tienen POCOS artículos de apoyo y recomienda crear contenido para llenar esos huecos.\n';
+    snapshot += '- NOTA PARA DONNA: Los artículos en MySQL son los que ya están en vivo. Los de Supabase son borradores o posts de redes sociales. Usa la herramienta tag_article para vincular artículos a objetivos cuando César lo solicite.\n';
     return snapshot;
   } catch (error) {
     console.error("Error cargando Snapshot:", error);
@@ -141,7 +163,7 @@ No eres un asistente genérico — eres una colega intelectual de alto nivel con
   if (hasTools) {
     prompt += `
 ## REGLAS DE ORO PARA EL USO DE HERRAMIENTAS
-Tienes herramientas nativas (create_objective, manage_campaign, propose_post, pilot_editor). Úsalas EXCLUSIVAMENTE mediante la invocación nativa de funciones (Tool Calling).
+Tienes herramientas nativas (create_objective, manage_campaign, propose_post, pilot_editor, read_article_content, tag_article). Úsalas EXCLUSIVAMENTE mediante la invocación nativa de funciones (Tool Calling).
 1. **PIDE PERMISO Y ESPERA:** Para crear o editar cosas en la DB (create_objective, manage_campaign, propose_post), **nunca** las ejecutes en el mismo turno en el que propones la idea. Pregunta: *"¿Te parece bien si creo la campaña?"* y ESPERA a que el humano apruebe.
 2. **ACCIÓN REAL, NO SIMULADA:** Cuando el humano te da la orden ("créala", "hazlo"), ES OBLIGATORIO que invoques la herramienta nativa (por ejemplo \`manage_campaign\` con \`action="create"\`). NUNCA respondas "Listo, ya está creada" sin haber invocado REALMENTE la herramienta de software. ¡Simular la ejecución hablando de ello no funciona! Tienes que ejecutar la herramienta nativa en el payload.
 3. El uso de herramientas debe ser silencioso. Cuando la herramienta se ejecuta con éxito, responde con frescura *"Listo, la campaña ya está en tu panel."*
@@ -464,6 +486,53 @@ export async function POST(req: Request) {
           }
         },
       }),
+      // @ts-ignore
+      tag_article: tool({
+        description: 'Vincula un artículo del blog (MySQL) con un Objetivo y/o Campaña estratégica. Esto permite trackear qué contenido apoya qué pilar. Soporta many-to-many (un artículo puede servir a múltiples objetivos). Usa los IDs del SNAPSHOT.',
+        parameters: jsonSchema<{
+          mysql_article_id: number;
+          article_title: string;
+          article_slug: string;
+          objective_id: string;
+          campaign_id?: string;
+          role?: string;
+          strategic_notes?: string;
+        }>({
+          type: 'object',
+          properties: {
+            mysql_article_id: { type: 'number', description: 'ID numérico del artículo en MySQL (del SNAPSHOT)' },
+            article_title: { type: 'string', description: 'Título del artículo (para cache y legibilidad)' },
+            article_slug: { type: 'string', description: 'Slug del artículo' },
+            objective_id: { type: 'string', description: 'UUID del Objetivo en Supabase (del SNAPSHOT)' },
+            campaign_id: { type: 'string', description: 'UUID de la Campaña (opcional)' },
+            role: { type: 'string', enum: ['pillar', 'support', 'backlink_target', 'lead_magnet'], description: 'Rol del artículo: pillar=contenido pilar, support=refuerzo, backlink_target=enlace interno, lead_magnet=captura' },
+            strategic_notes: { type: 'string', description: 'Nota breve sobre por qué este artículo sirve a este objetivo' },
+          },
+          required: ['mysql_article_id', 'article_title', 'article_slug', 'objective_id'],
+        }),
+        // @ts-ignore
+        execute: async ({ mysql_article_id, article_title, article_slug, objective_id, campaign_id, role, strategic_notes }: any) => {
+          console.log(`[Donna Tool] Vinculando artículo ${mysql_article_id} ("${article_title}") → Objetivo ${objective_id}`);
+          const { data, error } = await supabase
+            .from('article_strategy_map')
+            .upsert({
+              mysql_article_id,
+              article_title,
+              article_slug: article_slug || null,
+              objective_id,
+              campaign_id: campaign_id || null,
+              role: role || 'support',
+              strategic_notes: strategic_notes || null,
+            }, { onConflict: 'mysql_article_id,objective_id,campaign_id' })
+            .select()
+            .single();
+          if (error) {
+            console.error('[Donna Tool] Error vinculando artículo:', error);
+            return { status: 'error', message: `Error al vincular: ${error.message}` };
+          }
+          return { status: 'success', message: `Artículo "${article_title}" vinculado al objetivo como ${role || 'support'}.`, id: data?.id };
+        },
+      }),
     };
 
     let responseText = '';
@@ -516,7 +585,7 @@ export async function POST(req: Request) {
           if ((pilotResult as any)?.result?.status === 'ui_action') uiAction = (pilotResult as any).result;
           // Extraer resultados de herramientas ejecutadas (create_objective, manage_campaign, propose_post)
           const toolActions = (result.toolResults || []).filter((r: any) => 
-            ['create_objective', 'manage_campaign', 'propose_post'].includes(r.toolName)
+            ['create_objective', 'manage_campaign', 'propose_post', 'tag_article'].includes(r.toolName)
           ).map((r: any) => ({ tool: r.toolName, result: (r as any).result }));
           if (toolActions.length > 0) uiAction = { ...(uiAction || {}), toolActions };
           
