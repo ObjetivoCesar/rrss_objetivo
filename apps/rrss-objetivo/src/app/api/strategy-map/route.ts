@@ -91,9 +91,10 @@ export async function GET() {
     
     // 3.5. Fetch All Articles from MySQL so we can show "orphans" in the map
     const [rows]: any = await pool.query(
-      `SELECT id, title, slug, published_at as date
-       FROM articles 
-       ORDER BY published_at DESC
+      `SELECT ID as id, post_title as title, post_name as slug, post_date as date
+       FROM wp_posts 
+       WHERE post_type = 'post' AND post_status = 'publish'
+       ORDER BY post_date DESC
        LIMIT 100`
     );
     const mysqlArticles = rows as any[];

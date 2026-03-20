@@ -106,7 +106,7 @@ async function getContextSnapshot(supabase: any): Promise<string> {
     let mysqlArticles: any[] = [];
     try {
       const [rows]: any = await pool.query(
-        'SELECT id, title, slug, published_at FROM articles ORDER BY published_at DESC LIMIT 15'
+        'SELECT ID as id, post_title as title, post_name as slug, post_date as published_at FROM wp_posts WHERE post_type = "post" AND post_status = "publish" ORDER BY post_date DESC LIMIT 15'
       );
       mysqlArticles = rows;
     } catch (mysqlErr) {
