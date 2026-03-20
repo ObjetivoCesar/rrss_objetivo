@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -27,7 +27,8 @@ import { IdeaNode } from './nodes/IdeaNode';
 import { 
   Loader2, X, Globe, Link2, Target, FileText, Tag, 
   Filter, Calendar, ChevronDown, Rocket, CheckCircle2, 
-  AlertCircle, Info, Hash, Clock, Maximize2, Minimize2, Search, PlusCircle, Lightbulb, RefreshCw
+  AlertCircle, Info, Hash, Clock, Maximize2, Minimize2, Search, PlusCircle, Lightbulb, RefreshCw,
+  Heading1, Heading2, Type, MousePointerClick
 } from 'lucide-react';
 
 // ─── Custom Node Types ────────────────────────────────────────────────────────
@@ -113,16 +114,16 @@ function FilterBar({
       {/* 1. Node Type Selector (What am I looking for?) */}
       <div className="flex flex-wrap bg-slate-800 p-1 rounded-xl border border-slate-700 max-w-[400px]">
         {[
-          { id: 'all', label: 'Todo' },
           { id: 'objective', label: 'Objetivos' },
           { id: 'campaign', label: 'Campañas' },
           { id: 'article', label: 'Artículos' },
           { id: 'post', label: 'Social' },
-          { id: 'idea', label: 'Ideas' }
+          { id: 'idea', label: 'Ideas' },
+          { id: 'contentBlock', label: 'Estructura' }
         ].map(btn => (
           <button
             key={btn.id}
-            onClick={() => setFilters({ ...filters, type: btn.id })}
+            onClick={() => setFilters({ ...filters, type: filters.type === btn.id ? 'all' : btn.id })}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               filters.type === btn.id 
                 ? 'bg-blue-600 text-white shadow-lg' 
@@ -212,7 +213,7 @@ function ArticleDetailPanel({ node, onClose, isExpanded, onExpandToggle }: { nod
       .finally(() => setArticleData(false));
   }, [node]);
 
-  const mappings: any[] = node.data?.mappings || [];
+  const mappings: any[] = (node.data as any)?.mappings || [];
   const slug: string = (node.data?.slug as string) || '';
   const title: string = (node.data?.label as string) || '';
 
@@ -405,7 +406,7 @@ function ObjectiveDetailPanel({ node, onClose, isExpanded, onExpandToggle, onAdd
             <Info className="w-3.5 h-3.5" /> Descripción Estratégica
           </h4>
           <p className={`${isExpanded ? 'text-xl' : 'text-sm'} text-slate-300 leading-relaxed font-medium`}>
-            {node.data.description || 'Sin descripción detallada.'}
+            {(node.data as any).description || 'Sin descripción detallada.'}
           </p>
         </div>
 
@@ -421,7 +422,7 @@ function ObjectiveDetailPanel({ node, onClose, isExpanded, onExpandToggle, onAdd
             <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 flex items-center justify-between">
                <span className="text-[11px] text-slate-500 font-bold uppercase">Creado en</span>
                <span className="text-[10px] text-slate-300 font-mono italic">
-                 {data.created_at ? new Date(data.created_at).toLocaleDateString() : 'N/A'}
+                 {(data as any).created_at ? new Date((data as any).created_at).toLocaleDateString() : 'N/A'}
                </span>
             </div>
           </div>
@@ -487,12 +488,12 @@ function CampaignDetailPanel({ node, onClose, isExpanded, onExpandToggle, onAddI
            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase">
              <Clock className="w-3.5 h-3.5" /> Estado Actual
            </div>
-           <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-             status === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 
-             'bg-slate-700 text-slate-400 border border-slate-600'
-           }`}>
-             {status}
-           </div>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              status === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 
+              'bg-slate-700 text-slate-400 border border-slate-600'
+            }`}>
+              {status as any}
+            </div>
         </div>
 
         <div className="bg-amber-600/10 border border-amber-500/20 p-5 rounded-3xl">
@@ -541,9 +542,9 @@ function CampaignDetailPanel({ node, onClose, isExpanded, onExpandToggle, onAddI
 
 // ─── Inner Map ──────────────────────────────────────────────────────────────
 function StrategyMapInner() {
-  const [rawData, setRawData] = useState<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [rawData, setRawData] = useState<{ nodes: Node[], edges: Edge[] }>({ nodes: [], edges: [] });
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -552,7 +553,7 @@ function StrategyMapInner() {
   // Filters State
   const [filters, setFilters] = useState({
     objectiveId: '',
-    type: 'all', // all | article | post | idea
+    type: 'objective', // Default to Objective to avoid lag from Articles
     search: ''
   });
 
@@ -607,7 +608,13 @@ function StrategyMapInner() {
          const label = normalize((n.data.label as string) || '');
          const desc = normalize((n.data.description as string) || '');
          const isSearchMatch = qWords.length === 0 || qWords.every(word => label.includes(word) || desc.includes(word));
-         const isTypeMatch = typeKey ? n.type === typeKey : n.type !== 'rootNode'; // root node matches unless strictly checked
+         
+         // If a type filter is active, match it exactly. Special nodes like ideas and blocks show up with their types.
+         // If "all" is active, we show EVERYTHING (root is always added back in the nodesToKeep set anyway).
+         const isTypeMatch = (filters.type === 'all') 
+            ? true 
+            : (typeKey ? (n.type === typeKey || n.type === 'ideaNode' || n.type === 'contentBlockNode') : true);
+            
          return isSearchMatch && isTypeMatch;
       });
 
@@ -669,7 +676,7 @@ function StrategyMapInner() {
   }, [nodes, edges, setNodes, setEdges]);
 
   const onConnect = useCallback(
-    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep', style: { stroke: '#64748b', strokeWidth: 2 } } as any, eds)),
     [setEdges],
   );
 
@@ -727,10 +734,52 @@ function StrategyMapInner() {
       edges: [...prev.edges, newEdge]
     }));
     
+    // Clear type filter so the new idea is not hidden!
+    setFilters(f => ({ ...f, type: 'all' }));
+    
     setTimeout(() => {
        setSelectedNode(newNode);
     }, 50);
-  }, [setRawData, setSelectedNode]);
+  }, [setRawData, setSelectedNode, setFilters]);
+
+  // Handle Drag & Drop
+  const { screenToFlowPosition } = useReactFlow();
+
+  const onDragOver = useCallback((event: any) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: any) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      const blockLabel = event.dataTransfer.getData('application/reactflow-label');
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode: Node = {
+        id: `block-${Date.now()}`,
+        type: 'contentBlockNode',
+        position,
+        data: { label: blockLabel, blockType: type },
+      };
+
+      setRawData((prev) => ({
+        ...prev,
+        nodes: prev.nodes.concat(newNode),
+      }));
+    },
+    [screenToFlowPosition, setRawData]
+  );
 
   if (loading) {
     return (
@@ -751,24 +800,88 @@ function StrategyMapInner() {
   }
 
   return (
-    <div className="w-full h-full relative group">
-      <FilterBar 
-        objectives={objectives} 
-        filters={filters} 
-        setFilters={setFilters} 
-        onAddIdea={handleAddIdea}
-        onAutoArrange={handleAutoArrange}
-      />
+    <div className="w-full h-full flex bg-slate-950 text-slate-300">
+      
+      {/* Drag & Drop Palette Sidebar */}
+      <div className="w-64 border-r border-slate-800 bg-slate-900/50 flex flex-col pt-24 px-4 z-10 shrink-0">
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Estructurar Idea</h3>
+        <p className="text-[10px] text-slate-400 mb-6 leading-relaxed">Arrastra estas figuras al centro para mapear visualmente la estructura de un artículo, guion o idea.</p>
+        
+        <div className="space-y-3">
+          <div 
+            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-violet-500/50 hover:bg-slate-800/80 transition-colors"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('application/reactflow', 'h1');
+              e.dataTransfer.setData('application/reactflow-label', 'Título Principal (H1)');
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+          >
+            <Heading1 className="w-4 h-4 text-violet-400" />
+            <span className="text-xs font-bold text-slate-300">Título (H1)</span>
+          </div>
+          
+          <div 
+            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-blue-500/50 hover:bg-slate-800/80 transition-colors"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('application/reactflow', 'h2');
+              e.dataTransfer.setData('application/reactflow-label', 'Subtítulo (H2)');
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+          >
+            <Heading2 className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-bold text-slate-300">Subtítulo (H2)</span>
+          </div>
 
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes as any}
-        fitView
+          <div 
+            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-slate-500/50 hover:bg-slate-800/80 transition-colors"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('application/reactflow', 'p');
+              e.dataTransfer.setData('application/reactflow-label', 'Párrafo de contenido');
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+          >
+            <Type className="w-4 h-4 text-slate-400" />
+            <span className="text-xs font-bold text-slate-300">Párrafo Texto</span>
+          </div>
+
+          <div 
+            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-emerald-500/50 hover:bg-slate-800/80 transition-colors"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('application/reactflow', 'cta');
+              e.dataTransfer.setData('application/reactflow-label', 'Llamado a la Acción (Botón)');
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+          >
+            <MousePointerClick className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-bold text-slate-300">Llamado a Acción</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 h-full relative group">
+        <FilterBar 
+          objectives={objectives} 
+          filters={filters} 
+          setFilters={setFilters} 
+          onAddIdea={handleAddIdea}
+          onAutoArrange={handleAutoArrange}
+        />
+
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          nodeTypes={nodeTypes as any}
+          fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.05}
         maxZoom={1.5}
@@ -807,15 +920,21 @@ function StrategyMapInner() {
           {selectedNode.type === 'campaignNode' && 
              <CampaignDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} isExpanded={isPanelExpanded} onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)} onAddIdeaChild={handleAddIdeaChild} />
           }
-          {selectedNode.type === 'ideaNode' && (
+          {selectedNode.type === 'ideaNode' || selectedNode.type === 'contentBlockNode' ? (
              <div className="absolute top-0 right-0 w-96 h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700 shadow-2xl z-20 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
                <div className="flex items-start justify-between p-5 border-b border-slate-800 shrink-0">
                  <div className="flex-1 min-w-0 mr-3">
                    <div className="flex items-center gap-2 mb-1">
-                     <div className="p-1 bg-yellow-500/10 rounded">
-                       <Lightbulb className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                     <div className={`p-1 rounded ${selectedNode.type === 'contentBlockNode' ? 'bg-violet-500/10' : 'bg-yellow-500/10'}`}>
+                       {selectedNode.type === 'contentBlockNode' ? (
+                         <Type className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                       ) : (
+                         <Lightbulb className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                       )}
                      </div>
-                     <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-wider">Idea en Borrador</span>
+                     <span className={`text-[10px] font-bold uppercase tracking-wider ${selectedNode.type === 'contentBlockNode' ? 'text-violet-400' : 'text-yellow-500'}`}>
+                       {selectedNode.type === 'contentBlockNode' ? `Bloque de Contenido (${selectedNode.data.blockType})` : 'Idea en Borrador'}
+                     </span>
                    </div>
                    <h3 className="text-white font-bold leading-snug">{selectedNode.data.label as string}</h3>
                  </div>
@@ -824,10 +943,9 @@ function StrategyMapInner() {
                  </button>
                </div>
                <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                 <div className="bg-yellow-600/10 border border-yellow-500/20 p-5 rounded-3xl">
-                    <label className="text-[10px] text-yellow-500 font-bold uppercase mb-2 block tracking-wider">Nombre de tu Idea</label>
-                    <input 
-                      type="text" 
+                 <div className={`${selectedNode.type === 'contentBlockNode' ? 'bg-violet-600/10 border-violet-500/20' : 'bg-yellow-600/10 border-yellow-500/20'} border p-5 rounded-3xl`}>
+                    <label className={`text-[10px] font-bold uppercase mb-2 block tracking-wider ${selectedNode.type === 'contentBlockNode' ? 'text-violet-400' : 'text-yellow-500'}`}>Texto / Contenido</label>
+                    <textarea 
                       value={selectedNode.data.label as string}
                       onChange={(e) => {
                         const newName = e.target.value;
@@ -837,26 +955,16 @@ function StrategyMapInner() {
                         }));
                         setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, label: newName } } : prev);
                       }}
-                      className="w-full bg-slate-900 border border-yellow-500/30 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder-slate-500"
-                      placeholder="Escribe tu idea aquí..."
+                      className={`w-full bg-slate-900 border rounded-xl px-4 py-3 text-white text-sm focus:ring-2 outline-none transition-all placeholder-slate-500 min-h-[100px] resize-y ${selectedNode.type === 'contentBlockNode' ? 'border-violet-500/30 focus:ring-violet-500' : 'border-yellow-500/30 focus:ring-yellow-500'}`}
+                      placeholder="Escribe el contenido aquí..."
                     />
                  </div>
                  <div className="bg-slate-800/50 p-5 rounded-3xl text-center">
-                    <p className="text-xs text-slate-400 font-medium leading-relaxed">Este nodo es un concepto visual temporal. Puedes usarlo para hacer "brainstorming" antes de convertirlo formalmente en un Objetivo o Campaña desde la base de datos.</p>
-                 </div>
-
-                 <div className="pt-4 border-t border-slate-800">
-                   <button
-                     onClick={() => handleAddIdeaChild(selectedNode.id)}
-                     className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-yellow-500/20 hover:text-yellow-400 text-slate-300 py-3 rounded-xl text-xs font-bold transition-all border border-dashed border-slate-600 hover:border-yellow-500/50 mt-2"
-                   >
-                     <Lightbulb className="w-4 h-4" />
-                     AÑADIR IDEA EN ESTA CAMPAÑA
-                   </button>
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed">Arrastra un enlace (cable) desde este nodo hacia otro para conectarlos estructuralmente en el mapa.</p>
                  </div>
                </div>
              </div>
-          )}
+          ) : null}
           {selectedNode.type === 'rootNode' && (
             <div className={`absolute right-0 bg-slate-900/95 border-slate-700 p-8 flex flex-col items-center justify-center text-center transition-all ${isPanelExpanded ? 'inset-0 z-50 border-0' : 'top-0 w-80 h-full border-l z-20 animate-in slide-in-from-right'}`}>
                 <div className="absolute top-4 right-4 flex gap-2">
@@ -872,6 +980,7 @@ function StrategyMapInner() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
