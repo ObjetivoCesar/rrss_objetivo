@@ -3,19 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Calendar,
-  ListChecks,
-  PenSquare,
-  BookOpen,
-  BarChart2,
-  Settings,
-  DatabaseZap,
-  BrainCircuit,
-  Target,
-  Sparkles,
-  Sun,
-  Moon
+  LayoutDashboard, // Keep for Dashboard
+  Calendar, // Keep for Calendar, will be aliased
+  ListChecks, // Keep for Publicaciones
+  PenSquare, // Keep for Nuevo Post
+  BookOpen, // Keep for Blog Admin
+  BarChart2, // Keep for Métricas
+  Settings, // Keep for Configuración
+  DatabaseZap, // Keep for Logo
+  BrainCircuit, // Keep for Expert Lens
+  Target, // Keep for Campañas
+  Sparkles, // Keep for Donna AI
+  Sun, // Keep for ThemeToggle
+  Moon, // Keep for ThemeToggle
+  BarChart3, // New icon for Metrics
+  MessageSquare, // New icon for Editor de Posts
+  FileText, // New icon for Blog
+  Network, // New icon for Estrategia
+  Map // New icon for Map
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -29,6 +34,8 @@ const NAV_ITEMS = [
   { href: "/pipeline",  label: "Expert Lens",   icon: BrainCircuit },
   { href: "/donna",     label: "Donna AI",      icon: Sparkles },
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
+  { href: "/strategy",  label: "Estrategia",    icon: Network }, // New item
+  { href: "/map",       label: "Mapa",          icon: Map }, // New item
   { href: "/settings",  label: "Configuración", icon: Settings },
 ];
 
