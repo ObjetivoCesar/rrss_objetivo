@@ -25,10 +25,11 @@ export async function POST(req: Request) {
     }
 
     // 2. Save / Update Ideas
-    // Note: Ideas that are new won't have a UUID yet (temp ID in frontend).
-    // Ideas that exist will have a UUID.
     if (ideas && Array.isArray(ideas)) {
-      const ideasToSave = ideas.map((idea: any) => {
+      const ideasToInsert: any[] = [];
+      const ideasToUpsert: any[] = [];
+
+      ideas.forEach((idea: any) => {
         const payload: any = {
           node_type: idea.node_type || 'idea',
           label: idea.label || '',
@@ -41,20 +42,28 @@ export async function POST(req: Request) {
           updated_at: new Date().toISOString(),
         };
 
-        // If it's an existing idea (has a UUID), include it for upsert
         if (idea.id && idea.id.length === 36) {
           payload.id = idea.id;
+          ideasToUpsert.push(payload);
+        } else {
+          ideasToInsert.push(payload);
         }
-
-        return payload;
       });
 
-      if (ideasToSave.length > 0) {
-        const { error: ideaError } = await supabase
+      // Execute Upsert for existing ideas
+      if (ideasToUpsert.length > 0) {
+        const { error: upsertError } = await supabase
           .from('map_ideas')
-          .upsert(ideasToSave, { onConflict: 'id' });
+          .upsert(ideasToUpsert, { onConflict: 'id' });
+        if (upsertError) throw new Error(`Error upserting ideas: ${upsertError.message}`);
+      }
 
-        if (ideaError) throw new Error(`Error saving ideas: ${ideaError.message}`);
+      // Execute Insert for new ideas
+      if (ideasToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('map_ideas')
+          .insert(ideasToInsert);
+        if (insertError) throw new Error(`Error inserting ideas: ${insertError.message}`);
       }
     }
 

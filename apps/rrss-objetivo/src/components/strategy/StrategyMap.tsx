@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -26,7 +26,7 @@ import { PostNode } from './nodes/PostNode';
 import { IdeaNode } from './nodes/IdeaNode';
 import { 
   Loader2, X, Globe, Link2, Target, FileText, Tag, 
-  Filter, Calendar, ChevronDown, Rocket, CheckCircle2, 
+  Filter, Rocket, CheckCircle2,
   AlertCircle, Info, Hash, Clock, Maximize2, Minimize2, Search, PlusCircle, Lightbulb, RefreshCw,
   Heading1, Heading2, Type, MousePointerClick, Save, Check, Trash2, Layers
 } from 'lucide-react';
@@ -829,12 +829,17 @@ function StrategyMapInner() {
   }, [setRawData, setSelectedNode]);
 
   const handleAddIdeaChild = useCallback((parentId: string) => {
+    // Find parent position to spawn the new idea nearby
+    const parentNode = nodes.find(n => n.id === parentId);
+    const spawnX = parentNode ? parentNode.position.x : 0;
+    const spawnY = parentNode ? parentNode.position.y + 150 : 0;
+
     const newId = `idea-${Date.now()}`;
     const newNode: Node = {
       id: newId,
       type: 'ideaNode',
       data: { label: 'Nueva Idea Estratégica' },
-      position: { x: 0, y: 0 },
+      position: { x: spawnX, y: spawnY },
     };
     const newEdge: Edge = {
       id: `e-${parentId}-${newId}`,
@@ -915,7 +920,7 @@ function StrategyMapInner() {
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-screen flex bg-slate-950 text-slate-300 z-[9999] overflow-hidden">
+    <div className="fixed inset-0 w-full h-full flex bg-slate-950 text-slate-300 z-[9999] overflow-hidden">
       
       {/* 🚀 Integrated Sidebar Control */}
       <Sidebar 
@@ -944,7 +949,7 @@ function StrategyMapInner() {
                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                <span className="text-xs font-black text-white tracking-[0.2em]">
                  {filters.objectiveId 
-                   ? (objectives.find(o => o.id === filters.objectiveId)?.name || 'CARGANDO...').toUpperCase() 
+                   ? String(objectives.find(o => o.id === filters.objectiveId)?.name || 'CARGANDO...').toUpperCase() 
                    : 'MODO: ECOSISTEMA COMPLETO'}
                </span>
              </div>
@@ -1038,6 +1043,7 @@ function StrategyMapInner() {
                 onAddIdeaChild={handleAddIdeaChild}
               />
             )}
+            {/* rootNode: No detail panel needed — it's the brain center */}
             {(selectedNode.type === 'ideaNode' || selectedNode.type === 'contentBlockNode') && (
               <div className="absolute top-0 right-0 w-96 h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700 shadow-2xl z-30 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
                 <div className="flex items-start justify-between p-6 border-b border-white/5 shrink-0">
