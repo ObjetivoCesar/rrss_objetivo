@@ -54,7 +54,13 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, ranksep: 120, nodesep: 80 });
+  g.setGraph({ 
+    rankdir: direction, // 'TB' = Vertical
+    ranksep: 200, // More vertical space between levels
+    nodesep: 150, // More horizontal space between siblings
+    marginx: 50,
+    marginy: 50
+  });
 
   nodes.forEach((node) => {
     const width = node.type === 'rootNode' ? 220 : node.type === 'postNode' ? 200 : 280;
@@ -111,7 +117,45 @@ function FilterBar({
   hasChanges: boolean
 }) {
   return (
-    <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 items-center bg-slate-900/80 backdrop-blur-md p-3 rounded-2xl border border-slate-700 shadow-xl">
+    <div className="absolute top-4 left-4 z-10 flex flex-col gap-3 items-start bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 shadow-xl min-w-[300px]">
+      <div className="flex items-center justify-between w-full">
+        {/* Save Button */}
+        <button 
+          onClick={onSave}
+          disabled={isSaving}
+          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl transition-all text-xs font-bold border ${
+            isSaving 
+              ? 'bg-slate-800 text-slate-500 border-slate-700' 
+              : hasChanges
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-600/20 active:scale-95'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+          }`}
+        >
+          {isSaving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : hasChanges ? (
+            <Save className="w-3.5 h-3.5" />
+          ) : (
+            <Check className="w-3.5 h-3.5 text-emerald-500" />
+          )}
+          {isSaving ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Guardado'}
+        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Auto-ordenar Tool */}
+          <button 
+            onClick={onAutoArrange}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition-colors text-xs font-medium"
+            title="Reorganizar nodos automáticamente (Vertical)"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Auto-ordenar
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full h-px bg-slate-700/50"></div>
+
       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-xl text-xs font-semibold text-slate-300">
         <Filter className="w-3.5 h-3.5" />
         Explorar:
@@ -177,26 +221,13 @@ function FilterBar({
         </button>
       )}
 
-      {/* Divider */}
-      <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
-      {/* Auto-ordenar Tool */}
-      <button 
-        onClick={onAutoArrange}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition-colors text-xs font-medium"
-        title="Reorganizar nodos automáticamente (Auto-Layout)"
-      >
-        <RefreshCw className="w-3.5 h-3.5" />
-        Auto-ordenar
-      </button>
-
       {/* Brainstorm / Add Idea Tool */}
       <button 
         onClick={onAddIdea}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-xl transition-colors text-xs font-bold uppercase tracking-wider shadow-lg shadow-yellow-500/10"
+        className="flex items-center gap-2 justify-center w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded-xl transition-all text-xs font-black uppercase tracking-wider shadow-lg shadow-yellow-500/20 active:scale-[0.98]"
       >
-        <PlusCircle className="w-3.5 h-3.5" />
-        Añadir Idea
+        <PlusCircle className="w-4 h-4" />
+        AÑADIR NUEVA IDEA
       </button>
     </div>
   );
