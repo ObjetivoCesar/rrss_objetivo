@@ -28,7 +28,7 @@ import {
   Loader2, X, Globe, Link2, Target, FileText, Tag, 
   Filter, Calendar, ChevronDown, Rocket, CheckCircle2, 
   AlertCircle, Info, Hash, Clock, Maximize2, Minimize2, Search, PlusCircle, Lightbulb, RefreshCw,
-  Heading1, Heading2, Type, MousePointerClick, Save, Check
+  Heading1, Heading2, Type, MousePointerClick, Save, Check, Trash2, Layers
 } from 'lucide-react';
 
 // ─── Custom Node Types ────────────────────────────────────────────────────────
@@ -97,7 +97,8 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 };
 
 // ─── Filter Bar Component ───────────────────────────────────────────────────
-function FilterBar({ 
+// ─── Sidebar component ──────────────────────────────────────────────────────
+function Sidebar({ 
   objectives, 
   filters, 
   setFilters,
@@ -105,7 +106,8 @@ function FilterBar({
   onAutoArrange,
   onSave,
   isSaving,
-  hasChanges
+  hasChanges,
+  onDragStart
 }: { 
   objectives: any[], 
   filters: any, 
@@ -114,121 +116,140 @@ function FilterBar({
   onAutoArrange: () => void,
   onSave: () => void,
   isSaving: boolean,
-  hasChanges: boolean
+  hasChanges: boolean,
+  onDragStart: (e: any, type: string, label: string) => void
 }) {
   return (
-    <div className="absolute top-4 left-4 z-10 flex flex-col gap-3 items-start bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 shadow-xl min-w-[300px]">
-      <div className="flex items-center justify-between w-full">
-        {/* Save Button */}
-        <button 
-          onClick={onSave}
-          disabled={isSaving}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl transition-all text-xs font-bold border ${
-            isSaving 
-              ? 'bg-slate-800 text-slate-500 border-slate-700' 
-              : hasChanges
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-600/20 active:scale-95'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-          }`}
-        >
-          {isSaving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : hasChanges ? (
-            <Save className="w-3.5 h-3.5" />
-          ) : (
-            <Check className="w-3.5 h-3.5 text-emerald-500" />
-          )}
-          {isSaving ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Guardado'}
-        </button>
-
-        <div className="flex items-center gap-2">
-          {/* Auto-ordenar Tool */}
+    <div className="w-80 border-r border-slate-800 bg-slate-900/95 backdrop-blur-xl flex flex-col h-full z-20 shrink-0 overflow-y-auto custom-scrollbar shadow-2xl">
+      {/* 1. Header & Save Section */}
+      <div className="p-6 border-b border-slate-800 space-y-4 pt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+            <div className="w-2 h-6 bg-violet-600 rounded-full"></div>
+            CONTROLES
+          </h2>
           <button 
-            onClick={onAutoArrange}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition-colors text-xs font-medium"
-            title="Reorganizar nodos automáticamente (Vertical)"
+            onClick={onSave}
+            disabled={isSaving}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all text-[10px] font-black border ${
+              isSaving 
+                ? 'bg-slate-800 text-slate-500 border-slate-700' 
+                : hasChanges
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-600/20 active:scale-95'
+                  : 'bg-slate-800/50 hover:bg-slate-800 text-slate-400 border-slate-700'
+            }`}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Auto-ordenar
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : hasChanges ? <Save className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5 text-emerald-500" />}
+            {isSaving ? '...' : hasChanges ? 'GUARDAR' : 'GUARDADO'}
           </button>
+        </div>
+
+        <button 
+          onClick={onAutoArrange}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition-all text-xs font-bold active:scale-[0.98]"
+        >
+          <RefreshCw className="w-4 h-4 text-violet-400" />
+          AUTO-ORDENAR VERTICAL
+        </button>
+      </div>
+
+      {/* 2. Exploration Filters */}
+      <div className="p-6 border-b border-slate-800 space-y-5 bg-slate-900/40">
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Search className="w-3 h-3" /> BUSCAR ESTRATEGIA
+          </label>
+          <input 
+            type="text" 
+            placeholder="Ej: Lanzamiento..." 
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            className="w-full bg-slate-950 text-xs text-white px-4 py-3 rounded-xl border border-slate-800 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all outline-none placeholder:text-slate-600"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Target className="w-3 h-3" /> RAMA DE OBJETIVOS
+          </label>
+          <select 
+            value={filters.objectiveId}
+            onChange={(e) => setFilters({ ...filters, objectiveId: e.target.value })}
+            className="w-full bg-slate-950 text-xs text-white px-4 py-3 rounded-xl border border-slate-800 focus:border-violet-500/50 transition-all outline-none appearance-none cursor-pointer"
+          >
+            <option value="">Todas las ramas</option>
+            {objectives.map(obj => (
+              <option key={obj.id} value={obj.id}>{obj.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Filter className="w-3 h-3" /> FILTRAR MAPA
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'all', label: 'Todo' },
+              { id: 'objective', label: 'Objetivos' },
+              { id: 'campaign', label: 'Campañas' },
+              { id: 'article', label: 'Artículos' },
+              { id: 'post', label: 'Social' },
+              { id: 'idea', label: 'Ideas' }
+            ].map(btn => (
+              <button
+                key={btn.id}
+                onClick={() => setFilters({ ...filters, type: btn.id })}
+                className={`px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all border ${
+                  filters.type === btn.id 
+                    ? 'bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/20' 
+                    : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300'
+                }`}
+              >
+                {btn.label.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="w-full h-px bg-slate-700/50"></div>
+      {/* 3. Drag & Drop Palette */}
+      <div className="p-6 space-y-5 bg-slate-900/20 flex-1">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+          <Layers className="w-3 h-3" /> ESTRUCTURA DE ARTÍCULOS
+        </label>
+        
+        <div className="space-y-2">
+          {[
+            { id: 'h1', label: 'Título (H1)', icon: Heading1, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+            { id: 'h2', label: 'Subtítulo (H2)', icon: Heading2, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+            { id: 'p', label: 'Párrafo de Texto', icon: Type, color: 'text-slate-400', bg: 'bg-slate-500/10' },
+            { id: 'cta', label: 'Botón de Acción', icon: MousePointerClick, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+          ].map(item => (
+            <div 
+              key={item.id}
+              className="flex items-center gap-3 p-3.5 bg-slate-800/40 border border-slate-800 rounded-2xl cursor-grab hover:border-slate-600 hover:bg-slate-800/80 transition-all group active:cursor-grabbing"
+              draggable
+              onDragStart={(e) => onDragStart(e, item.id, item.label)}
+            >
+              <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                <item.icon className={`w-4 h-4 ${item.color}`} />
+              </div>
+              <span className="text-xs font-bold text-slate-200">{item.label}</span>
+            </div>
+          ))}
+        </div>
 
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-xl text-xs font-semibold text-slate-300">
-        <Filter className="w-3.5 h-3.5" />
-        Explorar:
-      </div>
-
-      {/* 1. Node Type Selector (What am I looking for?) */}
-      <div className="flex flex-wrap bg-slate-800 p-1 rounded-xl border border-slate-700 max-w-[400px]">
-        {[
-          { id: 'objective', label: 'Objetivos' },
-          { id: 'campaign', label: 'Campañas' },
-          { id: 'article', label: 'Artículos' },
-          { id: 'post', label: 'Social' },
-          { id: 'idea', label: 'Ideas' },
-          { id: 'contentBlock', label: 'Estructura' }
-        ].map(btn => (
-          <button
-            key={btn.id}
-            onClick={() => setFilters({ ...filters, type: filters.type === btn.id ? 'all' : btn.id })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-              filters.type === btn.id 
-                ? 'bg-blue-600 text-white shadow-lg' 
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-            }`}
+        <div className="pt-4 mt-auto">
+          <button 
+            onClick={onAddIdea}
+            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded-2xl transition-all text-[11px] font-black uppercase tracking-wider shadow-2xl shadow-yellow-500/20 active:scale-[0.98]"
           >
-            {btn.label}
+            <PlusCircle className="w-5 h-5" />
+            NUEVA IDEA LIBRE
           </button>
-        ))}
+        </div>
       </div>
-
-      {/* 2. Search Input */}
-      <div className="relative flex items-center">
-        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5" />
-        <input 
-          type="text" 
-          placeholder="Buscar..." 
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          className="bg-slate-800 text-xs text-white pl-8 pr-3 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 focus:w-48 placeholder-slate-500"
-        />
-      </div>
-
-      {/* 3. Objective Filter (Branch Context) */}
-      <select 
-        value={filters.objectiveId}
-        onChange={(e) => setFilters({ ...filters, objectiveId: e.target.value })}
-        className="bg-slate-800 text-xs text-white px-3 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer pr-8 relative max-w-[150px] truncate"
-        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0\' stroke=\'white\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center', backgroundSize: '12px' }}
-      >
-        <option value="">Ramas (Todas)</option>
-        {objectives.map(obj => (
-          <option key={obj.id} value={obj.id}>{obj.name}</option>
-        ))}
-      </select>
-
-      {/* Reset Filter */}
-      {(filters.objectiveId !== '' || filters.type !== 'all' || filters.search !== '') && (
-        <button 
-          onClick={() => setFilters({ objectiveId: '', type: 'all', search: '' })}
-          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors border border-red-500/20"
-          title="Limpiar filtros"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      )}
-
-      {/* Brainstorm / Add Idea Tool */}
-      <button 
-        onClick={onAddIdea}
-        className="flex items-center gap-2 justify-center w-full px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded-xl transition-all text-xs font-black uppercase tracking-wider shadow-lg shadow-yellow-500/20 active:scale-[0.98]"
-      >
-        <PlusCircle className="w-4 h-4" />
-        AÑADIR NUEVA IDEA
-      </button>
     </div>
   );
 }
@@ -894,79 +915,52 @@ function StrategyMapInner() {
   }
 
   return (
-    <div className="w-full h-full flex bg-slate-950 text-slate-300">
+    <div className="fixed inset-0 w-screen h-screen flex bg-slate-950 text-slate-300 z-[9999] overflow-hidden">
       
-      {/* Drag & Drop Palette Sidebar */}
-      <div className="w-64 border-r border-slate-800 bg-slate-900/50 flex flex-col pt-24 px-4 z-10 shrink-0">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Estructurar Idea</h3>
-        <p className="text-[10px] text-slate-400 mb-6 leading-relaxed">Arrastra estas figuras al centro para mapear visualmente la estructura de un artículo, guion o idea.</p>
+      {/* 🚀 Integrated Sidebar Control */}
+      <Sidebar 
+        objectives={objectives} 
+        filters={filters} 
+        setFilters={setFilters} 
+        onAddIdea={handleAddIdea}
+        onAutoArrange={handleAutoArrange}
+        onSave={handleSave}
+        isSaving={isSaving}
+        hasChanges={hasChanges}
+        onDragStart={(e, type, label) => {
+          e.dataTransfer.setData('application/reactflow', type);
+          e.dataTransfer.setData('application/reactflow-label', label);
+          e.dataTransfer.effectAllowed = 'move';
+        }}
+      />
+
+      {/* 🔮 Flow Canvas Area */}
+      <div className="flex-1 h-full relative group">
         
-        <div className="space-y-3">
-          <div 
-            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-violet-500/50 hover:bg-slate-800/80 transition-colors"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('application/reactflow', 'h1');
-              e.dataTransfer.setData('application/reactflow-label', 'Título Principal (H1)');
-              e.dataTransfer.effectAllowed = 'move';
-            }}
-          >
-            <Heading1 className="w-4 h-4 text-violet-400" />
-            <span className="text-xs font-bold text-slate-300">Título (H1)</span>
-          </div>
-          
-          <div 
-            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-blue-500/50 hover:bg-slate-800/80 transition-colors"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('application/reactflow', 'h2');
-              e.dataTransfer.setData('application/reactflow-label', 'Subtítulo (H2)');
-              e.dataTransfer.effectAllowed = 'move';
-            }}
-          >
-            <Heading2 className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-bold text-slate-300">Subtítulo (H2)</span>
-          </div>
-
-          <div 
-            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-slate-500/50 hover:bg-slate-800/80 transition-colors"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('application/reactflow', 'p');
-              e.dataTransfer.setData('application/reactflow-label', 'Párrafo de contenido');
-              e.dataTransfer.effectAllowed = 'move';
-            }}
-          >
-            <Type className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-300">Párrafo Texto</span>
-          </div>
-
-          <div 
-            className="flex items-center gap-3 p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-grab hover:border-emerald-500/50 hover:bg-slate-800/80 transition-colors"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('application/reactflow', 'cta');
-              e.dataTransfer.setData('application/reactflow-label', 'Llamado a la Acción (Botón)');
-              e.dataTransfer.effectAllowed = 'move';
-            }}
-          >
-            <MousePointerClick className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-bold text-slate-300">Llamado a Acción</span>
+        {/* Floating Top Header (Workspace Context) */}
+        <div className="absolute top-8 left-8 z-20 pointer-events-none">
+          <div className="flex items-center gap-4">
+             <div className="px-6 py-3 bg-slate-950/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl flex items-center gap-4">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+               <span className="text-xs font-black text-white tracking-[0.2em]">
+                 {filters.objectiveId 
+                   ? (objectives.find(o => o.id === filters.objectiveId)?.name || 'CARGANDO...').toUpperCase() 
+                   : 'MODO: ECOSISTEMA COMPLETO'}
+               </span>
+             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 h-full relative group">
-        <FilterBar 
-          objectives={objectives} 
-          filters={filters} 
-          setFilters={setFilters} 
-          onAddIdea={handleAddIdea}
-          onAutoArrange={handleAutoArrange}
-          onSave={handleSave}
-          isSaving={isSaving}
-          hasChanges={hasChanges}
-        />
+        {/* Exit UI */}
+        <div className="absolute top-8 right-8 z-20 flex gap-3">
+           <button 
+            onClick={() => window.location.href = '/'}
+            className="p-4 bg-slate-900/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-500/30 rounded-2xl transition-all backdrop-blur-md shadow-2xl pointer-events-auto active:scale-95"
+            title="Escapar de Cerebro"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
 
         <ReactFlow
           nodes={nodes}
@@ -983,69 +977,93 @@ function StrategyMapInner() {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes as any}
           fitView
-        fitViewOptions={{ padding: 0.3 }}
-        minZoom={0.05}
-        maxZoom={1.5}
-        defaultEdgeOptions={{
-          type: 'smoothstep',
-          style: { stroke: '#334155', strokeWidth: 2 },
-        }}
-      >
-        <Controls className="!bg-slate-900 !border-slate-800 !shadow-2xl !rounded-2xl overflow-hidden scale-90 origin-bottom-left" />
-        <MiniMap
-          zoomable
-          pannable
-          nodeColor={(node) => {
-            if (node.type === 'rootNode') return '#7c3aed';
-            if (node.type === 'objectiveNode') return '#3b82f6';
-            if (node.type === 'campaignNode') return '#f59e0b';
-            if (node.type === 'articleNode') return '#10b981';
-            if (node.type === 'ideaNode') return '#eab308';
-            return '#475569';
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.05}
+          maxZoom={2}
+          selectNodesOnDrag={false}
+          panOnScroll={true}
+          selectionOnDrag={true}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            style: { stroke: '#475569', strokeWidth: 2.5 },
           }}
-          maskColor="rgba(2, 6, 23, 0.7)"
-          className="!bg-slate-900/80 !border-slate-800 !shadow-2xl !rounded-2xl !bottom-4 !right-4 overflow-hidden border backdrop-blur-sm"
-        />
-        <Background variant={BackgroundVariant.Dots} color="#1e293b" gap={24} size={1} />
-      </ReactFlow>
+        >
+          <Background color="#1e293b" variant={BackgroundVariant.Dots} gap={30} size={1} />
+          
+          <div className="absolute bottom-10 left-10 z-10">
+             <Controls 
+              className="!bg-slate-900/90 !border-slate-800 !shadow-2xl !rounded-3xl !p-1.5 !text-slate-400 overflow-hidden !m-0 !gap-1" 
+              showInteractive={false}
+            />
+          </div>
 
-      {/* Detail Panels */}
-      {selectedNode && (
-        <>
-          {selectedNode.type === 'articleNode' && 
-             <ArticleDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} isExpanded={isPanelExpanded} onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)} />
-          }
-          {selectedNode.type === 'objectiveNode' && 
-             <ObjectiveDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} isExpanded={isPanelExpanded} onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)} onAddIdeaChild={handleAddIdeaChild} />
-          }
-          {selectedNode.type === 'campaignNode' && 
-             <CampaignDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} isExpanded={isPanelExpanded} onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)} onAddIdeaChild={handleAddIdeaChild} />
-          }
-          {selectedNode.type === 'ideaNode' || selectedNode.type === 'contentBlockNode' ? (
-             <div className="absolute top-0 right-0 w-96 h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700 shadow-2xl z-20 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
-               <div className="flex items-start justify-between p-5 border-b border-slate-800 shrink-0">
-                 <div className="flex-1 min-w-0 mr-3">
-                   <div className="flex items-center gap-2 mb-1">
-                     <div className={`p-1 rounded ${selectedNode.type === 'contentBlockNode' ? 'bg-violet-500/10' : 'bg-yellow-500/10'}`}>
-                       {selectedNode.type === 'contentBlockNode' ? (
-                         <Type className="w-3.5 h-3.5 text-violet-400 shrink-0" />
-                       ) : (
-                         <Lightbulb className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
-                       )}
-                     </div>
-                     <span className={`text-[10px] font-bold uppercase tracking-wider ${selectedNode.type === 'contentBlockNode' ? 'text-violet-400' : 'text-yellow-500'}`}>
-                       {selectedNode.type === 'contentBlockNode' ? `Bloque de Contenido (${selectedNode.data.blockType})` : 'Idea en Borrador'}
-                     </span>
-                   </div>
-                   <h3 className="text-white font-bold leading-snug">{selectedNode.data.label as string}</h3>
-                 </div>
-                 <button onClick={() => setSelectedNode(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-                   <X className="w-4 h-4" />
-                 </button>
-               </div>
-               <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                 <div className={`${selectedNode.type === 'contentBlockNode' ? 'bg-violet-600/10 border-violet-500/20' : 'bg-yellow-600/10 border-yellow-500/20'} border p-5 rounded-3xl`}>
-                    <label className={`text-[10px] font-bold uppercase mb-2 block tracking-wider ${selectedNode.type === 'contentBlockNode' ? 'text-violet-400' : 'text-yellow-500'}`}>Texto / Contenido</label>
+          <MiniMap 
+            className="!bg-slate-950/90 !border-slate-800 !rounded-3xl !shadow-2xl border-2 border-slate-800 mb-10 mr-10 scale-125 origin-bottom-right"
+            maskColor="rgba(0,0,0,0.7)"
+            nodeColor={(n) => {
+              if (n.type === 'objectiveNode') return '#8b5cf6';
+              if (n.type === 'campaignNode') return '#f59e0b';
+              if (n.type === 'articleNode') return '#10b981';
+              return '#475569';
+            }}
+          />
+        </ReactFlow>
+
+        {/* Selected Data Panels */}
+        {selectedNode && (
+          <>
+            {selectedNode.type === 'articleNode' && (
+              <ArticleDetailPanel
+                node={selectedNode}
+                onClose={() => setSelectedNode(null)}
+                isExpanded={isPanelExpanded}
+                onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)}
+              />
+            )}
+            {selectedNode.type === 'objectiveNode' && (
+              <ObjectiveDetailPanel
+                node={selectedNode}
+                onClose={() => setSelectedNode(null)}
+                isExpanded={isPanelExpanded}
+                onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)}
+                onAddIdeaChild={handleAddIdeaChild}
+              />
+            )}
+            {selectedNode.type === 'campaignNode' && (
+              <CampaignDetailPanel
+                node={selectedNode}
+                onClose={() => setSelectedNode(null)}
+                isExpanded={isPanelExpanded}
+                onExpandToggle={() => setIsPanelExpanded(!isPanelExpanded)}
+                onAddIdeaChild={handleAddIdeaChild}
+              />
+            )}
+            {(selectedNode.type === 'ideaNode' || selectedNode.type === 'contentBlockNode') && (
+              <div className="absolute top-0 right-0 w-96 h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-700 shadow-2xl z-30 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+                <div className="flex items-start justify-between p-6 border-b border-white/5 shrink-0">
+                  <div className="flex-1 min-w-0 mr-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`p-1 rounded ${selectedNode.type === 'contentBlockNode' ? 'bg-violet-500/10' : 'bg-yellow-500/10'}`}>
+                        {selectedNode.type === 'contentBlockNode' ? (
+                          <Type className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                        ) : (
+                          <Lightbulb className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                        )}
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${selectedNode.type === 'contentBlockNode' ? 'text-violet-400' : 'text-yellow-500'}`}>
+                        {selectedNode.type === 'contentBlockNode' ? `Bloque: ${selectedNode.data.blockType}` : 'Idea en Borrador'}
+                      </span>
+                    </div>
+                    <h3 className="text-white font-black leading-tight truncate">{selectedNode.data.label as string}</h3>
+                  </div>
+                  <button onClick={() => setSelectedNode(null)} className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800/50 transition-all">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contenido del Nodo</label>
                     <textarea 
                       value={selectedNode.data.label as string}
                       onChange={(e) => {
@@ -1057,31 +1075,39 @@ function StrategyMapInner() {
                         setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, label: newName } } : prev);
                         setHasChanges(true);
                       }}
-                      className={`w-full bg-slate-900 border rounded-xl px-4 py-3 text-white text-sm focus:ring-2 outline-none transition-all placeholder-slate-500 min-h-[100px] resize-y ${selectedNode.type === 'contentBlockNode' ? 'border-violet-500/30 focus:ring-violet-500' : 'border-yellow-500/30 focus:ring-yellow-500'}`}
-                      placeholder="Escribe el contenido aquí..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-4 text-white text-sm focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 min-h-[160px] resize-none font-medium leading-relaxed"
+                      placeholder="Escribe tu idea aquí..."
                     />
-                 </div>
-                 <div className="bg-slate-800/50 p-5 rounded-3xl text-center">
-                    <p className="text-xs text-slate-400 font-medium leading-relaxed">Arrastra un enlace (cable) desde este nodo hacia otro para conectarlos estructuralmente en el mapa.</p>
-                 </div>
-               </div>
-             </div>
-          ) : null}
-          {selectedNode.type === 'rootNode' && (
-            <div className={`absolute right-0 bg-slate-900/95 border-slate-700 p-8 flex flex-col items-center justify-center text-center transition-all ${isPanelExpanded ? 'inset-0 z-50 border-0' : 'top-0 w-80 h-full border-l z-20 animate-in slide-in-from-right'}`}>
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button onClick={() => setIsPanelExpanded(!isPanelExpanded)} className="p-1.5 text-slate-400 hover:text-white"><Maximize2 className="w-5 h-5"/></button>
-                  <button onClick={() => setSelectedNode(null)} className="p-1.5 text-slate-400 hover:text-white"><X className="w-5 h-5"/></button>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-slate-400 leading-relaxed italic">
+                        Los cambios en el texto se guardarán permanentemente cuando presiones el botón "GUARDAR" en el panel izquierdo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setRawData(prev => ({
+                        nodes: prev.nodes.filter(n => n.id !== selectedNode.id),
+                        edges: prev.edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id)
+                      }));
+                      setSelectedNode(null);
+                      setHasChanges(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-xs font-black uppercase tracking-widest mt-10 active:scale-95"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar Nodo
+                  </button>
                 </div>
-                <div className="w-16 h-16 bg-violet-600 rounded-full flex items-center justify-center text-3xl mb-4 shadow-xl shadow-violet-500/20">🧠</div>
-                <h3 className={`${isPanelExpanded ? 'text-4xl' : 'text-xl'} font-bold text-white mb-2 transition-all`}>Cerebro 2026</h3>
-                <p className={`${isPanelExpanded ? 'text-lg max-w-xl' : 'text-sm'} text-slate-400 leading-relaxed transition-all`}>
-                  Esta es la vista centralizada de tu estrategia. Usa los filtros superiores para aislar objetivos específicos o "Añadir Idea" para hacer brainstorming visual.
-                </p>
-            </div>
-          )}
-        </>
-      )}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
