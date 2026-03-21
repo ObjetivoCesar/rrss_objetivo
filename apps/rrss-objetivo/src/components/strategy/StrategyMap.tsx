@@ -24,6 +24,7 @@ import { CampaignNode } from './nodes/CampaignNode';
 import { ArticleNode } from './nodes/ArticleNode';
 import { PostNode } from './nodes/PostNode';
 import { IdeaNode } from './nodes/IdeaNode';
+import { ContentBlockNode } from './nodes/ContentBlockNode';
 import { 
   Loader2, X, Globe, Link2, Target, FileText, Tag, 
   Filter, Rocket, CheckCircle2,
@@ -38,6 +39,7 @@ const nodeTypes = {
   articleNode: ArticleNode,
   postNode: PostNode,
   ideaNode: IdeaNode,
+  contentBlockNode: ContentBlockNode,
   rootNode: ({ data }: { data: any }) => (
     <div className="relative">
       <div className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl shadow-2xl shadow-violet-500/30 text-white font-bold text-base border border-violet-400">
@@ -214,40 +216,49 @@ function Sidebar({
       </div>
 
       {/* 3. Drag & Drop Palette */}
-      <div className="p-6 space-y-5 bg-slate-900/20 flex-1">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-          <Layers className="w-3 h-3" /> ESTRUCTURA DE ARTÍCULOS
-        </label>
+      <div className="p-6 space-y-6 bg-slate-900/20 flex-1">
         
-        <div className="space-y-2">
-          {[
-            { id: 'h1', label: 'Título (H1)', icon: Heading1, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-            { id: 'h2', label: 'Subtítulo (H2)', icon: Heading2, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-            { id: 'p', label: 'Párrafo de Texto', icon: Type, color: 'text-slate-400', bg: 'bg-slate-500/10' },
-            { id: 'cta', label: 'Botón de Acción', icon: MousePointerClick, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
-          ].map(item => (
-            <div 
-              key={item.id}
-              className="flex items-center gap-3 p-3.5 bg-slate-800/40 border border-slate-800 rounded-2xl cursor-grab hover:border-slate-600 hover:bg-slate-800/80 transition-all group active:cursor-grabbing"
-              draggable
-              onDragStart={(e) => onDragStart(e, item.id, item.label)}
-            >
-              <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <item.icon className={`w-4 h-4 ${item.color}`} />
-              </div>
-              <span className="text-xs font-bold text-slate-200">{item.label}</span>
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Lightbulb className="w-3 h-3" /> IDEAS LIBRES
+          </label>
+          <div 
+            className="flex items-center gap-3 p-3.5 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl cursor-grab hover:border-yellow-500/40 hover:bg-yellow-500/20 transition-all group active:cursor-grabbing shadow-lg"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'idea', 'Nueva Idea Estratégica')}
+          >
+            <div className="w-8 h-8 rounded-xl bg-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
             </div>
-          ))}
+            <span className="text-xs font-bold text-slate-200">Idea en Borrador</span>
+          </div>
         </div>
 
-        <div className="pt-4 mt-auto">
-          <button 
-            onClick={onAddIdea}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded-2xl transition-all text-[11px] font-black uppercase tracking-wider shadow-2xl shadow-yellow-500/20 active:scale-[0.98]"
-          >
-            <PlusCircle className="w-5 h-5" />
-            NUEVA IDEA LIBRE
-          </button>
+        <div className="space-y-3">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Layers className="w-3 h-3" /> ESTRUCTURA DE ARTÍCULOS
+          </label>
+          
+          <div className="space-y-2">
+            {[
+              { id: 'h1', label: 'Título (H1)', icon: Heading1, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+              { id: 'h2', label: 'Subtítulo (H2)', icon: Heading2, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+              { id: 'p', label: 'Párrafo de Texto', icon: Type, color: 'text-slate-400', bg: 'bg-slate-500/10' },
+              { id: 'cta', label: 'Botón de Acción', icon: MousePointerClick, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+            ].map(item => (
+              <div 
+                key={item.id}
+                className="flex items-center gap-3 p-3.5 bg-slate-800/40 border border-slate-800 rounded-2xl cursor-grab hover:border-slate-600 hover:bg-slate-800/80 transition-all group active:cursor-grabbing"
+                draggable
+                onDragStart={(e) => onDragStart(e, item.id, item.label)}
+              >
+                <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <item.icon className={`w-4 h-4 ${item.color}`} />
+                </div>
+                <span className="text-xs font-bold text-slate-200">{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -759,8 +770,8 @@ function StrategyMapInner() {
           const currentInNodes = nodes.find(node => node.id === n.id);
           return {
             id: n.id.startsWith('temp-') || n.id.includes('-') && n.id.length < 30 ? undefined : n.id.replace('idea-', '').replace('block-', ''),
-            label: n.data.label,
-            description: n.data.description,
+            label: currentInNodes?.data.label || n.data.label,
+            description: currentInNodes?.data.description || n.data.description,
             node_type: n.data.type || (n.type === 'ideaNode' ? 'idea' : n.data.blockType),
             parent_id: rawData.edges.find(e => e.target === n.id)?.source || null,
             pos_x: currentInNodes?.position.x || 0,
@@ -886,17 +897,22 @@ function StrategyMapInner() {
         y: event.clientY,
       });
 
+      const isIdea = type === 'idea';
       const newNode: Node = {
-        id: `block-${Date.now()}`,
-        type: 'contentBlockNode',
+        id: isIdea ? `idea-${Date.now()}` : `block-${Date.now()}`,
+        type: isIdea ? 'ideaNode' : 'contentBlockNode',
         position,
-        data: { label: blockLabel, blockType: type },
+        data: isIdea ? { label: blockLabel } : { label: blockLabel, blockType: type },
       };
 
       setRawData((prev) => ({
         ...prev,
         nodes: prev.nodes.concat(newNode),
       }));
+
+      // Auto-select the node so the editing panel opens instantly
+      setTimeout(() => setSelectedNode(newNode), 50);
+      setHasChanges(true);
     },
     [screenToFlowPosition, setRawData]
   );
