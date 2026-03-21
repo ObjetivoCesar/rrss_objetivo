@@ -991,6 +991,14 @@ function StrategyMapInner() {
             if (changes.some(c => c.type === 'position')) setHasChanges(true);
           }}
           onEdgesChange={onEdgesChange}
+          onNodesDelete={(deletedNodes) => {
+            const deletedIds = new Set(deletedNodes.map(n => n.id));
+            setRawData(prev => ({
+              nodes: prev.nodes.filter(n => !deletedIds.has(n.id)),
+              edges: prev.edges.filter(e => !deletedIds.has(e.source) && !deletedIds.has(e.target))
+            }));
+            setHasChanges(true);
+          }}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           onNodeDragStop={onNodeDragStop}
@@ -1083,32 +1091,15 @@ function StrategyMapInner() {
                   </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contenido del Nodo</label>
-                    <textarea 
-                      value={selectedNode.data.label as string}
-                      onChange={(e) => {
-                        const newName = e.target.value;
-                        setRawData(prev => ({
-                          ...prev,
-                          nodes: prev.nodes.map(n => n.id === selectedNode.id ? { ...n, data: { ...n.data, label: newName } } : n)
-                        }));
-                        setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, label: newName } } : prev);
-                        setHasChanges(true);
-                      }}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-4 text-white text-sm focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 min-h-[160px] resize-none font-medium leading-relaxed"
-                      placeholder="Escribe tu idea aquí..."
-                    />
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-slate-400 leading-relaxed italic">
-                        Los cambios en el texto se guardarán permanentemente cuando presiones el botón "GUARDAR" en el panel izquierdo.
-                      </p>
+                <div className="flex-1 overflow-y-auto p-6 flex flex-col justify-center">
+                  <div className="text-center space-y-4 mb-10">
+                    <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Edit2 className="w-8 h-8 text-slate-400" />
                     </div>
+                    <h4 className="text-lg font-bold text-white">Edición Directa</h4>
+                    <p className="text-sm text-slate-400 leading-relaxed max-w-[250px] mx-auto">
+                      Ya no necesitas este panel para escribir. ¡Haz clic directamente en el texto del nodo en el mapa para editarlo!
+                    </p>
                   </div>
 
                   <button 
