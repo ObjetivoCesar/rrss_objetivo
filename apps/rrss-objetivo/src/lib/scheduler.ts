@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase-admin';
 import { deleteFromSupabase, realizeMediaUrls } from './storage';
-import { logSystem } from './logger';
+import { logger } from './logger';
 
 const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL!;
 const MAKE_WEBHOOK_SECRET = process.env.MAKE_WEBHOOK_SECRET!;
@@ -12,8 +12,9 @@ const PROCESSING_TIMEOUT_MINUTES = 10;
 const MAX_RETRIES = 2;
 
 async function logDebug(message: string, severity: 'INFO' | 'ERROR' | 'WARNING' = 'INFO') {
-  console.log(`[${severity}] ${message}`);
-  await logSystem('scheduler', severity, message);
+  if (severity === 'ERROR') logger.error(`[Scheduler] ${message}`);
+  else if (severity === 'WARNING') logger.warn(`[Scheduler] ${message}`);
+  else logger.info(`[Scheduler] ${message}`);
 }
 
 /**

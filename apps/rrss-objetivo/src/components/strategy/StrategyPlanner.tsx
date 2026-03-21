@@ -1,0 +1,493 @@
+'use client';
+
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  MiniMap,
+  Controls,
+  Background,
+  BackgroundVariant,
+  Panel,
+  Connection,
+  Edge,
+  Node,
+  Position,
+  useReactFlow,
+  Handle,
+  NodeResizer,
+  NodeToolbar,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getSmoothStepPath,
+  EdgeProps,
+  MarkerType,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
+import {
+  Target, Rocket, FileText, Lightbulb, Smartphone,
+  Plus, Save, Download, FolderOpen, Trash2, RefreshCw,
+  X, ChevronRight, ChevronDown, Loader2, Check, Copy,
+  LayoutDashboard, Sparkles, Link2, Unlink,
+  BookOpen, Pen, Video, Image as ImageIcon
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+interface Session { id: string; name: string; description?: string; created_at: string; updated_at: string; }
+type NodeKind = 'objectiveNode' | 'campaignNode' | 'articleNode' | 'postNode' | 'ideaNode';
+
+// ─── Node Color config ───────────────────────────────────────────────────────
+const NODE_CONFIG: Record<NodeKind, { color: string; bg: string; border: string; ring: string; label: string; icon: React.FC<any> }> = {
+  objectiveNode: { color: 'text-violet-300', bg: 'from-violet-900 to-violet-950', border: 'border-violet-500/60', ring: 'ring-violet-400/50', label: 'OBJETIVO', icon: Target },
+  campaignNode:  { color: 'text-amber-300',  bg: 'from-amber-900 to-amber-950',   border: 'border-amber-500/60',  ring: 'ring-amber-400/50',  label: 'CAMPAÑA',  icon: Rocket },
+  articleNode:   { color: 'text-emerald-300',bg: 'from-emerald-900 to-emerald-950',border: 'border-emerald-500/60',ring: 'ring-emerald-400/50',label: 'ARTÍCULO', icon: FileText },
+  postNode:      { color: 'text-sky-300',    bg: 'from-sky-900 to-sky-950',        border: 'border-sky-500/60',    ring: 'ring-sky-400/50',    label: 'POST',     icon: Smartphone },
+  ideaNode:      { color: 'text-yellow-300', bg: 'from-yellow-900 to-yellow-950',  border: 'border-yellow-500/60', ring: 'ring-yellow-400/50', label: 'IDEA',     icon: Lightbulb },
+};
+
+// ─── Generic Plan Node ──────────────────────────────────────────────────────
+function PlanNode({ id, data, selected, type }: { id: string; data: any; selected: boolean; type: NodeKind }) {
+  const { setNodes, deleteElements } = useReactFlow();
+  const cfg = NODE_CONFIG[type] || NODE_CONFIG.ideaNode;
+  const Icon = cfg.icon;
+
+  const onLabelChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: e.target.value } } : n));
+  };
+  const onNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, notes: e.target.value } } : n));
+  };
+
+  return (
+    <div className={`relative group min-w-[220px] max-w-[320px] rounded-2xl border bg-gradient-to-br ${cfg.bg} ${cfg.border} shadow-2xl transition-all backdrop-blur-md ${selected ? `ring-2 ${cfg.ring} shadow-lg` : ''}`}>
+      <NodeResizer minWidth={200} minHeight={80} isVisible={selected} color="#64748b" handleStyle={{ borderRadius: 4, background: '#64748b', border: '1px solid #94a3b8' }} />
+      <NodeToolbar isVisible={selected} position={Position.Top} className="flex gap-1.5 bg-white/10 dark:bg-black/80 border border-white/10 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl">
+        <button onClick={() => deleteElements({ nodes: [{ id }] })} className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-neutral-500 dark:text-neutral-400 transition-all" title="Eliminar nodo"><Trash2 className="w-3.5 h-3.5" /></button>
+        <button onClick={() => { navigator.clipboard.writeText(data.label || ''); toast.success("Texto copiado"); }} className="p-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 text-neutral-500 dark:text-neutral-400 transition-all" title="Copiar texto"><Copy className="w-3.5 h-3.5" /></button>
+      </NodeToolbar>
+
+      {/* Handles */}
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        className="!w-3 !h-3 !rounded-full !bg-neutral-600 !border-2 !border-neutral-400 !cursor-crosshair hover:!bg-violet-400 !transition-colors !-top-1.5"
+      />
+
+      <div className="px-4 pt-4 pb-3">
+        <div className={`flex items-center gap-2 mb-3`}>
+          <div className={`p-1.5 rounded-lg bg-white/5`}><Icon className={`w-4 h-4 ${cfg.color}`} /></div>
+          <span className={`text-[9px] font-black tracking-[0.2em] uppercase ${cfg.color}`}>{cfg.label}</span>
+        </div>
+
+        <textarea
+          className="nodrag nopan nowheel w-full bg-transparent text-sm font-bold text-white leading-tight resize-none outline-none overflow-hidden placeholder:text-white/30 rounded-lg p-1 focus:bg-white/5 transition-all shadow-none border-none"
+          value={data.label || ''}
+          onChange={onLabelChange}
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
+          placeholder={`Nombre del ${cfg.label.toLowerCase()}...`}
+          rows={Math.max(1, Math.ceil((data.label || '').length / 28))}
+          style={{ minHeight: 28 }}
+        />
+
+        {selected && (
+          <textarea
+            className="nodrag nopan nowheel w-full mt-2 bg-black/20 text-xs text-white/70 resize-none outline-none rounded-lg p-2 placeholder:text-white/25 border border-white/10 focus:border-white/30 transition-all shadow-none"
+            value={data.notes || ''}
+            onChange={onNotesChange}
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+            placeholder="Notas / descripción..."
+            rows={3}
+          />
+        )}
+
+        {data.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {data.tags.map((t: string) => (
+              <span key={t} className={`text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/10 ${cfg.color}`}>{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        className="!w-3 !h-3 !rounded-full !bg-neutral-600 !border-2 !border-neutral-400 !cursor-crosshair hover:!bg-violet-400 !transition-colors !-bottom-1.5"
+      />
+    </div>
+  );
+}
+
+// Wrap for each type
+const ObjectiveNodeC = (p: any) => <PlanNode {...p} type="objectiveNode" />;
+const CampaignNodeC  = (p: any) => <PlanNode {...p} type="campaignNode" />;
+const ArticleNodeC   = (p: any) => <PlanNode {...p} type="articleNode" />;
+const PostNodeC      = (p: any) => <PlanNode {...p} type="postNode" />;
+const IdeaNodeC      = (p: any) => <PlanNode {...p} type="ideaNode" />;
+
+const nodeTypes = {
+  objectiveNode: ObjectiveNodeC,
+  campaignNode:  CampaignNodeC,
+  articleNode:   ArticleNodeC,
+  postNode:      PostNodeC,
+  ideaNode:      IdeaNodeC,
+};
+
+// ─── Deletable Edge ─────────────────────────────────────────────────────────
+function DeletableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {} }: EdgeProps) {
+  const { setEdges } = useReactFlow();
+  const [path, lx, ly] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  return (
+    <>
+      <BaseEdge path={path} style={style} />
+      <EdgeLabelRenderer>
+        <div style={{ transform: `translate(-50%,-50%) translate(${lx}px,${ly}px)`, pointerEvents: 'all', position: 'absolute' }} className="opacity-0 hover:opacity-100 transition-opacity nodrag nopan">
+          <button onClick={e => { e.stopPropagation(); setEdges(eds => eds.filter(e => e.id !== id)); }} className="w-5 h-5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 hover:bg-red-500 hover:border-red-400 text-neutral-500 hover:text-white text-[11px] font-bold flex items-center justify-center shadow-lg transition-all" title="Eliminar conexión">✕</button>
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+
+const edgeTypes = { deletable: DeletableEdge };
+
+// ─── Dagre Layout ───────────────────────────────────────────────────────────
+function applyDagreLayout(nodes: Node[], edges: Edge[]) {
+  if (!nodes.length) return { nodes, edges };
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+  g.setGraph({ rankdir: 'TB', ranksep: 120, nodesep: 80, marginx: 40, marginy: 40 });
+  nodes.forEach(n => g.setNode(n.id, { width: 260, height: 110 }));
+  edges.forEach(e => { if (nodes.find(n => n.id === e.source) && nodes.find(n => n.id === e.target)) g.setEdge(e.source, e.target); });
+  dagre.layout(g);
+  const root = g.node('root');
+  const xOff = root ? root.x : (g.node(nodes[0].id)?.x ?? 0);
+  return {
+    nodes: nodes.map(n => {
+      const p = g.node(n.id);
+      if (!p) return n;
+      return { ...n, position: { x: p.x - xOff - 130, y: p.y - 55 } };
+    }),
+    edges,
+  };
+}
+
+// ─── Palette Item ────────────────────────────────────────────────────────────
+function PaletteItem({ type, label, icon: Icon, color, bg }: any) {
+  const onDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/planner-node-type', type);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  return (
+    <div draggable onDragStart={onDragStart} className={`flex items-center gap-3 p-3 rounded-xl border cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-all bg-white/5 backdrop-blur-sm ${color.replace('text-', 'border-').replace('300', '500/30')} group`}>
+      <div className="p-2 rounded-lg bg-white/5"><Icon className={`w-4 h-4 ${color}`} /></div>
+      <div>
+        <p className={`text-xs font-bold ${color}`}>{label}</p>
+        <p className="text-[10px] text-neutral-500">Arrastra al canvas</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Inner Component ────────────────────────────────────────────────────
+function StrategyPlannerInner() {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [sessionName, setSessionName] = useState('Nueva Planificación');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [exportJson, setExportJson] = useState('');
+  const { screenToFlowPosition, fitView, getNodes, getEdges } = useReactFlow();
+
+  // Canvas arranca en blanco — el usuario construye su plan desde cero
+  useEffect(() => {
+    loadSessions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadSessions() {
+    const res = await fetch('/api/strategy-sessions');
+    if (res.ok) {
+      const result = await res.json();
+      setSessions(result.data || []);
+    }
+  }
+
+  async function loadSession(s: Session) {
+    const res = await fetch(`/api/strategy-sessions/${s.id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    setNodes(data.nodes || []);
+    setEdges(data.edges || []);
+    setCurrentSession(s);
+    setSessionName(s.name);
+    setShowSessions(false);
+    setTimeout(() => fitView({ duration: 600, padding: 0.2 }), 200);
+  }
+
+  async function saveSession() {
+    setIsSaving(true);
+    const payload = { id: currentSession?.id, name: sessionName, nodes: getNodes(), edges: getEdges() };
+    const res = await fetch('/api/strategy-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (res.ok) {
+      const savedResult = await res.json();
+      setCurrentSession(savedResult);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      loadSessions();
+      toast.success("Plan guardado");
+    }
+    setIsSaving(false);
+  }
+
+  async function deleteSession(id: string) {
+    if (!confirm('¿Eliminar esta sesión?')) return;
+    await fetch(`/api/strategy-sessions/${id}`, { method: 'DELETE' });
+    if (currentSession?.id === id) { setCurrentSession(null); setNodes([]); setEdges([]); }
+    loadSessions();
+    toast.success("Sesión eliminada");
+  }
+
+  function autoArrange() {
+    const { nodes: ln, edges: le } = applyDagreLayout(getNodes(), getEdges());
+    setNodes(ln);
+    setEdges(le);
+    setTimeout(() => fitView({ duration: 800, padding: 0.2 }), 100);
+  }
+
+  function exportForDonna() {
+    const ns = getNodes();
+    const es = getEdges();
+    const childMap = new Map<string, string[]>();
+    es.forEach(e => { if (!childMap.has(e.source)) childMap.set(e.source, []); childMap.get(e.source)!.push(e.target); });
+    const nodeMap = new Map(ns.map(n => [n.id, n]));
+    function buildTree(id: string): any {
+      const node = nodeMap.get(id);
+      if (!node) return null;
+      const children = (childMap.get(id) || []).map(buildTree).filter(Boolean);
+      const base: any = { id, type: node.type, name: node.data.label, notes: node.data.notes || '' };
+      if (children.length) base.children = children;
+      return base;
+    }
+    const roots = ns.filter(n => !es.find(e => e.target === n.id));
+    const tree = { session: sessionName, created_at: new Date().toISOString(), plan: roots.map(r => buildTree(r.id)).filter(Boolean) };
+    setExportJson(JSON.stringify(tree, null, 2));
+    setShowExport(true);
+  }
+
+  // Drag & Drop from palette
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    const type = event.dataTransfer.getData('application/planner-node-type') as NodeKind;
+    if (!type) return;
+    const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+    const cfg = NODE_CONFIG[type];
+    const newNode: Node = {
+      id: `${type}-${Date.now()}`,
+      type,
+      position,
+      data: { label: `Nuevo ${cfg.label.toLowerCase()}`, notes: '', tags: [] },
+    };
+    setNodes(nds => [...nds, newNode]);
+  }, [screenToFlowPosition, setNodes]);
+
+  const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }, []);
+  const onConnect = useCallback((p: Connection) => setEdges(eds => addEdge({ ...p, type: 'deletable', style: { stroke: '#475569', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#475569' } } as any, eds)), [setEdges]);
+
+  const paletteItems: Array<{ type: NodeKind; label: string; icon: any; color: string; bg: string }> = [
+    { type: 'objectiveNode', label: 'Objetivo Estratégico', icon: Target,     color: 'text-violet-300', bg: 'bg-violet-500/5 hover:bg-violet-500/15' },
+    { type: 'campaignNode',  label: 'Campaña / Iniciativa', icon: Rocket,     color: 'text-amber-300',  bg: 'bg-amber-500/5 hover:bg-amber-500/15' },
+    { type: 'articleNode',   label: 'Artículo / Anchor',    icon: FileText,   color: 'text-emerald-300',bg: 'bg-emerald-500/5 hover:bg-emerald-500/15' },
+    { type: 'postNode',      label: 'Post / Reel / Video',  icon: Smartphone, color: 'text-sky-300',    bg: 'bg-sky-500/5 hover:bg-sky-500/15' },
+    { type: 'ideaNode',      label: 'Idea libre',           icon: Lightbulb,  color: 'text-yellow-300', bg: 'bg-yellow-500/5 hover:bg-yellow-500/15' },
+  ];
+
+  return (
+    <div className="absolute inset-0 flex overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
+
+      {/* ── Sidebar del Planner (Sub-Sidebar) ── */}
+      <aside className="w-72 shrink-0 bg-white/10 dark:bg-black/40 border-r border-white/10 flex flex-col h-full overflow-hidden backdrop-blur-xl z-20">
+
+        {/* Header */}
+        <div className="p-5 border-b border-white/10">
+          <div className="flex items-center gap-2 mb-1">
+            <LayoutDashboard className="w-5 h-5 text-violet-500" />
+            <h1 className="text-sm font-black text-neutral-900 dark:text-white tracking-tight leading-none">STRATEGY PLANNER</h1>
+          </div>
+          <p className="text-[10px] text-neutral-500 uppercase font-bold tracking-widest mt-1">Cerebro de Campaña</p>
+        </div>
+
+        {/* Session Name */}
+        <div className="px-4 pt-4 pb-2">
+          <label className="text-[10px] font-bold text-neutral-500 dark:text-neutral-500 uppercase tracking-widest block mb-1.5">Nombre del plan</label>
+          <input
+            value={sessionName}
+            onChange={e => setSessionName(e.target.value)}
+            className="w-full bg-white/5 dark:bg-black/40 border border-white/10 text-neutral-900 dark:text-white text-xs px-3 py-2.5 rounded-xl outline-none focus:border-violet-500/50 transition-all placeholder:text-neutral-500"
+            placeholder="ej: Planificación Q2 2026"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="px-4 py-3 space-y-2">
+          <button onClick={saveSession} disabled={isSaving}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg ${saved ? 'bg-emerald-600/90 text-white' : 'bg-violet-600/90 hover:bg-violet-500 text-white'} active:scale-95`}>
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            {isSaving ? 'Guardando...' : saved ? 'Guardado ✓' : 'Guardar sesión'}
+          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={autoArrange} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-white/5 dark:bg-black/40 hover:bg-white/10 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 border border-white/10">
+              <RefreshCw className="w-3 h-3 text-violet-500" /> AUTO-ORDENAR
+            </button>
+            <button onClick={exportForDonna} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-white/5 dark:bg-black/40 hover:bg-white/10 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 border border-white/10">
+              <Download className="w-3 h-3 text-emerald-500" /> EXPORTAR JSON
+            </button>
+          </div>
+          <button onClick={() => setShowSessions(s => !s)} className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl text-xs font-bold bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/40 text-neutral-600 dark:text-neutral-400 transition-all border border-white/10">
+            <span className="flex items-center gap-2 font-bold"><FolderOpen className="w-3.5 h-3.5 text-amber-500" /> Mis sesiones ({sessions.length})</span>
+            {showSessions ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+          {showSessions && (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+              {sessions.length === 0 && <p className="text-[10px] text-neutral-500 text-center py-4">Sin sesiones guardadas</p>}
+              {sessions.map(s => (
+                <div key={s.id} className="flex items-center gap-2 group/sess">
+                  <button onClick={() => loadSession(s)} className={`flex-1 text-left px-3 py-2 rounded-lg text-xs font-medium transition-all truncate ${currentSession?.id === s.id ? 'bg-violet-600/20 text-violet-600 dark:text-violet-300 border border-violet-500/30' : 'hover:bg-white/10 dark:hover:bg-black/40 text-neutral-600 dark:text-neutral-400'}`}>
+                    {s.name}
+                  </button>
+                  <button onClick={() => deleteSession(s.id)} className="opacity-0 group-hover/sess:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-500 text-neutral-400 transition-all">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="mx-4 border-t border-white/10 my-2" />
+
+        {/* Palette */}
+        <div className="px-4 pb-4 flex-1 overflow-y-auto scrollbar-none">
+          <label className="text-[10px] font-black text-neutral-500 dark:text-neutral-500 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+            <Sparkles className="w-3 h-3 text-pink-500" /> PALETA DE NODOS
+          </label>
+          <div className="space-y-2">
+            {paletteItems.map(item => <PaletteItem key={item.type} {...item} />)}
+          </div>
+
+          <div className="mt-5 p-3 rounded-xl bg-violet-600/5 border border-violet-500/20 backdrop-blur-sm">
+            <p className="text-[10px] font-bold text-violet-600 dark:text-violet-400 mb-1">💡 Cómo usar</p>
+            <ul className="text-[10px] text-neutral-500 dark:text-neutral-400 space-y-1">
+              <li>• Arrastra nodos al canvas</li>
+              <li>• Conecta: tira desde el punto azul</li>
+              <li>• Elimina conexión: hover → ✕</li>
+              <li>• Redimensiona: selecciona el nodo</li>
+              <li>• Edita: clic en cualquier texto</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Canvas ── */}
+      <div className="flex-1 h-full relative">
+        {/* Floating top badge */}
+        <Panel position="top-center" className="pointer-events-none">
+          <div className="px-5 py-2 bg-white/10 dark:bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl shadow-2xl">
+            <span className="text-xs font-black text-neutral-800 dark:text-neutral-200 tracking-widest">{sessionName.toUpperCase()}</span>
+            {currentSession && <span className="ml-3 text-[10px] text-neutral-500">ID: {currentSession.id.slice(0, 8)}</span>}
+          </div>
+        </Panel>
+
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          nodeTypes={nodeTypes as any}
+          edgeTypes={edgeTypes as any}
+          defaultEdgeOptions={{ type: 'deletable', style: { stroke: '#475569', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#475569' } }}
+          fitView
+          fitViewOptions={{ padding: 0.3 }}
+          minZoom={0.05}
+          maxZoom={3}
+          panOnScroll
+          selectionOnDrag
+          selectNodesOnDrag={false}
+          deleteKeyCode={['Backspace', 'Delete']}
+          multiSelectionKeyCode="Shift"
+          connectionRadius={30}
+        >
+          <Background 
+            color="#475569" 
+            variant={BackgroundVariant.Dots} 
+            gap={25} 
+            size={0.5} 
+            className="opacity-20"
+          />
+          <Controls 
+            className="!bg-white/10 dark:!bg-black/60 !border-white/10 !rounded-2xl !shadow-2xl !bottom-8 !left-8 !backdrop-blur-xl" 
+            showInteractive={false} 
+          />
+          <MiniMap 
+            className="!bg-white/10 dark:!bg-black/80 !border-white/10 !rounded-2xl !shadow-2xl !bottom-8 !right-8 !backdrop-blur-xl" 
+            maskColor="rgba(0,0,0,0.5)"
+            nodeColor={n => {
+              if (n.type === 'objectiveNode') return '#8b5cf6';
+              if (n.type === 'campaignNode')  return '#f59e0b';
+              if (n.type === 'articleNode')   return '#10b981';
+              if (n.type === 'postNode')      return '#0ea5e9';
+              return '#eab308';
+            }}
+          />
+        </ReactFlow>
+      </div>
+
+      {/* ── Export Modal ── */}
+      {showExport && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[99999] flex items-center justify-center p-6" onClick={() => setShowExport(false)}>
+          <div className="bg-white/40 dark:bg-black/60 border border-white/20 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col backdrop-blur-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div>
+                <h2 className="text-sm font-black text-neutral-900 dark:text-white flex items-center gap-2 tracking-tight">
+                  <Sparkles className="w-4 h-4 text-pink-500" /> CONTEXTO PARA DONNA
+                </h2>
+                <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5">Cerebro de Estrategia Exportado</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => { navigator.clipboard.writeText(exportJson); toast.success("JSON copiado"); }} className="px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-lg"><Copy className="w-3 h-3" /> COPIAR</button>
+                <button onClick={() => setShowExport(false)} className="p-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-black/40 text-neutral-400"><X className="w-4 h-4" /></button>
+              </div>
+            </div>
+            <pre className="flex-1 overflow-auto p-6 text-[11px] text-pink-600 dark:text-pink-400 font-mono leading-relaxed bg-black/5 dark:bg-black/20 m-4 rounded-2xl scrollbar-thin scrollbar-thumb-pink-500/20">{exportJson}</pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Root Export ─────────────────────────────────────────────────────────────
+export default function StrategyPlanner() {
+  return (
+    <ReactFlowProvider>
+      <StrategyPlannerInner />
+    </ReactFlowProvider>
+  );
+}

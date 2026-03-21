@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap } from 'lucide-react';
+import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -52,6 +52,7 @@ export default function DonnaChatPanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Persistence for messages and isOpen state
   useEffect(() => {
@@ -195,6 +196,13 @@ export default function DonnaChatPanel() {
       textareaRef.current?.focus();
     }
   }, [messages, isLoading, provider, router]);
+  
+  const clearSession = useCallback(() => {
+    setMessages([WELCOME]);
+    localStorage.removeItem('donna-chat-history');
+    setShowClearConfirm(false);
+    toast.success('Sesión limpiada. ¡Nuevo inicio!');
+  }, []);
 
   const startRecording = async () => {
     try {
@@ -281,6 +289,13 @@ export default function DonnaChatPanel() {
           </h3>
           <p className="text-[10px] text-neutral-500 dark:text-neutral-500 font-medium uppercase tracking-wider">Board de Expertos</p>
         </div>
+        <button 
+          onClick={() => setShowClearConfirm(true)}
+          title="Nueva sesión"
+          className="p-2 text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
         <button 
           onClick={() => setIsOpen(false)}
           className="p-2 text-neutral-500 hover:text-pink-600 dark:hover:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-500/10 rounded-lg transition-colors"
@@ -469,6 +484,33 @@ export default function DonnaChatPanel() {
         </div>
         <p className="text-[9px] text-neutral-600 text-center mt-2 font-medium">SOCI@ ESTRATÉGICO · RRSS OBJETIVO</p>
       </div>
+
+      {/* Clear Session Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="absolute inset-0 z-[100] bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-end justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 w-full shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center mb-4">
+              <RotateCcw className="w-6 h-6 text-amber-600 dark:text-amber-500" />
+            </div>
+            <h3 className="font-bold text-neutral-900 dark:text-white text-lg mb-1">¿Nueva sesión con Donna?</h3>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">El historial de este chat se borrará permanentemente de tu memoria local.</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={clearSession} 
+                className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+              >
+                Limpiar y empezar
+              </button>
+              <button 
+                onClick={() => setShowClearConfirm(false)} 
+                className="flex-1 py-3 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm font-bold rounded-2xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all active:scale-95"
+              >
+                Ahora no
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
     </>
   );

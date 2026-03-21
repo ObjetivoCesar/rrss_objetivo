@@ -1,29 +1,30 @@
-import { supabaseAdmin } from './supabase-admin';
+type LogLevel = 'info' | 'warn' | 'error';
 
-export type LogSeverity = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+class Logger {
+  private formatMessage(level: LogLevel, message: string, data?: any) {
+    const timestamp = new Date().toISOString();
+    return {
+      timestamp,
+      level: level.toUpperCase(),
+      message,
+      ...(data && { data }),
+    };
+  }
 
-export async function logSystem(
-  service: string,
-  severity: LogSeverity,
-  message: string,
-  metadata?: Record<string, any>
-) {
-  try {
-    const { error } = await supabaseAdmin
-      .from('system_logs')
-      .insert([
-        {
-          service,
-          severity,
-          message,
-          metadata: metadata || {}
-        }
-      ]);
+  info(message: string, data?: any) {
+    console.log(JSON.stringify(this.formatMessage('info', message, data)));
+  }
 
-    if (error) {
-      console.error('❌ [Logger] Error guardando log en Supabase:', error.message);
-    }
-  } catch (err: any) {
-    console.error('❌ [Logger] Excepción guardando log:', err.message);
+  warn(message: string, data?: any) {
+    console.warn(JSON.stringify(this.formatMessage('warn', message, data)));
+  }
+
+  error(message: string, error?: any) {
+    const errorData = error instanceof Error 
+      ? { message: error.message, stack: error.stack }
+      : error;
+    console.error(JSON.stringify(this.formatMessage('error', message, errorData)));
   }
 }
+
+export const logger = new Logger();

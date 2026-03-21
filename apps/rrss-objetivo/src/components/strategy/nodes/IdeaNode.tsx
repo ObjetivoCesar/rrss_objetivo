@@ -27,10 +27,12 @@ export function IdeaNode({ id, data, selected }: { id: string, data: any, select
             Idea en Borrador <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
           </span>
           <textarea
-            className="w-full bg-transparent text-sm font-semibold text-white leading-snug outline-none resize-none overflow-hidden placeholder:text-slate-600 block focus:ring-1 focus:ring-yellow-500/50 rounded-md p-1 -ml-1 transition-all"
+            className="nodrag nopan nowheel w-full bg-transparent text-sm font-semibold text-white leading-snug outline-none resize-none overflow-hidden placeholder:text-slate-600 block focus:ring-1 focus:ring-yellow-500/50 rounded-md p-1 -ml-1 transition-all"
             value={data.label || ''}
             onChange={onChange}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             onFocus={(e) => e.target.select()}
             placeholder="Escribe tu idea aquí..."
             rows={Math.max(2, (data.label || '').split('\n').length)}

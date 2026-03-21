@@ -1,11 +1,12 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createDeepSeek } from '@ai-sdk/deepseek';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { generateText, tool, jsonSchema } from 'ai';
 import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
-import pool from '@/lib/mysql'; // Pool de MySQL para artículos reales
+import pool from '@/lib/mysql';
+import { logger } from '@/lib/logger';
 
 // ============================================================
 // GEMINI KEY POOL — SELECCIÓN ALEATORIA SIN LAZY STREAM 
@@ -133,6 +134,65 @@ async function getContextSnapshot(supabase: any): Promise<string> {
       }
     }
 
+    // ── Planificación Estratégica (Strategy Planner Sessions) ──
+    // Lee la sesión más reciente del planner visual para anti-canibalización
+    let strategySessionSummary = '';
+    try {
+      const { data: latestSession } = await supabase
+        .from('strategy_sessions')
+        .select('name, description, nodes, edges, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (latestSession && latestSession.nodes?.length > 0) {
+        const nodes: any[] = latestSession.nodes;
+        const edges: any[] = latestSession.edges || [];
+        
+        // Construir árbol jerárquico legible para Donna
+        const childMap = new Map<string, string[]>();
+        edges.forEach((e: any) => {
+          if (!childMap.has(e.source)) childMap.set(e.source, []);
+          childMap.get(e.source)!.push(e.target);
+        });
+        const nodeMap = new Map(nodes.map((n: any) => [n.id, n]));
+        
+        function buildReadableTree(id: string, depth = 0): string {
+          const node = nodeMap.get(id);
+          if (!node) return '';
+          const indent = '  '.repeat(depth);
+          const typeEmoji = { objectiveNode: '🎯', campaignNode: '🚀', articleNode: '📄', postNode: '📱', ideaNode: '💡' }[node.type as string] || '•';
+          const label = node.data?.label || '(sin nombre)';
+          const notes = node.data?.notes ? ` — ${node.data.notes.substring(0, 80)}` : '';
+          let line = `${indent}${typeEmoji} ${label}${notes}\n`;
+          const children = childMap.get(id) || [];
+          children.forEach(cid => { line += buildReadableTree(cid, depth + 1); });
+          return line;
+        }
+        
+        const roots = nodes.filter((n: any) => !edges.find((e: any) => e.target === n.id));
+        const treeText = roots.map((r: any) => buildReadableTree(r.id)).join('');
+        
+        strategySessionSummary = `
+=== 📋 PLAN ESTRATÉGICO ACTIVO (Strategy Planner) ===
+Sesión: "${latestSession.name}" | Última actualización: ${new Date(latestSession.updated_at).toLocaleDateString('es-EC')}
+
+Jerarquía de contenido planificado:
+${treeText}
+
+⚠️ INSTRUCCIÓN OBLIGATORIA PARA DONNA:
+Antes de proponer cualquier idea o contenido, DEBES comparar con este plan. 
+Si hay solapamiento de tema, keyword o campaña, DEBES alertar a César con:
+"César, según tu plan activo esto ya está cubierto/planificado bajo [Objetivo/Campaña X]. 
+Te sugiero [ángulo diferente] para no canibalizar."
+Si una nueva idea COMPLEMENTA el plan, dilo explícitamente: "Esto encaja perfectamente con tu campaña X."
+`;
+      }
+    } catch (sessionErr) {
+      // Si la tabla no existe aún o está vacía, continuar sin error
+      console.warn('[Donna Snapshot] Strategy sessions no disponibles:', sessionErr);
+    }
+
     let snapshot = '=== SNAPSHOT DE LA BASE DE DATOS (REAL-TIME CONTEXT) ===\n';
     snapshot += 'Estado actual del ecosistema:\n';
     snapshot += '- 🎯 OBJETIVOS/PILARES ESTRATÉGICOS:\n' + JSON.stringify(objectives || [], null, 2) + '\n';
@@ -142,6 +202,11 @@ async function getContextSnapshot(supabase: any): Promise<string> {
     snapshot += '- 🗺️ MAPA ESTRATÉGICO (Artículos ↔ Objetivos):\n' + JSON.stringify(coverageSummary || {}, null, 2) + '\n';
     snapshot += '- 📊 COBERTURA: Usa este mapa para identificar qué pilares tienen POCOS artículos de apoyo y recomienda crear contenido para llenar esos huecos.\n';
     snapshot += '- NOTA PARA DONNA: Los artículos en MySQL son los que ya están en vivo. Los de Supabase son borradores o posts de redes sociales. Usa la herramienta tag_article para vincular artículos a objetivos cuando César lo solicite.\n';
+    
+    if (strategySessionSummary) {
+      snapshot += strategySessionSummary;
+    }
+    
     return snapshot;
   } catch (error) {
     console.error("Error cargando Snapshot:", error);
@@ -199,14 +264,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { messages, provider = 'gemini' } = body;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = await createClient();
+    logger.info('Donna Chat Request', { provider, messageCount: messages.length });
 
     let memoryStr = '(Sin notas estratégicas aún)';
     let snapshotStr = '=== SNAPSHOT DE LA BASE DE DATOS ===\n(No disponible)';
 
-    if (supabaseUrl && supabaseKey) {
+    if (supabase) {
       try {
         const { data } = await supabase
           .from('donna_memory')
@@ -219,7 +283,7 @@ export async function POST(req: Request) {
         }
         snapshotStr = await getContextSnapshot(supabase);
       } catch (err) {
-        console.warn('[Donna] Error cargando contexto inicial');
+        logger.error('[Donna] Error cargando contexto inicial', err);
       }
     }
 

@@ -20,7 +20,8 @@ import {
   MessageSquare, // New icon for Editor de Posts
   FileText, // New icon for Blog
   Network, // New icon for Estrategia
-  Map // New icon for Map
+  Map, // New icon for Map
+  PenTool // New icon for Strategy Planner
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -34,7 +35,7 @@ const NAV_ITEMS = [
   { href: "/pipeline",  label: "Expert Lens",   icon: BrainCircuit },
   { href: "/donna",     label: "Donna AI",      icon: Sparkles },
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
-  { href: "/strategy",  label: "Estrategia",    icon: Network },
+  { href: "/strategy-planner", label: "Estrategia",       icon: PenTool },
   { href: "/settings",  label: "Configuración", icon: Settings },
 ];
 
