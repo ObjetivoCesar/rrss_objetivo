@@ -34,8 +34,7 @@ const NAV_ITEMS = [
   { href: "/pipeline",  label: "Expert Lens",   icon: BrainCircuit },
   { href: "/donna",     label: "Donna AI",      icon: Sparkles },
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
-  { href: "/strategy",  label: "Estrategia",    icon: Network }, // New item
-  { href: "/map",       label: "Mapa",          icon: Map }, // New item
+  { href: "/strategy",  label: "Estrategia",    icon: Network },
   { href: "/settings",  label: "Configuración", icon: Settings },
 ];
 
