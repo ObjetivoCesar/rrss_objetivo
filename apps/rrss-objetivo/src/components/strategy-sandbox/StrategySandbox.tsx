@@ -61,16 +61,17 @@ const getId = () => `sandbox_node_${id++}`;
 function SandboxCanvas() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { screenToFlowPosition } = useReactFlow();
 
   const onConnect = useCallback((params: Connection | Edge) => {
-    setEdges((eds) => addEdge({ 
+    const newEdge = { 
       ...params, 
       type: 'smoothstep', 
       animated: true,
       style: { stroke: '#6366f1', strokeWidth: 3 } 
-    }, eds));
+    } as Edge;
+    setEdges((eds) => addEdge(newEdge, eds));
   }, [setEdges]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {

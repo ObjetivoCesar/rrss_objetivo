@@ -409,11 +409,11 @@ export default function DonnaChatPanel() {
                       <span className="text-green-400 text-xs">✓</span>
                     </div>
                     <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
-                      {ta.tool === 'create_objective' ? 'Objetivo Creado' : ta.tool === 'manage_campaign' ? (ta.result?.action === 'create' ? 'Campaña Creada' : ta.result?.action === 'delete' ? 'Campaña Archivada' : 'Campaña Actualizada') : ta.tool === 'propose_post' ? 'Borrador Guardado' : 'Acción Ejecutada'}
+                      {ta.tool === 'create_objective' ? 'Objetivo Creado' : ta.tool === 'manage_campaign' ? ((ta.result as any)?.action === 'create' ? 'Campaña Creada' : (ta.result as any)?.action === 'delete' ? 'Campaña Archivada' : 'Campaña Actualizada') : ta.tool === 'propose_post' ? 'Borrador Guardado' : 'Acción Ejecutada'}
                     </span>
                   </div>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    {ta.result?.message || 'Ejecutado correctamente.'}
+                    {(ta.result as any)?.message || 'Ejecutado correctamente.'}
                   </p>
                 </div>
               </div>
