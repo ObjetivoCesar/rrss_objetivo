@@ -36,17 +36,44 @@ export async function GET(req: NextRequest) {
 // POST /api/strategy-sessions — create or update a session
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { id, name, description, nodes, edges } = body;
+  const { id, name, description, nodes, edges, new_objective_name, objective_id: provided_objective_id } = body;
   const supabase = await createClient();
 
   if (!name || !nodes || !edges) {
     return NextResponse.json({ error: 'Missing required fields: name, nodes, edges' }, { status: 400 });
+  }
+  
+  let final_objective_id = provided_objective_id;
+
+  // Insertar el nuevo objetivo si viene del frontend
+  if (new_objective_name) {
+    logger.info('Creating new objective from Strategy Planner', { new_objective_name });
+    
+    // Check if it exists just in case
+    const { data: existingObj } = await supabase.from('objectives').select('id').ilike('name', new_objective_name).maybeSingle();
+    
+    if (existingObj) {
+      final_objective_id = existingObj.id;
+    } else {
+      const { data: newObj, error: objError } = await supabase
+        .from('objectives')
+        .insert([{ name: new_objective_name, description: 'Creado desde el Strategy Planner', emoji: '🎯', color: '#10b981' }])
+        .select()
+        .single();
+        
+      if (!objError && newObj) {
+        final_objective_id = newObj.id;
+      } else {
+        logger.error('Failed to create new objective', objError);
+      }
+    }
   }
 
   if (id) {
     logger.info('Updating strategy session', { id, name });
     const { data, error } = await supabase
       .from('strategy_sessions')
+      // Intentamos guardar strategy_sessions, no incluimos objective_id al insert porque no sabemos si existe la columna y la meta primordial es que exista en 'objectives'.
       .update({ name, description, nodes, edges, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()

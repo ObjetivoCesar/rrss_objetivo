@@ -315,6 +315,23 @@ export async function POST(req: Request) {
         // @ts-ignore
         execute: async ({ name, description, emoji, color }: { name: string, description: string, emoji?: string, color?: string }) => {
           console.log(`[Donna Tool] Ejecutando create_objective: ${name}`);
+          
+          // Verificar si ya existe un objetivo con ese mismo nombre
+          const { data: existing } = await supabase
+            .from('objectives')
+            .select('id, name')
+            .ilike('name', name)
+            .limit(1)
+            .maybeSingle();
+            
+          if (existing) {
+            console.log(`[Donna Tool] ⚠️ create_objective abortado: Ya existe objetivo similar (${existing.name})`);
+            return { 
+              status: 'error', 
+              message: `Operación abortada: Ya existe un objetivo en la base de datos llamado "${existing.name}" (ID de BD: ${existing.id}). Infórmale esto al usuario de manera conversacional y usa ese objetivo existente si deseas crear campañas en él.` 
+            };
+          }
+
           const { data, error } = await supabase
             .from('objectives')
             .insert([{ 
@@ -617,10 +634,10 @@ export async function POST(req: Request) {
       if (!key) return Response.json({ error: 'DEEPSEEK_API_KEY no configurada' }, { status: 500 });
       const deepseekProvider = createDeepSeek({ apiKey: key });
       const result = await generateText({
-        model: deepseekProvider('deepseek-chat'),
+        model: deepseekProvider('deepseek-reasoner'),
         system: systemPrompt,
         messages: normalizedMessages,
-        // Sin tools — conversación pura para evitar el bug de schema
+        // Sin tools — conversación pura de ALTO RAZONAMIENTO para evitar bugs y dar mayor potencia analítica
       });
       responseText = result.text;
     } else {

@@ -18,7 +18,7 @@ export default function DashboardLayout({
         <Sidebar />
         <DonnaChatPanel />
         <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0 bg-white/20 dark:bg-black/20 backdrop-blur-md relative">
-          <div className="max-w-7xl mx-auto p-5 md:p-8">
+          <div className="w-full h-full p-4 md:p-6">
             {children}
           </div>
         </main>

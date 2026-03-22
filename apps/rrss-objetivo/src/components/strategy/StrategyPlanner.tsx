@@ -143,15 +143,23 @@ const nodeTypes = {
 };
 
 // ─── Deletable Edge ─────────────────────────────────────────────────────────
-function DeletableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {} }: EdgeProps) {
+function DeletableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, selected }: EdgeProps) {
   const { setEdges } = useReactFlow();
   const [path, lx, ly] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
   return (
     <>
       <BaseEdge path={path} style={style} />
       <EdgeLabelRenderer>
-        <div style={{ transform: `translate(-50%,-50%) translate(${lx}px,${ly}px)`, pointerEvents: 'all', position: 'absolute' }} className="opacity-0 hover:opacity-100 transition-opacity nodrag nopan">
-          <button onClick={e => { e.stopPropagation(); setEdges(eds => eds.filter(e => e.id !== id)); }} className="w-5 h-5 rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 hover:bg-red-500 hover:border-red-400 text-neutral-500 hover:text-white text-[11px] font-bold flex items-center justify-center shadow-lg transition-all" title="Eliminar conexión">✕</button>
+        <div 
+          style={{ transform: `translate(-50%,-50%) translate(${lx}px,${ly}px)`, pointerEvents: 'all', position: 'absolute' }} 
+          className={`transition-all duration-200 nodrag nopan z-50 flex items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 shadow-md ${selected ? 'opacity-100 scale-125 ring-2 ring-red-400' : 'opacity-0 hover:opacity-100 hover:scale-110'}`}
+        >
+          <button 
+           onClick={e => { e.stopPropagation(); setEdges(eds => eds.filter(e => e.id !== id)); }} 
+           className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-neutral-500 hover:text-red-500 text-[10px] md:text-xs font-black transition-colors" 
+           title="Eliminar conexión">
+            ✕
+          </button>
         </div>
       </EdgeLabelRenderer>
     </>
@@ -205,6 +213,9 @@ function StrategyPlannerInner() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [sessionName, setSessionName] = useState('Nueva Planificación');
+  const [objectives, setObjectives] = useState<any[]>([]);
+  const [selectedObjectiveId, setSelectedObjectiveId] = useState<string>('');
+  const [newObjectiveName, setNewObjectiveName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showSessions, setShowSessions] = useState(false);
@@ -215,8 +226,17 @@ function StrategyPlannerInner() {
   // Canvas arranca en blanco — el usuario construye su plan desde cero
   useEffect(() => {
     loadSessions();
+    loadObjectives();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function loadObjectives() {
+    const res = await fetch('/api/objectives');
+    if (res.ok) {
+      const result = await res.json();
+      setObjectives(result.data || []);
+    }
+  }
 
   async function loadSessions() {
     const res = await fetch('/api/strategy-sessions');
@@ -239,8 +259,24 @@ function StrategyPlannerInner() {
   }
 
   async function saveSession() {
+    if (!selectedObjectiveId) {
+      toast.error('Selecciona o crea un Objetivo Estratégico Asociado');
+      return;
+    }
+    if (selectedObjectiveId === 'new' && !newObjectiveName.trim()) {
+      toast.error('Escribe el nombre del nuevo objetivo');
+      return;
+    }
+    
     setIsSaving(true);
-    const payload = { id: currentSession?.id, name: sessionName, nodes: getNodes(), edges: getEdges() };
+    const payload = { 
+      id: currentSession?.id, 
+      name: sessionName, 
+      nodes: getNodes(), 
+      edges: getEdges(),
+      objective_id: selectedObjectiveId === 'new' ? undefined : selectedObjectiveId,
+      new_objective_name: selectedObjectiveId === 'new' ? newObjectiveName.trim() : undefined
+    };
     const res = await fetch('/api/strategy-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       const savedResult = await res.json();
@@ -339,6 +375,32 @@ function StrategyPlannerInner() {
             className="w-full bg-white/5 dark:bg-black/40 border border-white/10 text-neutral-900 dark:text-white text-xs px-3 py-2.5 rounded-xl outline-none focus:border-violet-500/50 transition-all placeholder:text-neutral-500"
             placeholder="ej: Planificación Q2 2026"
           />
+        </div>
+
+        {/* Objective Selector */}
+        <div className="px-4 pb-2">
+          <label className="text-[10px] font-bold text-neutral-500 dark:text-neutral-500 uppercase tracking-widest block mb-1.5">Objetivo Asociado</label>
+          <select
+            value={selectedObjectiveId}
+            onChange={e => setSelectedObjectiveId(e.target.value)}
+            className="w-full bg-white/5 dark:bg-black/40 border border-white/10 text-neutral-900 dark:text-white text-xs px-3 py-2.5 rounded-xl outline-none focus:border-violet-500/50 transition-all cursor-pointer"
+          >
+            <option value="" disabled>Selecciona un objetivo...</option>
+            {objectives.map(o => (
+              <option key={o.id} value={o.id}>{o.emoji || '🎯'} {o.name}</option>
+            ))}
+            <option value="new">✨ Crear NUEVO objetivo...</option>
+          </select>
+          
+          {selectedObjectiveId === 'new' && (
+            <input
+              value={newObjectiveName}
+              onChange={e => setNewObjectiveName(e.target.value)}
+              className="mt-2 w-full bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 text-neutral-900 dark:text-white text-xs px-3 py-2.5 rounded-xl outline-none focus:border-pink-500 transition-all placeholder:text-pink-500/50"
+              placeholder="Escribe el título del objetivo..."
+              autoFocus
+            />
+          )}
         </div>
 
         {/* Action Buttons */}

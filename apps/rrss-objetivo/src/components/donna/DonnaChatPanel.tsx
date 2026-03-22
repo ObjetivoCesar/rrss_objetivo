@@ -322,8 +322,8 @@ export default function DonnaChatPanel() {
         </div>
       </div>
       {provider === 'deepseek' && (
-        <p className="text-[9px] text-center text-amber-600 dark:text-amber-500/80 px-2 pb-1 -mt-1 pt-1 opacity-90">
-          ⚡ DeepSeek: chat rápido. Para Modo Jarvis usa <strong>Gemini</strong>.
+        <p className="text-[9px] text-center text-blue-600 dark:text-blue-400/80 px-2 pb-1 -mt-1 pt-1 opacity-90">
+          🧠 <strong>DeepSeek R1 (Razonamiento Profundo)</strong>. Lento, pero analítico. Para superpoderes (Herramientas y Jarvis) usa <strong>Gemini</strong>.
         </p>
       )}
 
@@ -358,8 +358,9 @@ export default function DonnaChatPanel() {
                         ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-2 space-y-1" {...props} />,
                         li: ({node, ...props}) => <li className="" {...props} />,
                         a: ({node, ...props}) => <a className="text-pink-600 dark:text-pink-400 underline hover:text-pink-700 break-all" target="_blank" rel="noopener noreferrer" {...props} />,
+                        pre: ({node, ...props}) => <pre className="overflow-x-auto w-full max-w-full bg-neutral-100 dark:bg-neutral-800/60 p-3 rounded-lg my-2 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700" {...props} />,
                         code: ({node, inline, ...props}: any) => (
-                          <code className={`${inline ? 'bg-neutral-100 dark:bg-neutral-800/60 rounded px-1.5 py-0.5' : 'block p-3 bg-neutral-100 dark:bg-neutral-800/60 rounded-lg overflow-x-auto'} text-[13px] font-mono text-neutral-800 dark:text-neutral-200 break-all`} {...props} />
+                          <code className={`${inline ? 'bg-neutral-100 dark:bg-neutral-800/60 rounded px-1.5 py-0.5 break-all' : 'bg-transparent whitespace-pre'} text-[13px] font-mono text-neutral-800 dark:text-neutral-200`} {...props} />
                         ),
                         h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-4 mb-2" {...props} />,
                         h2: ({node, ...props}) => <h2 className="text-md font-bold mt-3 mb-2" {...props} />,
