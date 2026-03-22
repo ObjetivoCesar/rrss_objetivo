@@ -646,13 +646,31 @@ export async function POST(req: Request) {
     };
 
     let responseText = '';
-    let uiAction: any = null; // Para capturar acciones de UI de Donna
+    let uiAction: any = null;
+
+    // ── Detección de intención: si el usuario quiere el mapa visual, forzar la herramienta
+    const lastUserMessage = [...normalizedMessages].reverse().find(m => m.role === 'user');
+    const lastText = (lastUserMessage?.content || '').toLowerCase();
+    const wantsStrategyMap = [
+      'mapa estrat', 'mapa visual', 'genera el mapa', 'créa el mapa', 'crea el mapa',
+      'generar el flujo', 'genera el flujo', 'crea el flujo', 'criar el flujo', 'planner',
+      'cargar al canvas', 'cargar en el canvas', 'al lienzo', 'generá el flujo', 'flujo visual',
+      'estrategia visual', 'structure al canvas', 'convierte en flujo', 'hazlo visual',
+      'plasmar', 'plasmarlo', 'visualiz', 'mapa de esto', 'flujo de esto',
+      'strategy planner', 'generate_strategy'
+    ].some(kw => lastText.includes(kw));
+
     const modelOptions: any = {
       system: systemPrompt,
       messages: normalizedMessages,
       tools,
-      maxSteps: 5, 
+      maxSteps: 5,
+      // Si el usuario quiere el mapa, forzar la herramienta (sin opción de respuesta en texto)
+      ...(wantsStrategyMap ? { toolChoice: { type: 'tool', toolName: 'generate_strategy_map' } } : {}),
     };
+
+    console.log(`[Donna Intent] wantsStrategyMap=${wantsStrategyMap} | lastText="${lastText.substring(0, 80)}"`);
+
 
     // ── NOTA: @ai-sdk/deepseek tiene un bug con Zod 4 que serializa las herramientas como
     // `properties: {}` vacío. La solución definitiva:
