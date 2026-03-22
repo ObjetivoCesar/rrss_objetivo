@@ -648,28 +648,108 @@ export async function POST(req: Request) {
     let responseText = '';
     let uiAction: any = null;
 
-    // ── Detección de intención: si el usuario quiere el mapa visual, forzar la herramienta
+    // ── Detección de intención: el usuario quiere GENERAR el mapa visual
+    // IMPORTANTE: excluir URLs y mensajes donde 'strategy-planner' aparece como link, no como intención
     const lastUserMessage = [...normalizedMessages].reverse().find(m => m.role === 'user');
     const lastText = (lastUserMessage?.content || '').toLowerCase();
+    // Remover URLs para evitar falsos positivos (ej: "ver en /strategy-planner" ≠ "generar el mapa")
+    const lastTextNoUrls = lastText.replace(/https?:\/\/\S+|(\/strategy-[a-z-]+)/g, '');
     const wantsStrategyMap = [
-      'mapa estrat', 'mapa visual', 'genera el mapa', 'créa el mapa', 'crea el mapa',
-      'generar el flujo', 'genera el flujo', 'crea el flujo', 'criar el flujo', 'planner',
-      'cargar al canvas', 'cargar en el canvas', 'al lienzo', 'generá el flujo', 'flujo visual',
-      'estrategia visual', 'structure al canvas', 'convierte en flujo', 'hazlo visual',
-      'plasmar', 'plasmarlo', 'visualiz', 'mapa de esto', 'flujo de esto',
-      'strategy planner', 'generate_strategy'
-    ].some(kw => lastText.includes(kw));
+      'genera el mapa', 'créa el mapa', 'crea el mapa', 'crea el flujo',
+      'generar el flujo', 'genera el flujo', 'genera el mapa estratégico', 'crea el mapa estratégico',
+      'flujo visual', 'hazlo visual', 'plasmar', 'plasmarlo',
+      'flujo de trabajo visual', 'cargar al canvas', 'cargar en el canvas',
+      'mapa de esto', 'flujo de esto', 'convierte en flujo',
+    ].some(kw => lastTextNoUrls.includes(kw));
+
+    console.log(`[Donna Intent] wantsStrategyMap=${wantsStrategyMap} | text="${lastTextNoUrls.substring(0, 100)}"`);
+
+    // ── FAST PATH: si el usuario quiere el mapa, generamos el JSON directamente sin pasar
+    // por herramientas (el enfoque toolChoice genera args vacíos en Gemini).
+    if (wantsStrategyMap && provider !== 'deepseek') {
+      const mapKeys = getGeminiKeys();
+      let mapGenerated = false;
+      
+      // Construir historial del chat limpio para que Gemini extraiga la estrategia
+      const conversationHistory = normalizedMessages
+        .map((m: any) => `${m.role === 'user' ? 'Usuario' : 'Donna'}: ${m.content}`)
+        .join('\n');
+      
+      const mapPrompt = `Analiza TODA la conversación y extrae la estrategia discutida en formato JSON estructurado.
+
+=== CONVERSACIÓN ===
+${conversationHistory.substring(0, 8000)}
+
+=== INSTRUCCIONES ===
+Devuelve SOLO un array JSON válido (sin código markdown, sin explicaciones, solo el JSON puro) con esta estructura:
+[
+  {
+    "type": "objectiveNode",
+    "name": "Nombre del objetivo",
+    "notes": "Descripción del objetivo",
+    "children": [
+      {
+        "type": "campaignNode",
+        "name": "Nombre de la campaña",
+        "notes": "Brief de la campaña",
+        "children": [
+          {
+            "type": "articleNode",
+            "name": "Título del artículo",
+            "notes": "Sinopsis y keywords",
+            "children": [
+              { "type": "postNode", "name": "Idea de post", "notes": "Para qué plataforma" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+
+Tipos válidos: objectiveNode, campaignNode, articleNode, postNode, ideaNode.
+Si no hay suficiente contexto para algún nivel, no lo incluyas.
+Devuelve SOLO el array JSON. Sin texto adicional.`;
+      
+      for (let ki = 0; ki < mapKeys.length && !mapGenerated; ki++) {
+        try {
+          const gp = createGoogleGenerativeAI({ apiKey: mapKeys[ki] });
+          const mapResult = await generateText({
+            model: gp('gemini-2.5-flash'),
+            system: 'Eres un extractor de estrategias. Devuelves SOLO JSON válido sin markdown.',
+            messages: [{ role: 'user', content: mapPrompt }],
+          });
+          
+          // Limpiar respuesta de posibles bloques de código
+          let jsonText = mapResult.text.trim()
+            .replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+          
+          const plan = JSON.parse(jsonText);
+          if (Array.isArray(plan) && plan.length > 0) {
+            uiAction = { status: 'ui_action', action: 'generate_strategy_map', payload: { plan } };
+            responseText = '¡Listo, César! He estructurado toda la estrategia que conversamos en bloques visuales. Haz clic en “Cargar al Canvas” para verla en el Strategy Planner.';
+            mapGenerated = true;
+            console.log(`[Donna Map] Mapa generado con ${plan.length} nodos raíz.`);
+          }
+        } catch (mapErr: any) {
+          console.warn(`[Donna Map] Key ${ki+1} falló al generar mapa:`, mapErr?.message?.substring(0, 100));
+        }
+      }
+      
+      if (!mapGenerated) {
+        responseText = 'Tuve problemas generando el mapa visual en este momento (cuota de Gemini agotada). Intenta de nuevo en unos segundos o simplemente dime “generá el flujo” cuando el modelo esté disponible.';
+      }
+      
+      // Short-circuit: devolver la respuesta del mapa sin pasar por el flujo principal
+      return Response.json({ text: responseText, uiAction });
+    }
 
     const modelOptions: any = {
       system: systemPrompt,
       messages: normalizedMessages,
       tools,
       maxSteps: 5,
-      // Si el usuario quiere el mapa, forzar la herramienta (sin opción de respuesta en texto)
-      ...(wantsStrategyMap ? { toolChoice: { type: 'tool', toolName: 'generate_strategy_map' } } : {}),
     };
-
-    console.log(`[Donna Intent] wantsStrategyMap=${wantsStrategyMap} | lastText="${lastText.substring(0, 80)}"`);
 
 
     // ── NOTA: @ai-sdk/deepseek tiene un bug con Zod 4 que serializa las herramientas como
