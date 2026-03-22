@@ -230,6 +230,76 @@ function StrategyPlannerInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Escuchar a Donna para inyectar plan automático
+  useEffect(() => {
+    const handleLoadStrategy = (e: CustomEvent) => {
+      const plan = e.detail;
+      if (!plan || !Array.isArray(plan)) return;
+
+      const newNodes: Node[] = [];
+      const newEdges: Edge[] = [];
+
+      function traverse(item: any, parentId: string | null = null) {
+        // Enforce valid types
+        const type = item.type || 'ideaNode';
+        const id = `${type}-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+        
+        // Define cfg or fallback
+        const cfg = NODE_CONFIG[type as NodeKind] || NODE_CONFIG.ideaNode;
+
+        const node: Node = {
+          id,
+          type,
+          position: { x: 0, y: 0 }, // Dagre arreglará esto
+          data: {
+            label: item.name || `Nuevo ${cfg.label}`,
+            notes: item.notes || '',
+            tags: item.tags || []
+          }
+        };
+        newNodes.push(node);
+
+        if (parentId) {
+          newEdges.push({
+            id: `e-${parentId}-${id}`,
+            source: parentId,
+            target: id,
+            type: 'deletable',
+            style: { stroke: '#475569', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#475569' }
+          });
+        }
+
+        if (item.children && Array.isArray(item.children)) {
+          item.children.forEach((child: any) => traverse(child, id));
+        }
+      }
+
+      // Procesar cada árbol raíz
+      plan.forEach(rootItem => traverse(rootItem));
+
+      // Si tenemos algo, aplicamos Dagre
+      if (newNodes.length > 0) {
+        // Concatenamos con los nodos actuales o reemplazamos? 
+        // Mejor añadir al lienzo actual pero reordenar TODO.
+        setNodes(prev => {
+          const combinedNodes = [...prev, ...newNodes];
+          setEdges(prevE => {
+            const combinedEdges = [...prevE, ...newEdges];
+            const { nodes: layoutedNodes, edges: layoutedEdges } = applyDagreLayout(combinedNodes, combinedEdges);
+            setTimeout(() => fitView({ duration: 800, padding: 0.2 }), 100);
+            return layoutedEdges;
+          });
+          return applyDagreLayout(combinedNodes, [...edges, ...newEdges]).nodes;
+        });
+        toast.success("🧠 Mapa Estratégico cargado por Donna");
+      }
+    };
+
+    window.addEventListener('donna-load-strategy', handleLoadStrategy as EventListener);
+    return () => window.removeEventListener('donna-load-strategy', handleLoadStrategy as EventListener);
+  }, [setNodes, setEdges, fitView, edges]);
+
   async function loadObjectives() {
     const res = await fetch('/api/objectives');
     if (res.ok) {

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap, RotateCcw } from 'lucide-react';
+import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap, RotateCcw, LayoutDashboard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -17,11 +17,12 @@ interface ToolActionResult {
 interface UiAction {
   action?: string;
   payload?: {
-    central_idea: string;
+    central_idea?: string;
     objective_id?: string | null;
     campaign_id?: string | null;
     target_month?: string;
     suggested_platforms?: string[];
+    plan?: any[];
   };
   toolActions?: ToolActionResult[];
 }
@@ -359,9 +360,15 @@ export default function DonnaChatPanel() {
                         li: ({node, ...props}) => <li className="" {...props} />,
                         a: ({node, ...props}) => <a className="text-pink-600 dark:text-pink-400 underline hover:text-pink-700 break-all" target="_blank" rel="noopener noreferrer" {...props} />,
                         pre: ({node, ...props}) => <pre className="overflow-x-auto w-full max-w-full bg-neutral-100 dark:bg-neutral-800/60 p-3 rounded-lg my-2 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700" {...props} />,
-                        code: ({node, inline, ...props}: any) => (
-                          <code className={`${inline ? 'bg-neutral-100 dark:bg-neutral-800/60 rounded px-1.5 py-0.5 break-all' : 'bg-transparent whitespace-pre'} text-[13px] font-mono text-neutral-800 dark:text-neutral-200`} {...props} />
-                        ),
+                        code: ({node, inline, className, ...props}: any) => {
+                          const isBlock = className?.includes('language-');
+                          return (
+                            <code 
+                              className={`${isBlock ? 'bg-transparent' : 'bg-neutral-100 dark:bg-neutral-800/60 rounded px-1.5 py-0.5 break-words whitespace-pre-wrap'} text-[13px] font-mono text-neutral-800 dark:text-neutral-200 ${className || ''}`} 
+                              {...props} 
+                            />
+                          );
+                        },
                         h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-4 mb-2" {...props} />,
                         h2: ({node, ...props}) => <h2 className="text-md font-bold mt-3 mb-2" {...props} />,
                         h3: ({node, ...props}) => <h3 className="text-base font-semibold mt-2 mb-1" {...props} />
@@ -401,6 +408,34 @@ export default function DonnaChatPanel() {
                 </div>
               </div>
             )}
+            
+            {/* 🗺️ STRATEGY MAP GENERATED CARD */}
+            {m.uiAction?.action === 'generate_strategy_map' && (
+              <div className="mt-2 ml-1 max-w-[90%]">
+                <div className="bg-gradient-to-br from-violet-950/80 to-purple-950/60 border border-violet-500/40 rounded-2xl rounded-tl-sm p-3 shadow-lg shadow-violet-500/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 bg-violet-500/20 rounded-lg flex items-center justify-center">
+                      <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                    </div>
+                    <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">Mapa Estratégico Extraído</span>
+                  </div>
+                  <p className="text-xs text-neutral-300 leading-relaxed mb-3">
+                    He estructurado conceptualmente todo el flujo conversado en bloques visuales listos para ser despachados.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      if (m.uiAction?.payload?.plan) {
+                         window.dispatchEvent(new CustomEvent('donna-load-strategy', { detail: m.uiAction.payload.plan }));
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    <LayoutDashboard className="w-4 h-4" /> Cargar al Canvas
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* ✅ TOOL RESULT CARDS — se muestran cuando Donna ejecuta herramientas de DB */}
             {m.uiAction?.toolActions?.map((ta, idx) => (
               <div key={`tool-${idx}`} className="mt-2 ml-1 max-w-[90%]">

@@ -540,6 +540,34 @@ export async function POST(req: Request) {
           };
         },
       }),
+      // @ts-ignore
+      generate_strategy_map: tool({
+        description: 'Genera un esquema estratégico completo (Objetivo > Campañas > Artículos > Posts). La UI tomará este esquema, lo convertirá en un grafo visual en el Strategy Planner y el usuario podrá verlo y editarlo. Úsalo cuando el usuario te pida explícitamente "crear el flujo de trabajo", "generar el mapa" o "plasmar esto en el planner".',
+        parameters: jsonSchema<{
+          plan: any[];
+        }>({
+          type: 'object',
+          properties: {
+            plan: {
+              type: 'array',
+              description: 'Arreglo de nodos raíz (usualmente un objectiveNode). Cada nodo debe tener "type" (tipos válidos: objectiveNode, campaignNode, articleNode, postNode, ideaNode), "name" (título principal), "notes" (descripción/notas) y un arreglo opcional "children" con sub-nodos siguiendo la misma jerarquía.',
+              items: { type: 'object' }
+            }
+          },
+          required: ['plan'],
+        }),
+        // @ts-ignore
+        execute: async ({ plan }: { plan: any[] }) => {
+          console.log(`[Donna Tool] Ejecutando generate_strategy_map con ${plan.length} nodos raíz.`);
+          // Esta herramienta tampoco escribe interacciones automáticas a la DB (por ahora), 
+          // sino que inyecta la UI en el Chat para que el usuario materialice el Canvas.
+          return {
+            status: 'ui_action',
+            action: 'generate_strategy_map',
+            payload: { plan },
+          };
+        },
+      }),
       read_article_content: tool({
         description: 'Lee el contenido completo de un artículo (MySQL) o borrador (Supabase). Úsalo para resumir, analizar o crear enlaces internos precisos.',
         parameters: jsonSchema<{
