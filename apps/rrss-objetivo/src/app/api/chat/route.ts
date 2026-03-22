@@ -689,48 +689,63 @@ export async function POST(req: Request) {
             console.log(`[Donna SDK] Tool Results:`, JSON.stringify(result.toolResults.map((tr: any) => ({ name: tr.toolName, result: tr.result }))));
           }
           
-          // Extraer uiAction de cualquier herramienta que la produzca (pilot_editor, generate_strategy_map, etc.)
-          const actionResult = result.toolResults?.find((r: any) => (r as any).result?.status === 'ui_action');
-          if (actionResult) uiAction = (actionResult as any).result;
+          // ── Extraer uiAction de cualquier herramienta que produzca una acción de UI
+          // (pilot_editor, generate_strategy_map, etc.)
+          const uiActionResult = result.toolResults?.find((r: any) => (r as any).result?.status === 'ui_action');
+          if (uiActionResult) uiAction = (uiActionResult as any).result;
 
-          // Extraer otros resultados de herramientas para feedback en el chat
-          const toolActions = (result.toolResults || []).filter((r: any) => 
+          // ── Extraer resultados de herramientas de DB para feedback en el chat
+          const toolActions = (result.toolResults || []).filter((r: any) =>
             ['create_objective', 'manage_campaign', 'propose_post', 'tag_article'].includes(r.toolName)
           ).map((r: any) => ({ tool: r.toolName, result: (r as any).result }));
           if (toolActions.length > 0) uiAction = { ...(uiAction || {}), toolActions };
-          
+
           responseText = result.text;
-          // Si la herramienta se ejecutó con éxito pero el modelo no generó texto de cierre, generar uno
-          if (!responseText && toolActions.length > 0) {
-            const successActions = toolActions.filter(ta => ta.result?.status === 'success');
-            const errorActions = toolActions.filter(ta => ta.result?.status === 'error');
-            if (successActions.length > 0) {
-              responseText = successActions.map(ta => ta.result?.message || 'Hecho.').join(' ');
-            } else if (errorActions.length > 0) {
-              responseText = `Hubo un problema: ${errorActions.map(ta => ta.result?.message).join('. ')}`;
-            } else {
-              responseText = 'Acción ejecutada.';
+
+          // ── Fallback de texto: si el modelo no generó texto pero sí ejecutó herramientas
+          if (!responseText) {
+            // Caso 1: Se ejecutó una herramienta de UI (generate_strategy_map, pilot_editor)
+            if (uiActionResult) {
+              const action = (uiActionResult as any).result?.action;
+              if (action === 'generate_strategy_map') {
+                responseText = '\u2705 Listo, César. He estructurado todo el flujo. Presiooona \'Cargar al Canvas\' para verlo en el Strategy Planner.';
+              } else if (action === 'pilot_editor') {
+                responseText = '\u2705 El editor ya tiene el contenido pre-cargado.';
+              } else {
+                responseText = '\u2705 Acción de interfaz ejecutada.';
+              }
+            }
+            // Caso 2: Se ejecutaron herramientas de DB
+            else if (toolActions.length > 0) {
+              const successActions = toolActions.filter(ta => ta.result?.status === 'success');
+              const errorActions = toolActions.filter(ta => ta.result?.status === 'error');
+              if (successActions.length > 0) {
+                responseText = successActions.map(ta => ta.result?.message || 'Hecho.').join(' ');
+              } else if (errorActions.length > 0) {
+                responseText = `Hubo un problema: ${errorActions.map(ta => ta.result?.message).join('. ')}`;
+              } else {
+                responseText = 'Acción ejecutada.';
+              }
             }
           }
-          
-          break; 
+
+          break;
         } catch (err: any) {
           console.warn(`[Donna API] Gemini Key ${i + 1} falló. Razón:`, err?.message || err);
           const isQuotaError = err?.statusCode === 429 || err?.message?.includes('quota') || err?.message?.includes('exhausted') || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
           const isModelError = err?.statusCode === 404 || err?.message?.includes('NOT_FOUND') || err?.message?.includes('not found') || err?.message?.includes('not supported');
           if (isQuotaError || isModelError) {
-             console.warn(`[Donna API] Key ${i + 1} saltada (${isQuotaError ? 'cuota' : 'modelo no disponible'})`);
-             continue; // Probar siguiente llave
+             console.warn(`[Donna API] Key ${i + 1} saltada (${isQuotaError ? 'cuota/rate-limit' : 'modelo no disponible'})`);
+             continue;
           }
           console.error('[Donna API] Error inesperado con Key', i + 1, ':', err?.message);
-          throw err; // Solo lanza si es un error real de sintaxis/schema
+          throw err;
         }
       }
     }
 
-    if (!responseText && !uiAction) {
-      throw new Error("No se obtuvo respuesta del modelo (Inferencia Vacía). Si el problema persiste tras varios intentos, podría deberse a límites de cuota de las llaves API de Gemini.");
-    }
+    // ── Solo fallar si REALMENTE no hay nada que mostrar
+    if (!responseText && !uiAction) throw new Error('Las llaves de Gemini están agotadas (rate limit) o el modelo no respondió. Intenta de nuevo en unos segundos.');
 
     // Auto-guardar notas persistentes con regex mejorado para capturar IDs relacionales
     const noteMatch = responseText.match(/<SAVE_NOTE topic="([^"]+)"(?: objective_id="([^"]*)")?(?: campaign_id="([^"]*)")?>([\s\S]+?)<\/SAVE_NOTE>/);
