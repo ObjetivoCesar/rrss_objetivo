@@ -25,6 +25,7 @@ interface Objective {
   color: string;
   emoji: string;
   campaigns: Campaign[];
+  strategy_session?: { id: string; name: string } | null;
 }
 
 export default function CampaignsPage() {
@@ -284,6 +285,11 @@ export default function CampaignsPage() {
                         <div className="flex items-center gap-3 mt-1.5 opacity-70">
                           <span className="text-xs text-neutral-400 flex items-center gap-1"><LayoutGrid className="w-3 h-3" /> {obj.campaigns.length}</span>
                           <span className="text-xs text-neutral-400 flex items-center gap-1"><BarChart3 className="w-3 h-3" /> {totalPosts} posts</span>
+                          {obj.strategy_session && (
+                            <span className="text-[10px] font-bold bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 px-1.5 py-0.5 rounded flex items-center gap-1" title="Tiene un mapa estratégico visual">
+                              <Sparkles className="w-3 h-3" /> Plan
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -308,6 +314,14 @@ export default function CampaignsPage() {
                         {selectedObjective.name}
                       </h2>
                       <p className="text-sm text-neutral-600 dark:text-neutral-300 mt-1 max-w-xl font-medium">{selectedObjective.description || "Sin descripción estratégica."}</p>
+                      
+                      {selectedObjective.strategy_session && (
+                        <div className="mt-4">
+                          <a href="/strategy-planner" className="inline-flex items-center gap-2 px-3 py-1.5 bg-violet-600/10 hover:bg-violet-600/20 text-violet-700 dark:text-violet-300 border border-violet-500/30 rounded-lg text-xs font-bold transition-all shadow-sm">
+                            <Sparkles className="w-3.5 h-3.5" /> Ver Mapa Estratégico Asociado
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
