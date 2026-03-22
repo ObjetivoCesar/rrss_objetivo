@@ -689,10 +689,11 @@ export async function POST(req: Request) {
             console.log(`[Donna SDK] Tool Results:`, JSON.stringify(result.toolResults.map((tr: any) => ({ name: tr.toolName, result: tr.result }))));
           }
           
-          // Extraer uiAction de los tool results (pilot_editor)
-          const pilotResult = result.toolResults?.find((r: any) => r.toolName === 'pilot_editor');
-          if ((pilotResult as any)?.result?.status === 'ui_action') uiAction = (pilotResult as any).result;
-          // Extraer resultados de herramientas ejecutadas (create_objective, manage_campaign, propose_post)
+          // Extraer uiAction de cualquier herramienta que la produzca (pilot_editor, generate_strategy_map, etc.)
+          const actionResult = result.toolResults?.find((r: any) => (r as any).result?.status === 'ui_action');
+          if (actionResult) uiAction = (actionResult as any).result;
+
+          // Extraer otros resultados de herramientas para feedback en el chat
           const toolActions = (result.toolResults || []).filter((r: any) => 
             ['create_objective', 'manage_campaign', 'propose_post', 'tag_article'].includes(r.toolName)
           ).map((r: any) => ({ tool: r.toolName, result: (r as any).result }));
@@ -727,7 +728,9 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!responseText && !uiAction) throw new Error("Agotadas todas las rutas de inferencia (Las 4 llaves de Gemini están bloqueadas por Rate Limit o Cuota).");
+    if (!responseText && !uiAction) {
+      throw new Error("No se obtuvo respuesta del modelo (Inferencia Vacía). Si el problema persiste tras varios intentos, podría deberse a límites de cuota de las llaves API de Gemini.");
+    }
 
     // Auto-guardar notas persistentes con regex mejorado para capturar IDs relacionales
     const noteMatch = responseText.match(/<SAVE_NOTE topic="([^"]+)"(?: objective_id="([^"]*)")?(?: campaign_id="([^"]*)")?>([\s\S]+?)<\/SAVE_NOTE>/);
