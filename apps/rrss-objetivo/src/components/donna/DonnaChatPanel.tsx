@@ -408,18 +408,17 @@ export default function DonnaChatPanel() {
                 </div>
               </div>
             )}
-            
             {/* 🗺️ STRATEGY MAP GENERATED CARD */}
             {m.uiAction?.action === 'generate_strategy_map' && (
               <div className="mt-2 ml-1 max-w-[90%]">
-                <div className="bg-gradient-to-br from-violet-950/80 to-purple-950/60 border border-violet-500/40 rounded-2xl rounded-tl-sm p-3 shadow-lg shadow-violet-500/10">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="bg-gradient-to-br from-violet-950/80 to-purple-950/60 border border-violet-500/40 rounded-2xl rounded-tl-sm p-3 shadow-lg shadow-violet-500/10 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
                     <div className="w-6 h-6 bg-violet-500/20 rounded-lg flex items-center justify-center">
                       <Sparkles className="w-3.5 h-3.5 text-violet-400" />
                     </div>
                     <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">Mapa Estratégico Extraído</span>
                   </div>
-                  <p className="text-xs text-neutral-300 leading-relaxed mb-3">
+                  <p className="text-xs text-neutral-300 leading-relaxed">
                     He estructurado conceptualmente todo el flujo conversado en bloques visuales listos para ser despachados.
                   </p>
                   <button 
