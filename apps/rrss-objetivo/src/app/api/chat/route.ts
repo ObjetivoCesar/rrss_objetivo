@@ -737,7 +737,33 @@ Devuelve SOLO el array JSON. Sin texto adicional.`;
       }
       
       if (!mapGenerated) {
-        responseText = 'Tuve problemas generando el mapa visual en este momento (cuota de Gemini agotada). Intenta de nuevo en unos segundos o simplemente dime “generá el flujo” cuando el modelo esté disponible.';
+        // Fallback a DeepSeek Chat para el mapa cuando Gemini está agotado
+        const dsKey = process.env.DEEPSEEK_API_KEY;
+        if (dsKey) {
+          try {
+            console.warn('[Donna Map] Intentando con DeepSeek Chat como fallback para el mapa...');
+            const dsp = createDeepSeek({ apiKey: dsKey });
+            const dsMapResult = await generateText({
+              model: dsp('deepseek-chat'),
+              system: 'Eres un extractor de estrategias. Devuelves SOLO JSON válido sin markdown.',
+              messages: [{ role: 'user', content: mapPrompt }],
+            });
+            let jsonText2 = dsMapResult.text.trim()
+              .replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+            const plan2 = JSON.parse(jsonText2);
+            if (Array.isArray(plan2) && plan2.length > 0) {
+              uiAction = { status: 'ui_action', action: 'generate_strategy_map', payload: { plan: plan2 }, source: 'deepseek-fallback' };
+              responseText = '¡Listo, César! He estructurado la estrategia (usando el motor de respaldo). Haz clic en "Cargar al Canvas" para verla.';
+              mapGenerated = true;
+              console.log(`[Donna Map] Mapa generado con ${plan2.length} nodos raíz (DeepSeek fallback).`);
+            }
+          } catch (dsME: any) {
+            console.error('[Donna Map] DeepSeek fallback para mapa también falló:', dsME?.message);
+          }
+        }
+        if (!mapGenerated) {
+          responseText = 'Tuve problemas generando el mapa en este momento (cuota agotada en todos los motores). Intenta de nuevo en unos segundos.';
+        }
       }
       
       // Short-circuit: devolver la respuesta del mapa sin pasar por el flujo principal
@@ -770,6 +796,7 @@ Devuelve SOLO el array JSON. Sin texto adicional.`;
     } else {
       const keys = getGeminiKeys();
       if (keys.length === 0) return Response.json({ error: 'GOOGLE_AI_API_KEY no configurada' }, { status: 500 });
+      let geminiSucceeded = false;
       
       for (let i = 0; i < keys.length; i++) {
         try {
@@ -788,12 +815,9 @@ Devuelve SOLO el array JSON. Sin texto adicional.`;
             console.log(`[Donna SDK] Tool Results:`, JSON.stringify(result.toolResults.map((tr: any) => ({ name: tr.toolName, result: tr.result }))));
           }
           
-          // ── Extraer uiAction de cualquier herramienta que produzca una acción de UI
-          // (pilot_editor, generate_strategy_map, etc.)
           const uiActionResult = result.toolResults?.find((r: any) => (r as any).result?.status === 'ui_action');
           if (uiActionResult) uiAction = (uiActionResult as any).result;
 
-          // ── Extraer resultados de herramientas de DB para feedback en el chat
           const toolActions = (result.toolResults || []).filter((r: any) =>
             ['create_objective', 'manage_campaign', 'propose_post', 'tag_article'].includes(r.toolName)
           ).map((r: any) => ({ tool: r.toolName, result: (r as any).result }));
@@ -801,44 +825,61 @@ Devuelve SOLO el array JSON. Sin texto adicional.`;
 
           responseText = result.text;
 
-          // ── Fallback de texto: si el modelo no generó texto pero sí ejecutó herramientas
           if (!responseText) {
-            // Caso 1: Se ejecutó una herramienta de UI (generate_strategy_map, pilot_editor)
             if (uiActionResult) {
               const action = (uiActionResult as any).result?.action;
               if (action === 'generate_strategy_map') {
-                responseText = '\u2705 Listo, César. He estructurado todo el flujo. Presiooona \'Cargar al Canvas\' para verlo en el Strategy Planner.';
+                responseText = '\u2705 Listo, César. He estructurado todo el flujo. Presiona \'Cargar al Canvas\' para verlo en el Strategy Planner.';
               } else if (action === 'pilot_editor') {
                 responseText = '\u2705 El editor ya tiene el contenido pre-cargado.';
               } else {
                 responseText = '\u2705 Acción de interfaz ejecutada.';
               }
-            }
-            // Caso 2: Se ejecutaron herramientas de DB
-            else if (toolActions.length > 0) {
-              const successActions = toolActions.filter(ta => ta.result?.status === 'success');
-              const errorActions = toolActions.filter(ta => ta.result?.status === 'error');
+            } else if (toolActions.length > 0) {
+              const successActions = toolActions.filter((ta: any) => ta.result?.status === 'success');
+              const errorActions = toolActions.filter((ta: any) => ta.result?.status === 'error');
               if (successActions.length > 0) {
-                responseText = successActions.map(ta => ta.result?.message || 'Hecho.').join(' ');
+                responseText = successActions.map((ta: any) => ta.result?.message || 'Hecho.').join(' ');
               } else if (errorActions.length > 0) {
-                responseText = `Hubo un problema: ${errorActions.map(ta => ta.result?.message).join('. ')}`;
+                responseText = `Hubo un problema: ${errorActions.map((ta: any) => ta.result?.message).join('. ')}`;
               } else {
                 responseText = 'Acción ejecutada.';
               }
             }
           }
 
+          geminiSucceeded = true;
           break;
         } catch (err: any) {
           console.warn(`[Donna API] Gemini Key ${i + 1} falló. Razón:`, err?.message || err);
           const isQuotaError = err?.statusCode === 429 || err?.message?.includes('quota') || err?.message?.includes('exhausted') || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
           const isModelError = err?.statusCode === 404 || err?.message?.includes('NOT_FOUND') || err?.message?.includes('not found') || err?.message?.includes('not supported');
           if (isQuotaError || isModelError) {
-             console.warn(`[Donna API] Key ${i + 1} saltada (${isQuotaError ? 'cuota/rate-limit' : 'modelo no disponible'})`);
-             continue;
+            console.warn(`[Donna API] Key ${i + 1} saltada (${isQuotaError ? 'cuota/rate-limit' : 'modelo no disponible'})`);
+            continue;
           }
           console.error('[Donna API] Error inesperado con Key', i + 1, ':', err?.message);
           throw err;
+        }
+      }
+
+      // ── Fallback a DeepSeek Chat (rápido) cuando todas las keys de Gemini están agotadas
+      if (!geminiSucceeded && !responseText) {
+        const dsKey = process.env.DEEPSEEK_API_KEY;
+        if (dsKey) {
+          try {
+            console.warn('[Donna API] Todas las keys de Gemini agotadas. Usando DeepSeek Chat como fallback...');
+            const dsProvider = createDeepSeek({ apiKey: dsKey });
+            const dsResult = await generateText({
+              model: dsProvider('deepseek-chat'), // ← Chat, no Reasoner (más rápido)
+              system: systemPrompt,
+              messages: normalizedMessages,
+            });
+            responseText = dsResult.text;
+            console.log('[Donna API] ✅ Respuesta obtenida vía DeepSeek Chat (fallback).');
+          } catch (dsErr: any) {
+            console.error('[Donna API] DeepSeek fallback también falló:', dsErr?.message);
+          }
         }
       }
     }
