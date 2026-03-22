@@ -675,13 +675,17 @@ export async function POST(req: Request) {
         .map((m: any) => `${m.role === 'user' ? 'Usuario' : 'Donna'}: ${m.content}`)
         .join('\n');
       
-      const mapPrompt = `Analiza TODA la conversación y extrae la estrategia discutida en formato JSON estructurado.
+      const mapPrompt = `Analiza TODA la conversación y extrae la estrategia discutida en formato JSON estructurado y jerárquico.
+Es MUY IMPORTANTE que desgloses la estrategia al máximo nivel de detalle que encuentres en el chat. No te quedes solo en Campañas. Si el usuario proporcionó títulos de artículos, agrégalos como "articleNode" dentro de la campaña. Si hay ideas de posts o menciones de redes sociales, agrégalas como "postNode" dentro del artículo correspondiente.
 
 === CONVERSACIÓN ===
 ${conversationHistory.substring(0, 8000)}
 
-=== INSTRUCCIONES ===
-Devuelve SOLO un array JSON válido (sin código markdown, sin explicaciones, solo el JSON puro) con esta estructura:
+=== INSTRUCCIONES ESTRICTAS ===
+1. Devuelve SOLO un array JSON válido. SIN código markdown (\`\`\`json), sin explicaciones, solo el JSON puro.
+2. Cada nodo DEBE tener "type", "name", y "notes".
+3. Tipos válidos: "objectiveNode", "campaignNode", "articleNode", "postNode", "ideaNode".
+4. Estructura esperada (ejemplo de profundidad):
 [
   {
     "type": "objectiveNode",
@@ -698,7 +702,8 @@ Devuelve SOLO un array JSON válido (sin código markdown, sin explicaciones, so
             "name": "Título del artículo",
             "notes": "Sinopsis y keywords",
             "children": [
-              { "type": "postNode", "name": "Idea de post", "notes": "Para qué plataforma" }
+              { "type": "postNode", "name": "Idea de post para LinkedIn", "notes": "Plataforma: LinkedIn. Formato: Carrusel." },
+              { "type": "postNode", "name": "Idea de post para Instagram", "notes": "Plataforma: Reels. Formato: Video." }
             ]
           }
         ]
@@ -707,9 +712,7 @@ Devuelve SOLO un array JSON válido (sin código markdown, sin explicaciones, so
   }
 ]
 
-Tipos válidos: objectiveNode, campaignNode, articleNode, postNode, ideaNode.
-Si no hay suficiente contexto para algún nivel, no lo incluyas.
-Devuelve SOLO el array JSON. Sin texto adicional.`;
+Si hay información de Artículos de Blog y Posts de Redes Sociales, DEBES incluirlos anidados correctamente bajo las campañas, no los resumas. Devuelve SOLO el array JSON.`;
       
       for (let ki = 0; ki < mapKeys.length && !mapGenerated; ki++) {
         try {

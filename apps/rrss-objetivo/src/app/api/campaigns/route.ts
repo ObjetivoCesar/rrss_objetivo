@@ -13,10 +13,6 @@ export async function GET() {
         campaigns (
           *,
           social_posts (count)
-        ),
-        strategy_sessions (
-          id,
-          name
         )
       `)
       .is('archived_at', null)
@@ -27,12 +23,8 @@ export async function GET() {
 
     // Transform data to a cleaner structure for the frontend
     const formattedData = objectives.map(obj => {
-      // Tomamos la sesión de estrategia más reciente si hay múltiples
-      const mainSession = obj.strategy_sessions && obj.strategy_sessions.length > 0 ? obj.strategy_sessions[obj.strategy_sessions.length - 1] : null;
-      
       return {
         ...obj,
-        strategy_session: mainSession,
         campaigns: obj.campaigns.map((camp: any) => ({
           ...camp,
           postsCount: camp.social_posts?.[0]?.count || 0,
