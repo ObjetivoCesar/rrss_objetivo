@@ -19,20 +19,17 @@ export async function GET(req: NextRequest) {
       database: process.env.MYSQL_DATABASE,
     });
 
-    // Fetch the article's core WP post data
+    // Fetch the article's core data from the custom 'articles' table
     const [rows] = await connection.execute<any[]>(
-      `SELECT 
-        ID,
-        post_title,
-        post_name AS slug, 
-        post_status,
-        post_date,
-        post_excerpt,
-        post_modified
-      FROM wp_posts 
-      WHERE ID = ? 
-        AND post_type = 'post' 
-        AND post_status IN ('publish','draft')
+      `SELECT
+        id,
+        title,
+        slug,
+        published_at,
+        content,
+        meta_description as seo_description
+      FROM articles
+      WHERE id = ?
       LIMIT 1`,
       [articleId]
     );
@@ -43,34 +40,13 @@ export async function GET(req: NextRequest) {
 
     const article = rows[0];
 
-    // Try to get Yoast SEO meta for this article
-    const [metaRows] = await connection.execute<any[]>(
-      `SELECT meta_key, meta_value FROM wp_postmeta 
-       WHERE post_id = ? AND meta_key IN ('_yoast_wpseo_title', '_yoast_wpseo_metadesc', '_yoast_wpseo_focuskw', 'rank_math_focus_keyword', '_thumbnail_id')`,
-      [articleId]
-    );
-
-    const meta: Record<string, string> = {};
-    metaRows.forEach((row: any) => { meta[row.meta_key] = row.meta_value; });
-
-    // Get categories for this post
-    const [catRows] = await connection.execute<any[]>(
-      `SELECT t.name FROM wp_terms t
-       INNER JOIN wp_term_taxonomy tt ON t.term_id = tt.term_id
-       INNER JOIN wp_term_relationships tr ON tt.term_taxonomy_id = tr.term_taxonomy_id
-       WHERE tr.object_id = ? AND tt.taxonomy = 'category'`,
-      [articleId]
-    );
-
-    const categories = catRows.map((r: any) => r.name).join(', ');
-
     return NextResponse.json({
       article: {
         ...article,
-        categories,
-        seo_title: meta['_yoast_wpseo_title'] || meta['rank_math_focus_keyword'] || null,
-        seo_description: meta['_yoast_wpseo_metadesc'] || null,
-        focus_keyword: meta['_yoast_wpseo_focuskw'] || meta['rank_math_focus_keyword'] || null,
+        categories: 'General', // No custom categories table found yet
+        seo_title: article.title,
+        seo_description: article.seo_description,
+        focus_keyword: null,
       }
     });
 
