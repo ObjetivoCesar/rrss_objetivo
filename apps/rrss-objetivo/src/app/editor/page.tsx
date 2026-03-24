@@ -257,6 +257,9 @@ export default function EditorPage() {
 
     const ideaWithBranding = centralIdea + (useBranding ? " | INTEGRAR LOGO: Incluir el logo de la marca 'Objetivo' de forma muy sutil y natural en el ambiente (como un letrero, etiqueta o detalle del fondo)." : "");
 
+    const selectedObjective = objectives.find(o => o.id === selectedObjId);
+    const selectedCampaign = selectedObjective?.campaigns?.find((c: any) => c.id === selectedCampId);
+
     try {
       const res = await fetch("/api/ai/generate-bulk", {
         method: "POST",
@@ -267,6 +270,8 @@ export default function EditorPage() {
           topic,
           style: selectedStyle,
           mixItems: mixItems.map(m => ({ categoryId: m.categoryId, platform: m.platform })),
+          objectiveContext: selectedObjective ? `${selectedObjective.name}: ${selectedObjective.description}` : null,
+          campaignStrategy: selectedCampaign ? `${selectedCampaign.name}: ${selectedCampaign.description}` : null,
         }),
       });
       const data = await res.json();
@@ -727,9 +732,27 @@ export default function EditorPage() {
                   <div className={`grid grid-cols-1 ${post.selectedMediaUrl ? 'md:grid-cols-2' : ''} gap-4`}>
                     {/* Copy */}
                     <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 overflow-y-auto max-h-[400px]">
-                      <p className={`${!post.selectedMediaUrl ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed whitespace-pre-wrap`}>
-                        {post.content}
-                      </p>
+                      {post.content.toLowerCase().includes("lámina") ? (
+                        <div className="space-y-4">
+                          {post.content.split(/(?=[Ll][ÁáAa]mina \d+:)/i).map((slide, sIdx) => {
+                            const [title, ...bodyParts] = slide.split(":");
+                            const body = bodyParts.join(":").trim();
+                            if (!body) return <p key={sIdx} className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{slide}</p>;
+                            return (
+                              <div key={sIdx} className="bg-neutral-900/50 border border-neutral-800/50 rounded-xl p-3 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${sIdx * 100}ms` }}>
+                                <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-black uppercase tracking-widest mb-2 inline-block">
+                                  {title.trim()}
+                                </span>
+                                <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{body}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className={`${!post.selectedMediaUrl ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed whitespace-pre-wrap`}>
+                          {post.content}
+                        </p>
+                      )}
                     </div>
                     {/* Image / Link Preview */}
                     {post.selectedMediaUrl && (

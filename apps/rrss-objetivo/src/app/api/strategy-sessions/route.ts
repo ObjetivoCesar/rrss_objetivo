@@ -73,8 +73,14 @@ export async function POST(req: NextRequest) {
     logger.info('Updating strategy session', { id, name });
     const { data, error } = await supabase
       .from('strategy_sessions')
-      // Intentamos guardar strategy_sessions, no incluimos objective_id al insert porque no sabemos si existe la columna y la meta primordial es que exista en 'objectives'.
-      .update({ name, description, nodes, edges, updated_at: new Date().toISOString() })
+      .update({ 
+        name, 
+        description, 
+        nodes, 
+        edges, 
+        objective_id: final_objective_id,
+        updated_at: new Date().toISOString() 
+      })
       .eq('id', id)
       .select()
       .single();
@@ -88,7 +94,13 @@ export async function POST(req: NextRequest) {
     logger.info('Creating new strategy session', { name });
     const { data, error } = await supabase
       .from('strategy_sessions')
-      .insert({ name, description, nodes, edges })
+      .insert({ 
+        name, 
+        description, 
+        nodes, 
+        edges, 
+        objective_id: final_objective_id 
+      })
       .select()
       .single();
 

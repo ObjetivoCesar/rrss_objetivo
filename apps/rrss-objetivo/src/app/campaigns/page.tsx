@@ -32,6 +32,7 @@ export default function CampaignsPage() {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [selectedObjId, setSelectedObjId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMaterializing, setIsMaterializing] = useState(false);
 
   // Create Modals
   const [showObjModal, setShowObjModal] = useState(false);
@@ -228,6 +229,29 @@ export default function CampaignsPage() {
     }
   }
 
+  async function handleMaterialize() {
+    if (!selectedObjective?.strategy_session?.id) return;
+    
+    try {
+      setIsMaterializing(true);
+      const res = await fetch(`/api/strategy-sessions/${selectedObjective.strategy_session.id}/materialize`, {
+        method: "POST"
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success(`¡Éxito! Se materializaron ${data.materializedCount} campañas.`);
+        fetchData();
+      } else {
+        throw new Error(data.error || "Error al materializar");
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsMaterializing(false);
+    }
+  }
+
   const selectedObjective = objectives.find((o) => o.id === selectedObjId);
 
   return (
@@ -357,9 +381,26 @@ export default function CampaignsPage() {
                     <div className="border border-dashed border-neutral-300 dark:border-neutral-800 rounded-2xl p-10 text-center bg-white/30 dark:bg-black/20">
                       <LayoutGrid className="w-8 h-8 text-neutral-400 dark:text-neutral-600 mx-auto mb-3" />
                       <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium">No tienes campañas para este objetivo.</p>
-                      <button onClick={() => setShowCampModal(true)} className="mt-4 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl transition-colors shadow-md shadow-indigo-500/20">
-                        Crear la primera
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+                        <button onClick={() => setShowCampModal(true)} className="text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl transition-colors shadow-md shadow-indigo-500/20">
+                          Crear manualmente
+                        </button>
+                        
+                        {selectedObjective.strategy_session && (
+                          <button 
+                            onClick={handleMaterialize} 
+                            disabled={isMaterializing}
+                            className="text-sm font-bold text-violet-100 bg-violet-600 hover:bg-violet-500 px-6 py-2.5 rounded-xl transition-all shadow-md shadow-violet-500/20 flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isMaterializing ? (
+                              <Clock className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-4 h-4 group-hover:scale-125 transition-transform" />
+                            )}
+                            Materializar mapa estratégico ✨
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

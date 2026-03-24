@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Fetch all objectives, their campaigns, and count of posts per campaign
+    // Fetch objectives and campaigns
     const { data: objectives, error: objError } = await supabase
       .from("objectives")
       .select(`
@@ -21,10 +21,26 @@ export async function GET() {
 
     if (objError) throw objError;
 
+    // Fetch strategy sessions to link them manually
+    const { data: sessions } = await supabase
+      .from("strategy_sessions")
+      .select("id, name, nodes");
+
     // Transform data to a cleaner structure for the frontend
     const formattedData = objectives.map(obj => {
+      // Find session for this objective by looking inside nodes JSON
+      const session = sessions?.find((s: any) => {
+        const nodes = s.nodes || [];
+        // Look for any node that has this objective_id in its data OR is type objective and has the ID
+        return nodes.some((node: any) => 
+          (node.type === 'objective' && (node.data?.id === obj.id || node.id === obj.id)) ||
+          (node.data?.objective_id === obj.id)
+        );
+      });
+
       return {
         ...obj,
+        strategy_session: session || null,
         campaigns: obj.campaigns.map((camp: any) => ({
           ...camp,
           postsCount: camp.social_posts?.[0]?.count || 0,

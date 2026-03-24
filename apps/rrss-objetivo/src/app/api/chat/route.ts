@@ -40,6 +40,13 @@ function getSystemDNA(): string {
     let ecosystemData = '';
     let databaseSchema = '';
     let posicionamientoData = '';
+    let urlAtlas = '';
+    
+    // Atlas de URLs (Docs externos)
+    const atlasPath = path.join(process.cwd(), 'docs/estrategia-posicionamiento/matriz_maestra_donna_ai.md');
+    if (fs.existsSync(atlasPath)) {
+      urlAtlas = fs.readFileSync(atlasPath, 'utf8').substring(0, 8000);
+    }
     
     for (const base of basePaths) {
       const mcPath = path.join(base, 'product-marketing-context.md');
@@ -73,7 +80,8 @@ function getSystemDNA(): string {
 === MAPA TÉCNICO DE DATOS ===\n${databaseSchema || '[No disponible]'}\n
 === ESTILO DE COMUNICACIÓN ===\n${writingStyle || '[No disponible]'}\n
 === REGLAS TÉCNICAS (SISTEMA) ===\n${frontendData || '[No disponible]'}\n
-=== ESTRUCTURA DEL ECOSISTEMA DE CONTENIDO ===\n${ecosystemData || '[No disponible]'}`;
+=== ESTRUCTURA DEL ECOSISTEMA DE CONTENIDO ===\n${ecosystemData || '[No disponible]'}\n
+=== ATLAS DE INTERLINKING (RUTAS PILAR 2026) ===\n${urlAtlas || '[No disponible]'}`;
   } catch (e) {
     console.error("Error leyendo ADN:", e);
     return '[Error cargando ADN]';

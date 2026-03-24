@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Demasiadas peticiones. Intenta de nuevo en un minuto." }, { status: 429 });
     }
 
-    const { message, targetMonth, topic, style, mixItems } = await req.json();
+    const { message, targetMonth, topic, style, mixItems, objectiveContext, campaignStrategy } = await req.json();
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     const model = process.env.DEEPSEEK_MODEL || "deepseek-chat";
@@ -43,7 +43,7 @@ ${platformRule}`;
     }).join("\n\n---\n\n");
 
     const systemPrompt = `
-      ${buildSystemPrompt("Multiplataforma", parseInt(targetMonth as string) || 3, "Varios")}
+      ${buildSystemPrompt("Multiplataforma", parseInt(targetMonth as string) || 3, undefined, objectiveContext, campaignStrategy)}
       NICHO SELECCIONADO: ${topic || "Negocios Locales Ecuador"}
       ESTILO VISUAL SOLICITADO PARA IMÁGENES: ${visualStyle?.name || "Fotorealista"} (${visualStyle?.promptSuffix || "high quality, professional"})
       

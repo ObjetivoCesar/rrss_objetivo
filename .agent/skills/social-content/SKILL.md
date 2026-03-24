@@ -66,6 +66,20 @@ Build your content around 3-5 pillars that align with your expertise and audienc
 | Personal | 15% | Stories, values, hot takes |
 | Promotional | 5% | Product updates, offers |
 
+### Strategic Carousel Template (Donna Protocol)
+When creating Instagram Carousels, use this 8-slide structure:
+1. **Slide 1**: Hook Disruptivo (Focus on the "Stranger finds you" benefit).
+2. **Slide 2**: The Specific Problem (Pain point).
+3. **Slide 3**: Agitation (What happens if they don't solve it).
+4. **Slide 4**: The Solution (Direct mention of ActivaQR/César's service).
+5. **Slide 5-7**: Tangible Benefits & Social Proof (Transformation).
+6. **Slide 8**: Strong CTA (Direct Response - WhatsApp/DM).
+
+**Platform Specific Restrictions:**
+- **Instagram**: Captions MUST be < 100 words. Focus on engagement.
+- **LinkedIn**: 200-300 words. Use "scrolling-friendly" short paragraphs.
+- **Tone**: Direct Response DNA. No AI fluff (e.g., "En el mundo digital de hoy...", "Desbloquea tu potencial...").
+
 ### Pillar Development Questions
 
 For each pillar, ask:

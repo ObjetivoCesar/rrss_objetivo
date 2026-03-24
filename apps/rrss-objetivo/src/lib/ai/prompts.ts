@@ -208,15 +208,66 @@ REGLAS ESTRICTAS:
 
 // ─── Categorías de Posts Estratégicos ─────────────────────────────────────────
 export const POST_TYPES = [
-  { id: "educativo", name: "Educativo", description: "Enseña algo de valor o resuelve una duda común.", prompt: "Enfoque educativo: Explica un concepto técnico de ActivaQR de forma sencilla y muestra el beneficio claro." },
-  { id: "promocional", name: "Promocional / Venta", description: "Directo al grano, oferta o beneficio comercial claro.", prompt: "Enfoque promocional: Usa escasez o urgencia. El beneficio económico de instalar el contacto hoy mismo." },
-  { id: "motivador", name: "Motivador / Mentalidad", description: "Conecta emocionalmente con el dueño de negocio.", prompt: "Enfoque motivador: Habla sobre la libertad de tiempo o la profesionalización del negocio." },
-  { id: "engagement", name: "Interacción / Pregunta", description: "Busca que el usuario comente o responda.", prompt: "Enfoque engagement: Haz una pregunta provocadora sobre por qué su negocio no aparece en Google/Agenda." },
-  { id: "tutorial", name: "Tutorial / Paso a Paso", description: "Guía rápida de uso.", prompt: "Enfoque tutorial: Explica los 4 pasos (escanea, descarga, importa, guarda) de forma ultra rápida." },
-  { id: "guion-pitch-4", name: "Guion: Pitch 4 Preguntas", description: "Guion rápido conversacional usando la técnica de 4 preguntas.", prompt: "Enfoque Guion de Video (Pitch Conversacional): Redacta estrictamente el texto hablado. Usa la técnica de 4 preguntas consecutivas: 1) Activadora [15s] (Gancho al dolor usando lenguaje del cliente), 2) Justificativa [20s] (El costo real de no resolverlo), 3) Colaborativa [20s] (Invitar a imaginar la solución), 4) Orientada al NO [25s] (Cierre sin presión + CTA). NO incluyas hashtags en este formato." }
+  { 
+    id: "educativo", 
+    name: "Educativo", 
+    description: "Enseña algo de valor o resuelve una duda común.", 
+    prompt: "Enfoque educativo: Explica un concepto técnico de ActivaQR de forma sencilla y muestra el beneficio claro. Extensión: <120 palabras." 
+  },
+  { 
+    id: "promocional", 
+    name: "Promocional / Venta", 
+    description: "Directo al grano, oferta o beneficio comercial claro.", 
+    prompt: "Enfoque promocional: Usa escasez o urgencia. El beneficio económico de instalar el contacto hoy mismo. Extensión: <100 palabras." 
+  },
+  { 
+    id: "motivador", 
+    name: "Motivador / Mentalidad", 
+    description: "Conecta emocionalmente con el dueño de negocio.", 
+    prompt: "Enfoque motivador: Habla sobre la libertad de tiempo o la profesionalización del negocio. Extensión: <150 palabras." 
+  },
+  { 
+    id: "engagement", 
+    name: "Interacción / Pregunta", 
+    description: "Busca que el usuario comente o responda.", 
+    prompt: "Enfoque engagement: Haz una pregunta provocadora sobre por qué su negocio no aparece en Google/Agenda. Extensión: <80 palabras." 
+  },
+  { 
+    id: "tutorial", 
+    name: "Tutorial / Paso a Paso", 
+    description: "Guía rápida de uso.", 
+    prompt: "Enfoque tutorial: Explica los 4 pasos (escanea, descarga, importa, guarda) de forma ultra rápida. Extensión: <100 palabras." 
+  },
+  { 
+    id: "carrusel", 
+    name: "Carrusel Estratégico", 
+    description: "Secuencia de 6-8 láminas de alto impacto.", 
+    prompt: `PROTOCOLO DE CARRUSEL (6-8 Láminas):
+      Lámina 1: HOOK DISRUPTIVO (Máx 7 palabras).
+      Lámina 2: EL PROBLEMA (El dolor que vive el cliente hoy).
+      Lámina 3: AGITACIÓN (Lo que pierde por no resolverlo).
+      Lámina 4: LA SOLUCIÓN (Introduce ActivaQR como el héroe).
+      Láminas 5-6: BENEFICIOS CLAVE (Lista de 3 puntos rápidos).
+      Lámina 7: PRUEBA/TRANSFORMACIÓN (Cómo cambia su vida/negocio).
+      Lámina 8: CTA CLARO (Instrucción de respuesta directa).
+      
+      IMPORTANTE: Devuelve el texto numerado por láminas.` 
+  },
+  { 
+    id: "guion-pitch-4", 
+    name: "Guion: Pitch 4 Preguntas", 
+    description: "Guion rápido conversacional usando la técnica de 4 preguntas.", 
+    prompt: "Enfoque Guion de Video (Pitch Conversacional): Redacta estrictamente el texto hablado. Usa la técnica de 4 preguntas consecutivas: 1) Activadora [15s] (Gancho al dolor usando lenguaje del cliente), 2) Justificativa [20s] (El costo real de no resolverlo), 3) Colaborativa [20s] (Invitar a imaginar la solución), 4) Orientada al NO [25s] (Cierre sin presión + CTA). NO incluyas hashtags en este formato." 
+  }
 ];
 
-export function buildSystemPrompt(platform: string, targetMonth: number, categoryId?: string) {
+export function buildSystemPrompt(
+  platform: string, 
+  targetMonth: number, 
+  categoryId?: string, 
+  objectiveContext?: string, 
+  campaignStrategy?: string
+) {
   const currentTheme = MONTHLY_THEMES.find(t => t.month === targetMonth)?.theme || "Digitalización de negocios locales";
   const monthName = MONTHLY_THEMES.find(t => t.month === targetMonth)?.name || "";
   const selectedCategory = POST_TYPES.find(t => t.id === categoryId);
@@ -224,13 +275,23 @@ export function buildSystemPrompt(platform: string, targetMonth: number, categor
   return `
     ${BRAND_DNA}
     
-    CONTEXTO ACTUAL:
+    CONTEXTO ESTRATÉGICO SUPERIOR:
+    - Objetivo de Negocio: ${objectiveContext || "No especificado (Usar ADN de Marca)"}
+    - Estrategia Seleccionada: ${campaignStrategy || "No especificada (Usar ADN de Marca)"}
+    
+    CONTEXTO DE PUBLICACIÓN:
     - Plataforma: ${platform.toUpperCase()}
     - Mes/Campaña: ${monthName} (${currentTheme})
-    ${selectedCategory ? `- TIPO DE POST: ${selectedCategory.name} (${selectedCategory.prompt})` : ""}
+    ${selectedCategory ? `- TIPO DE POST: ${selectedCategory.name}\n- PROTOCOLO ESPECÍFICO: ${selectedCategory.prompt}` : ""}
     
-    REGLAS DE GENERACIÓN:
-    - Devuelve SOLO EL TEXTO DEL POST. Nada de introducciones ni despedidas de IA.
-    - SEO: Incluye 1 o 2 keywords de esta lista de forma natural: ${SEO_KEYWORDS.join(", ")}.
+    REGLAS DE ORO DE GENERACIÓN:
+    1. EXCESO DE BREVEDAD: Un post gigante es un post ignorado. Sé brutalmente conciso.
+    2. RESPUESTA DIRECTA: Cada palabra debe empujar al lector hacia adelante.
+    3. CERO CLICHÉS DE IA: Prohibido usar "en el mundo de hoy", "descubre cómo", "potencia tu...". Donna habla como un dueño de negocio senior, no como un bot.
+    4. PRODUCTO: Enfócate en la facilidad de ActivaQR (instalable, no requiere app, vive en el móvil).
+    
+    ENTREGA:
+    - Devuelve SOLO EL TEXTO DEL POST. 
+    - SEO: Incluye 1 o 2 keywords de esta lista: ${SEO_KEYWORDS.join(", ")}.
   `;
 }
