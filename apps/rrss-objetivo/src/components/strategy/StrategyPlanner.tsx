@@ -26,6 +26,7 @@ import {
   EdgeProps,
   MarkerType,
 } from '@xyflow/react';
+import { useRouter } from 'next/navigation';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
 import {
@@ -53,6 +54,7 @@ const NODE_CONFIG: Record<NodeKind, { color: string; bg: string; border: string;
 // ─── Generic Plan Node ──────────────────────────────────────────────────────
 function PlanNode({ id, data, selected, type }: { id: string; data: any; selected: boolean; type: NodeKind }) {
   const { setNodes, deleteElements } = useReactFlow();
+  const router = useRouter();
   const cfg = NODE_CONFIG[type] || NODE_CONFIG.ideaNode;
   const Icon = cfg.icon;
 
@@ -69,6 +71,23 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
       <NodeToolbar isVisible={selected} position={Position.Top} className="flex gap-1.5 bg-white/10 dark:bg-black/80 border border-white/10 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl">
         <button onClick={() => deleteElements({ nodes: [{ id }] })} className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-neutral-500 dark:text-neutral-400 transition-all" title="Eliminar nodo"><Trash2 className="w-3.5 h-3.5" /></button>
         <button onClick={() => { navigator.clipboard.writeText(data.label || ''); toast.success("Texto copiado"); }} className="p-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 text-neutral-500 dark:text-neutral-400 transition-all" title="Copiar texto"><Copy className="w-3.5 h-3.5" /></button>
+        
+        {type === 'articleNode' && (
+          <button 
+            onClick={() => {
+              const url = new URL(window.location.origin + '/blog');
+              url.searchParams.set('node_id', id);
+              // Intentar pasar el session_id si está en el contexto global o si lo buscamos
+              router.push(url.pathname + url.search);
+              toast.success("Teletransportando al SEO Lab...");
+            }} 
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 transition-all border border-emerald-500/30" 
+            title="Escribir en SEO Lab"
+          >
+            <Pen className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold">ESCRIBIR ARTÍCULO</span>
+          </button>
+        )}
       </NodeToolbar>
 
       {/* Handles */}

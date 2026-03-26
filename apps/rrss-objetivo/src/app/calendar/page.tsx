@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
 import esLocale from "@fullcalendar/core/locales/es";
 import CalendarDayModal from "@/components/calendar/CalendarDayModal";
 import toast from "react-hot-toast";
@@ -29,13 +30,13 @@ const ECUADOR_HOLIDAYS = [
   { title: "🛍 Black Friday", date: "2026-11-27", color: "#111827" },
 ];
 
-const PLATFORM_COLORS: Record<string, string> = {
-  facebook: "#2563eb",
-  instagram: "#db2777",
-  tiktok: "#0891b2",
-  linkedin: "#0284c7",
-  youtube: "#dc2626",
-  text_only: "#52525b",
+// Colores por STATUS — hace el calendario operativo de un vistazo
+const STATUS_COLORS: Record<string, string> = {
+  draft_ai:   "#9333ea", // Violeta — Borrador IA
+  pending:    "#f59e0b", // Naranja — Programado
+  processing: "#3b82f6", // Azul — Publicando
+  published:  "#10b981", // Verde — Publicado ✓
+  failed:     "#ef4444", // Rojo — Error
 };
 
 interface Post {
@@ -44,6 +45,7 @@ interface Post {
   platforms: string[];
   status: string;
   scheduled_for: string;
+  media_urls?: string[];
   metrics_snapshot?: { category?: string };
 }
 
@@ -62,24 +64,25 @@ export default function CalendarPage() {
   async function fetchPosts() {
     const { data } = await supabase
       .from("social_posts")
-      .select("id, content_text, scheduled_for, platforms, status, metrics_snapshot")
+      .select("id, content_text, scheduled_for, platforms, status, media_urls, metrics_snapshot")
       .is('archived_at', null)
       .order("scheduled_for", { ascending: true });
 
     if (data) {
       setAllPosts(data);
 
-      const calendarEvents = data.flatMap((post) => {
-        const plats = post.platforms || ["text_only"];
-        return plats.map((platform: string) => ({
-          id: `${post.id}-${platform}`,
-          title: `[${platform.substring(0, 2).toUpperCase()}] ${post.content_text.substring(0, 28)}…`,
+      const calendarEvents = data.map((post) => {
+        const plats = (post.platforms || []).map((p: string) => p.substring(0, 2).toUpperCase()).join(" · ");
+        const hora = new Date(post.scheduled_for).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", hour12: false });
+        return {
+          id: post.id,
+          title: `${hora} · ${plats} · ${post.content_text.substring(0, 22)}…`,
           date: post.scheduled_for,
-          backgroundColor: PLATFORM_COLORS[platform] || "#52525b",
+          backgroundColor: STATUS_COLORS[post.status] || "#6b7280",
           borderColor: "transparent",
           extendedProps: { postId: post.id, status: post.status },
-          classNames: [post.status === "failed" ? "opacity-50 ring-2 ring-red-500" : ""],
-        }));
+          classNames: [post.status === "failed" ? "fc-event-failed" : ""],
+        };
       });
 
       const allEvents = [
@@ -98,12 +101,11 @@ export default function CalendarPage() {
 
   const handleDateClick = (arg: { dateStr: string }) => {
     const clickedDate = arg.dateStr;
-    // Filter posts for this date
     const postsForDay = allPosts.filter((p) => {
       const postDate = new Date(p.scheduled_for).toISOString().split("T")[0];
       return postDate === clickedDate;
     });
-
+    postsForDay.sort((a, b) => new Date(a.scheduled_for).getTime() - new Date(b.scheduled_for).getTime());
     setModalDate(clickedDate);
     setModalPosts(postsForDay);
   };
@@ -155,7 +157,7 @@ export default function CalendarPage() {
 
         <div className="bg-white/40 dark:bg-black/40 border border-white/20 dark:border-white/10 shadow-xl shadow-black/5 dark:shadow-black/20 rounded-3xl p-6 backdrop-blur-xl calendar-wrapper">
           <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
+            plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView="dayGridMonth"
             locale={esLocale}
             events={events}
@@ -163,10 +165,14 @@ export default function CalendarPage() {
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
             editable={true}
+            buttonText={{
+              month: 'Mes',
+              listWeek: 'Agenda (Semanas)'
+            }}
             headerToolbar={{
               left: "prev,next today",
               center: "title",
-              right: "dayGridMonth,dayGridWeek",
+              right: "dayGridMonth,listWeek",
             }}
             height="auto"
             dayMaxEvents={3}
@@ -180,84 +186,153 @@ export default function CalendarPage() {
           date={modalDate}
           posts={modalPosts}
           onClose={() => setModalDate(null)}
+          onPostUpdated={fetchPosts}
         />
       )}
 
+      {/* Leyenda de Estados */}
+      <div className="mt-8 flex flex-wrap gap-4 px-2">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.draft_ai }}></div>
+          <span className="text-xs font-medium text-neutral-500">Borrador IA (Revisar)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.pending }}></div>
+          <span className="text-xs font-medium text-neutral-500">Programado</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.published }}></div>
+          <span className="text-xs font-medium text-neutral-500">Publicado</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.failed }}></div>
+          <span className="text-xs font-medium text-neutral-500">Error / Falló</span>
+        </div>
+      </div>
+
       <style jsx global>{`
         .calendar-wrapper {
-          --fc-border-color: #262626;
+          --fc-border-color: rgba(163, 163, 163, 0.2);
           --fc-daygrid-event-dot-width: 8px;
-          --fc-button-text-color: #e5e5e5;
-          --fc-button-bg-color: #171717;
-          --fc-button-border-color: #262626;
-          --fc-button-hover-bg-color: #262626;
-          --fc-button-hover-border-color: #404040;
+          --fc-button-text-color: #4b5563;
+          --fc-button-bg-color: #f3f4f6;
+          --fc-button-border-color: #e5e7eb;
+          --fc-button-hover-bg-color: #e5e7eb;
+          --fc-button-hover-border-color: #d1d5db;
           --fc-button-active-bg-color: #7c3aed;
           --fc-button-active-border-color: #6d28d9;
           --fc-today-bg-color: rgba(124, 58, 237, 0.08);
         }
+        
+        /* Dark Mode support */
+        @media (prefers-color-scheme: dark) {
+          .calendar-wrapper {
+            --fc-border-color: #262626;
+            --fc-button-text-color: #e5e5e5;
+            --fc-button-bg-color: #171717;
+            --fc-button-border-color: #262626;
+            --fc-button-hover-bg-color: #262626;
+            --fc-button-hover-border-color: #404040;
+          }
+        }
+        
         .fc-theme-standard th {
           border-color: var(--fc-border-color);
           padding: 12px 0;
-          font-weight: 600;
-          color: #a3a3a3;
+          font-weight: 700;
+          color: #6b7280; /* Neutral-500 */
           text-transform: uppercase;
-          font-size: 0.7rem;
-          letter-spacing: 0.08em;
+          font-size: 0.8rem;
+          letter-spacing: 0.05em;
         }
+        
+        @media (prefers-color-scheme: dark) {
+          .fc-theme-standard th {
+            color: #a3a3a3;
+          }
+        }
+        
         .fc-theme-standard td {
           border-color: var(--fc-border-color);
         }
+        
         .fc-daygrid-day-number {
-          color: #e5e5e5;
-          padding: 8px !important;
-          font-size: 0.8rem;
+          color: #111827; /* Dark text for light mode */
+          padding: 8px 12px !important;
+          font-size: 1.1rem;
+          font-weight: 700;
+          text-decoration: none !important;
         }
+        
+        @media (prefers-color-scheme: dark) {
+          .fc-daygrid-day-number {
+            color: #f3f4f6; /* Light text for dark mode */
+          }
+        }
+        
         .fc-daygrid-day:hover .fc-daygrid-day-frame {
           background: rgba(124, 58, 237, 0.05);
           cursor: pointer;
         }
+        
         .fc-event {
           border-radius: 6px;
-          padding: 2px 5px;
-          font-size: 0.68rem;
+          padding: 3px 6px;
+          font-size: 0.75rem;
           font-weight: 500;
           border: none;
-          margin-bottom: 2px;
+          margin-bottom: 3px;
           cursor: pointer;
           transition: all 0.15s;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
+        
         .fc-event:hover {
-          transform: scale(1.03);
-          filter: brightness(1.15);
+          transform: scale(1.02);
+          filter: brightness(1.1);
         }
+        
         .fc-event-main-frame {
           display: flex;
           flex-direction: column;
           align-items: flex-start !important;
         }
+        
         .fc-event-title-container {
           width: 100%;
           overflow: hidden !important;
         }
+        
         .fc-event-title {
           white-space: normal !important;
           word-break: break-word;
           display: -webkit-box;
-          -webkit-line-clamp: 3;
+          -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          line-height: 1.2;
         }
+        
         .fc-daygrid-event-harness-abs {
           right: 0 !important;
         }
+        
         .holiday-event {
-          opacity: 0.75;
+          opacity: 0.8;
           font-style: italic;
+          border-left: 3px solid;
         }
+        
         .fc-more-link {
-          color: #a78bfa !important;
-          font-size: 0.7rem;
+          color: #7c3aed !important;
+          font-size: 0.8rem;
+          font-weight: bold;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .fc-more-link {
+            color: #a78bfa !important;
+          }
         }
       `}</style>
     </DashboardLayout>

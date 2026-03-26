@@ -254,12 +254,11 @@ export default function RewriteBlogPage() {
                            onChange={(e) => setSelectedArticle({...selectedArticle, category_id: e.target.value})}
                            className="w-full bg-neutral-50 dark:bg-black/20 border border-neutral-200 dark:border-neutral-800 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500 appearance-none"
                          >
-                            <option value="automatizacion">Automatización</option>
-                            <option value="diseno-web">Diseño Web</option>
-                            <option value="marketing-digital">Marketing Digital</option>
-                            <option value="asesoria">Asesoría</option>
-                            <option value="desarrollo-web">Desarrollo Web</option>
-                            <option value="posicionamiento-marca">Posicionamiento Marca</option>
+                                                         <option value="marketing-para-pymes">Marketing para PYMEs</option>
+                             <option value="automatizacion-de-ventas">Automatización de Ventas</option>
+                             <option value="posicionamiento-en-google">Posicionamiento en Google</option>
+                             <option value="activaqr-gastronomia">ActivaQR Gastronomía</option>
+                             <option value="activaqr-networking">ActivaQR Networking</option>
                          </select>
                        </div>
                     </div>

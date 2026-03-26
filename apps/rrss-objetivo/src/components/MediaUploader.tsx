@@ -34,6 +34,23 @@ export default function MediaUploader({ onUploadComplete, multiple = false }: Me
           .from("posts-assets")
           .getPublicUrl(filePath);
         
+        // Registrar en la base de datos de la galería
+        try {
+          await fetch('/api/media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              url: publicUrl,
+              type: file.type.startsWith('video') ? 'video' : 'image',
+              size: file.size,
+              category: 'general' // Default category
+            })
+          });
+        } catch (dbError) {
+          console.error("Error registrando en galería:", dbError);
+        }
+        
         return publicUrl;
       });
 

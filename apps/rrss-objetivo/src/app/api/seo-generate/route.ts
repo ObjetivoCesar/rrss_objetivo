@@ -36,29 +36,50 @@ export async function POST(req: Request) {
 
     console.log(`[SEO Lab] Generando artículo SEO (JSON) para: "${keyword}" (Longitud: ${wordCount || 'Default'})...`);
 
+    const serpContext = rawContext ? `--- DATOS DE INVESTIGACIÓN ---\nContexto SERP (Top 5):\n${rawContext.substring(0, 10000)}\n\n` : '';
+    const gapAnalysis = `Análisis de Brechas:\n${JSON.stringify(analysis, null, 2)}\n\n`;
+    const expertExperience = `--- ✨ EXPERIENCIA HUMANA / STORYTELLING ---\n"${humanExperience || 'Usa un tono de experto pragmático basado en los datos.'}"\n\n`;
+
     const promptText = `
-Actúa como un redactor experto en SEO, posicionamiento orgánico y engagement B2B/B2C.
+Actúa como un estratega de contenido y redactor experto en **Direct Response Copywriting**. 
+Tu objetivo no es solo posicionar en Google, sino **convertir extraños en clientes** mediante autoridad y persuasión.
 
-Tu objetivo principal es escribir el MEJOR artículo en internet sobre: "${keyword}".
-IMPORTANTE: Inyecta la EXPERIENCIA HUMANA para cumplir con E-E-A-T.
+Tu meta: Escribir el artículo definitivo sobre: "${keyword}".
 
---- DATOS ---
-${rawContext ? `Contexto Crudo Top 5:\n${rawContext.substring(0, 10000)}\n\n` : ''}
+--- 🧬 ADN DE DONNA (PROTOCOLO ESTRATÉGICO) ---
+1. **ESTRUCTURA P.A.S.A.B.**: 
+   - **P**roblema: Identifica el punto de dolor real.
+   - **A**gitación: Haz que sientan las consecuencias de no resolverlo.
+   - **S**olución: Introduce el servicio/producto de forma natural.
+   - **A**utoridad/Beneficios: Por qué tú/tu empresa. Qué ganan ellos.
+   - **B**eneficio Final + CTA: Cierre fuerte con llamado a la acción.
+2. **TONO**: Directo, provocador, experto. Cero relleno corporativo ("En el mundo actual...", "Desbloquea tu potencial...").
+3. **E-E-A-T**: Usa la "Experiencia Humana" proporcionada para darle alma al texto.
+4. **FORMATO VISUAL**: Intercala el texto con etiquetas de sugerencia: 
+   - [SUGERENCIA_IMAGEN: Descripción del visual que apoye este punto]
+   - [SUGERENCIA_VIDEO: Tema para un video explicativo o demostración aquí]
+   (Aparecerán unas 2 o 3 veces por artículo).
 
-Análisis Previo:
-${JSON.stringify(analysis, null, 2)}
+--- 🎨 MOTOR VISUAL EXPERTO (ANÁLISIS DEL COMITÉ) ---
+Para generar los campos de imagen (\`imagePrompt\`, \`imagePromptInternal1\`, \`imagePromptInternal2\`), NO inventes imágenes genéricas. Sigue este proceso para los 3 visuales:
 
---- ✨ EXPERIENCIA HUMANA ---
-"${humanExperience || 'Asume un tono de experto basado en los datos.'}"
+1. PSICÓLOGO: ¿Cuál es el DOLOR INVISIBLE del artículo o del punto específico? No el error visible, sino la emoción oculta (miedo, incertidumbre, pérdida silenciosa). El lector debe sentirse entendido, no juzgado.
+2. COPYWRITER: ¿Cuál es la SITUACIÓN COTIDIANA que encapsula ese dolor en 0.3 segundos? Usa escenas de la vida real que cualquier adulto reconozca instantáneamente.
+3. CLOSER (SIN JUZGAR): La imagen debe mostrar el contraste entre el estado actual y el potencial perdido, sin buscar culpables.
+4. DIRECTOR DE ARTE: 
+   - Los colores los DICTA LA ESCENA (sin paletas fijas).
+   - Incluye identidad ecuatoriana ORGÁNICA (calles locales, arquitectura, volcanes, gastronomía) solo si surge naturalmente de la situación.
+   - El logotipo "Objetivo" debe aparecer como Mockup fotorrealista integrado (grabado, tallado, proyectado).
+   - Máximo realismo cinematográfico. Sin lila/morado por defecto.
 
---- CATEGORÍAS PERMITIDAS ---
-Debes elegir EXACTAMENTE UNA de estas categorías: automatizacion, diseno-web, marketing-digital, asesoria, desarrollo-web, posicionamiento-marca.
+--- CATEGORÍAS (SILOS) PERMITIDAS ---
+Debes elegir EXACTAMENTE UNA: marketing-para-pymes, automatizacion-de-ventas, posicionamiento-en-google, activaqr-gastronomia, activaqr-networking.
 
---- INSTRUCCIONES DEL MARKDOWN ---
-El campo "markdown" debe contener el artículo COMPLETO.
-1. Empieza con un H1 SEO optimizado.
-2. Contenido conversacional pero profesional.
-3. LONGITUD: ${wordCount || 'Media (~1000 palabras)'}. Desarrolla cada sección.
+--- INSTRUCCIONES FORMALES ---
+- Longitud: ${wordCount || 'Media (~1200 palabras)'}.
+- Formato: Markdown limpio con H1, H2, H3.
+- NO menciones que eres una IA.
+- El artículo debe empezar directamente con el H1.
 `;
 
     const keys = shuffleArray(getAvailableKeys());
@@ -69,13 +90,22 @@ El campo "markdown" debe contener el artículo COMPLETO.
       try {
         const gemini = createGoogleGenerativeAI({ apiKey: key });
         const { object } = await generateObject({
-          model: gemini('gemini-2.5-flash'),
+          model: gemini('gemini-2.0-flash'),
           schema: z.object({
             title: z.string().describe("Título SEO Optimizado (H1)"),
-            category: z.enum(['automatizacion', 'diseno-web', 'marketing-digital', 'asesoria', 'desarrollo-web', 'posicionamiento-marca']).describe("Categoría permitida más afín al tema"),
+            slug: z.string().describe("Slug corto optimizado para SEO (ej: 'agencia-marketing-quito'). Todo en minúsculas, solo usa letras y guiones, sin tildes ni caracteres especiales, máximo 2 a 4 palabras."),
+            category: z.enum([
+              'marketing-para-pymes', 
+              'automatizacion-de-ventas', 
+              'posicionamiento-en-google',
+              'activaqr-gastronomia',
+              'activaqr-networking'
+            ]).describe("Categoría (Silo) oficial del sistema"),
             excerpt: z.string().describe("Resumen muy corto y persuasivo (1-2 oraciones)"),
             metaDescription: z.string().describe("Meta descripción SEO (máx. 155 caracteres)"),
-            imagePrompt: z.string().describe("Sugerencia de prompt ultra-fotorrealista detallado (para Midjourney o Dall-E) que describa una imagen de portada ideal para este artículo"),
+            imagePrompt: z.string().describe("Prompt maestro para la IMAGEN DE PORTADA (16:9). Debe seguir la metodología de los 4 expertos y el protocolo de branding/identidad."),
+            imagePromptInternal1: z.string().describe("Prompt para la primera imagen interna de apoyo (misma línea visual que la portada)."),
+            imagePromptInternal2: z.string().describe("Prompt para la segunda imagen interna de apoyo (misma línea visual que la portada)."),
             markdown: z.string().describe("El contenido COMPLETO del artículo en Markdown, incluyendo el H1 al principio, h2, h3, listas, etc.")
           }),
           prompt: promptText,

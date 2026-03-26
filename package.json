@@ -17,5 +17,12 @@
   },
   "overrides": {
     "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "csv-parse": "^6.2.1",
+    "csv-stringify": "^6.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
