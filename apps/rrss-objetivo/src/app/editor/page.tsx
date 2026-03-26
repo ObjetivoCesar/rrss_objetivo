@@ -10,6 +10,7 @@ import { IMAGE_STYLES, ImageStyle } from "@/lib/ai/images/styles";
 import { POST_TYPES, PLATFORMS } from "@/lib/ai/prompts";
 import toast from "react-hot-toast";
 import AiImageGenerator from "@/components/AiImageGenerator";
+import MediaUploader from "@/components/MediaUploader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MixItem {
@@ -126,6 +127,8 @@ export default function EditorPage() {
   const [showImageGen, setShowImageGen] = useState(false);
   const [activePostForImage, setActivePostForImage] = useState<number | null>(null);
   const [includeImages, setIncludeImages] = useState(true);
+  const [isCarouselMode, setIsCarouselMode] = useState(false);
+  const [manualMediaUrls, setManualMediaUrls] = useState<string[]>([]);
   const [externalLink, setExternalLink] = useState("");
 
   useEffect(() => {
@@ -332,7 +335,7 @@ export default function EditorPage() {
           topic,
           platforms: [post.platform],
           categoryId: post.categoryId,
-          media_urls: [post.selectedMediaUrl],
+          media_urls: isCarouselMode ? manualMediaUrls : [post.selectedMediaUrl],
           campaign_id: selectedCampId || null,
         }),
       });
@@ -455,27 +458,70 @@ export default function EditorPage() {
             </div>
             <div className="flex items-center justify-between pt-4 border-t border-neutral-800/50">
                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${includeImages ? 'bg-purple-500/10 text-purple-400' : 'bg-neutral-800 text-neutral-500'}`}>
-                    <ImageIcon className="w-5 h-5" />
+                  <div className={`p-2 rounded-lg ${isCarouselMode ? 'bg-amber-500/10 text-amber-500' : 'bg-neutral-800 text-neutral-500'}`}>
+                    <RotateCcw className={`w-5 h-5 ${isCarouselMode ? 'animate-spin-slow' : ''}`} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-tight">Generar Imágenes con AI</h3>
-                    <p className="text-[10px] text-neutral-500 font-medium">Crea piezas visuales únicas para cada post</p>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-tight">Modo Carrusel (Manual)</h3>
+                    <p className="text-[10px] text-neutral-500 font-medium">Sube tus propias láminas (máx. 8)</p>
                   </div>
                </div>
                <button
-                  onClick={() => setIncludeImages(!includeImages)}
+                  onClick={() => setIsCarouselMode(!isCarouselMode)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                    includeImages ? "bg-purple-600" : "bg-neutral-800"
+                    isCarouselMode ? "bg-amber-600" : "bg-neutral-800"
                   }`}
                >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      includeImages ? "translate-x-6" : "translate-x-1"
+                      isCarouselMode ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
                </button>
             </div>
+
+            {isCarouselMode && (
+              <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Cargar Láminas del Carrusel</label>
+                <div className="bg-neutral-950/50 border border-neutral-800 rounded-3xl p-4">
+                  <MediaUploader 
+                    multiple={true} 
+                    onUploadComplete={(urls) => setManualMediaUrls(urls)} 
+                  />
+                  {manualMediaUrls.length > 0 && (
+                    <p className="text-[10px] text-amber-500 font-bold mt-2 text-center uppercase tracking-widest">
+                      {manualMediaUrls.length} láminas listas para el carrusel
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!isCarouselMode && (
+              <div className="flex items-center justify-between pt-4 border-t border-neutral-800/50">
+                 <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${includeImages ? 'bg-purple-500/10 text-purple-400' : 'bg-neutral-800 text-neutral-500'}`}>
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-tight">Generar Imágenes con AI</h3>
+                      <p className="text-[10px] text-neutral-500 font-medium">Crea piezas visuales únicas para cada post</p>
+                    </div>
+                 </div>
+                 <button
+                    onClick={() => setIncludeImages(!includeImages)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      includeImages ? "bg-purple-600" : "bg-neutral-800"
+                    }`}
+                 >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        includeImages ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                 </button>
+              </div>
+            )}
 
             {!includeImages && (
               <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
