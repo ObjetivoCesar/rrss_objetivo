@@ -39,6 +39,8 @@ export default function EditPostModal({ post, onClose, onSave }: EditPostModalPr
 
   const handleSave = async () => {
     setIsSaving(true);
+    
+    // Primero, guardar los cambios en base de datos
     await onSave({ 
       ...post, 
       content_text: content, 
@@ -46,6 +48,22 @@ export default function EditPostModal({ post, onClose, onSave }: EditPostModalPr
       scheduled_for: new Date(scheduledAt).toISOString(),
       status: shouldApprove ? "pending" : post.status
     });
+
+    // Si el usuario lo aprueba y la fecha de programación es en el pasado o ahora,
+    // disparamos el scheduler automáticamente para publicación instantánea.
+    if (shouldApprove) {
+      const scheduledTime = new Date(scheduledAt).getTime();
+      const now = new Date().getTime();
+      // Si la fecha es menor a 2 minutos en el futuro, disparemos el cron por si acaso.
+      if (scheduledTime <= now + 2 * 60000) {
+        try {
+          await fetch('/api/cron/trigger', { method: 'POST' });
+        } catch (e) {
+          console.error("Error auto-triggering cron:", e);
+        }
+      }
+    }
+
     setIsSaving(false);
   };
 
@@ -158,14 +176,14 @@ export default function EditPostModal({ post, onClose, onSave }: EditPostModalPr
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2.5 px-8 py-3 rounded-2xl text-[11px] font-black bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 shadow-xl shadow-neutral-900/10 dark:shadow-white/5 uppercase tracking-widest"
+            className={`flex items-center gap-2.5 px-8 py-3 rounded-2xl text-[11px] font-black transition-all shadow-xl uppercase tracking-widest ${shouldApprove ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20" : "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:scale-[1.02] dark:shadow-white/5"}`}
           >
             {isSaving ? (
               <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {shouldApprove ? "Publicar Ahora" : "Guardar Cambios"}
+            {shouldApprove ? "Guardar y Agendar" : "Guardar Cambios"}
           </button>
         </div>
 
