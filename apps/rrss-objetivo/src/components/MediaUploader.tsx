@@ -26,7 +26,10 @@ export default function MediaUploader({ onUploadComplete, multiple = false }: Me
 
         const { error: uploadError } = await supabase.storage
           .from("posts-assets")
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            contentType: file.type || undefined,
+            upsert: false
+          });
 
         if (uploadError) throw uploadError;
 
