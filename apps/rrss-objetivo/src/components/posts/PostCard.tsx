@@ -81,11 +81,11 @@ export default function PostCard({ post, onApprove, onDelete, onEdit }: PostCard
       bg-white/80 dark:bg-neutral-900/60 
       backdrop-blur-xl
       border ${post.status === "failed" ? "border-red-500/30" : "border-neutral-200 dark:border-neutral-800"} 
-      rounded-3xl p-6 
+      rounded-3xl p-5 
       transition-all duration-300 ease-out
-      hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]
-      hover:border-blue-500/30 dark:hover:border-neutral-600
-      hover:-translate-y-1
+      hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]
+      hover:border-blue-500/40 dark:hover:border-neutral-600
+      hover:-translate-y-1.5
     `}>
       {/* Cabecera: Status y Plataformas */}
       <div className="flex justify-between items-start gap-2 mb-4">
@@ -111,25 +111,39 @@ export default function PostCard({ post, onApprove, onDelete, onEdit }: PostCard
 
       {/* Contenido principal */}
       <div className="flex-1 space-y-4">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-3 leading-relaxed font-medium">
+        {/* Manejo de imágenes (Soporta media_url string y media_urls array) */}
+        {(post.media_urls?.length > 0 || post.media_url) && (
+          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shrink-0 shadow-inner group/media mb-2">
+            <div className="absolute inset-0 bg-black/5 group-hover/media:bg-black/20 transition-colors z-10" />
+            <div className="absolute top-2 left-2 z-20">
+               <span className="bg-black/60 backdrop-blur-md text-[8px] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-white/10">Imagen OK</span>
+            </div>
+            {((post.media_urls?.[0] || post.media_url || "").endsWith(".mp4")) ? (
+              <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
+                <Play className="w-10 h-10 text-white/50" />
+              </div>
+            ) : (
+              <img 
+                src={normalizeUrl(post.media_urls?.[0] || post.media_url)} 
+                alt="Media" 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover/media:scale-110" 
+              />
+            )}
+          </div>
+        )}
+
+        <p className="text-[13px] text-neutral-800 dark:text-neutral-200 line-clamp-[6] leading-[1.6] font-medium tracking-tight">
           {post.content_text}
         </p>
 
-        {/* Manejo de imágenes (Soporta media_url string y media_urls array) */}
-        {(post.media_urls?.length > 0 || post.media_url) && (
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide py-1">
-            {(post.media_urls || (post.media_url ? [post.media_url] : [])).map((url: string, i: number) => (
-              <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shrink-0 shadow-sm group/media">
-                <div className="absolute inset-0 bg-black/0 group-hover/media:bg-black/20 transition-colors z-10" />
-                {url.endsWith(".mp4") ? (
-                  <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
-                    <Play className="w-5 h-5 text-white/50" />
-                  </div>
-                ) : (
-                  <img src={normalizeUrl(url)} alt="Media" className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-110" />
-                )}
-              </div>
-            ))}
+        {/* Miniaturas extra si hay más de una imagen */}
+        {post.media_urls?.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+             {post.media_urls.slice(1).map((url: string, i: number) => (
+                <div key={i} className="w-10 h-10 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 shrink-0">
+                   <img src={normalizeUrl(url)} className="w-full h-full object-cover" alt="Extra" />
+                </div>
+             ))}
           </div>
         )}
       </div>

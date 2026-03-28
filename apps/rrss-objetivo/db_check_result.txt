@@ -1,0 +1,62 @@
+[
+  {
+    "id": "f7dfab92-d26b-4958-8ec9-eb6cb4f8545b",
+    "status": "pending",
+    "scheduled_for": "2026-04-20T17:30:00+00:00",
+    "content_text": "[CARRUSEL] El flujo mágico: De la tarjeta NFC directo al CRM y al primer correo."
+  },
+  {
+    "id": "9a6bc61d-3177-47ad-95f4-160dbebb5b3d",
+    "status": "pending",
+    "scheduled_for": "2026-04-20T17:30:00+00:00",
+    "content_text": "No pierdas seguimientos en Excel 📁. El CRM recibe la data de inmediato."
+  },
+  {
+    "id": "1211f89e-6d3e-46dc-b36d-0871bd639732",
+    "status": "pending",
+    "scheduled_for": "2026-04-20T17:30:00+00:00",
+    "content_text": "[CARRUSEL] El flujo mágico: De la tarjeta NFC directo al CRM."
+  },
+  {
+    "id": "4af25791-54d9-4c6e-8434-a8032d4d3cae",
+    "status": "pending",
+    "scheduled_for": "2026-04-19T17:30:00+00:00",
+    "content_text": "En una feria B2B tienes 30 segundos. Atrapa el lead en tu pantalla."
+  },
+  {
+    "id": "f15c4042-7445-4134-8345-3d339cd080c1",
+    "status": "pending",
+    "scheduled_for": "2026-04-19T17:30:00+00:00",
+    "content_text": "Intercambio bidireccional en 3 segundos ⏱️. Magia corporativa."
+  },
+  {
+    "id": "a94f8050-67e8-4546-8d0e-a8fceb999e79",
+    "status": "pending",
+    "scheduled_for": "2026-04-19T17:30:00+00:00",
+    "content_text": "En una feria B2B tienes 30 segundos. Invierte 27 en hablar y 3 en capturar."
+  },
+  {
+    "id": "d068ea08-7d71-423d-8a05-13f942db5995",
+    "status": "pending",
+    "scheduled_for": "2026-04-18T17:30:00+00:00",
+    "content_text": "La estadística es brutal: $50 que imprimiste terminarán en el tacho en 48h."
+  },
+  {
+    "id": "d83ff6e5-e9bf-4ad2-ae4f-21f2befbfe97",
+    "status": "pending",
+    "scheduled_for": "2026-04-18T17:30:00+00:00",
+    "content_text": "El cementerio del papel 🗑️. Deja de financiar imprentas."
+  },
+  {
+    "id": "9b72cc18-e0d0-4b17-be02-5b1d6999e869",
+    "status": "pending",
+    "scheduled_for": "2026-04-18T17:30:00+00:00",
+    "content_text": "La estadística es brutal: Ese paquete de $50 terminará en el tacho en 48 horas."
+  },
+  {
+    "id": "ac0de1a0-1ed1-4bf6-b5ce-43730c8c72ee",
+    "status": "pending",
+    "scheduled_for": "2026-04-17T17:30:00+00:00",
+    "content_text": "[CARRUSEL] La anatomía del fracaso de la tarjeta de papel y la magia de ActivaQR B2B."
+  }
+]

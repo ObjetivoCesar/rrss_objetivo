@@ -24,7 +24,11 @@ export default function DashboardPage() {
 
   async function fetchStats() {
     setLoading(true);
-    const { data } = await supabase.from("social_posts").select("status, scheduled_for, content_text, platforms").order("scheduled_for", { ascending: true });
+    const { data } = await supabase
+      .from("social_posts")
+      .select("status, scheduled_for, content_text, platforms")
+      .is('archived_at', null)
+      .order("scheduled_for", { ascending: true });
     if (data) {
       const counts: Stats = { pending: 0, published: 0, failed: 0, draft_ai: 0 };
       data.forEach((p) => {

@@ -73,11 +73,12 @@ export default function CalendarPage() {
 
       const calendarEvents = data.map((post) => {
         const plats = (post.platforms || []).map((p: string) => p.substring(0, 2).toUpperCase()).join(" · ");
-        const hora = new Date(post.scheduled_for).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", hour12: false });
+        const dateObj = new Date(post.scheduled_for);
+        const hora = `${String(dateObj.getUTCHours()).padStart(2, '0')}:${String(dateObj.getUTCMinutes()).padStart(2, '0')}`;
         return {
           id: post.id,
           title: `${hora} · ${plats} · ${post.content_text.substring(0, 22)}…`,
-          date: post.scheduled_for,
+          start: post.scheduled_for,
           backgroundColor: STATUS_COLORS[post.status] || "#6b7280",
           borderColor: "transparent",
           extendedProps: { postId: post.id, status: post.status },
@@ -102,6 +103,7 @@ export default function CalendarPage() {
   const handleDateClick = (arg: { dateStr: string }) => {
     const clickedDate = arg.dateStr;
     const postsForDay = allPosts.filter((p) => {
+      // Use UTC date string to match FullCalendar's timeZone="UTC"
       const postDate = new Date(p.scheduled_for).toISOString().split("T")[0];
       return postDate === clickedDate;
     });
@@ -160,6 +162,7 @@ export default function CalendarPage() {
             plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
             initialView="dayGridMonth"
             locale={esLocale}
+            timeZone="UTC"
             events={events}
             dateClick={handleDateClick}
             eventClick={handleEventClick}

@@ -29,6 +29,7 @@ export default function PostsPage() {
     const { data, error } = await supabase
       .from("social_posts")
       .select("*")
+      .is('archived_at', null)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -180,7 +181,7 @@ export default function PostsPage() {
             <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium">No hay posts en esta categoría.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {filteredPosts.map(post => (
               <div key={post.id} className="relative group">
                 <PostCard 

@@ -211,7 +211,8 @@ export async function processScheduledPosts() {
       // Determinar categoría principal del post para filtrado fácil en Make
       const hasImage = mediaUrls.some(m => m.is_image);
       const isVideoPost = mediaUrls.some(m => m.is_video);
-      const postMediaCategory = isVideoPost ? 'video' : (hasImage ? 'image' : 'link');
+      const isCarousel = mediaUrls.filter(m => m.is_image).length > 1;
+      const postMediaCategory = isVideoPost ? 'video' : (isCarousel ? 'carousel' : (hasImage ? 'image' : 'link'));
 
       const metadata = post.metadata || {};
 
@@ -222,6 +223,14 @@ export async function processScheduledPosts() {
         text: post.content_text,
         media_url: post.media_url || null,
         media_urls: mediaUrls,
+        photo_urls: mediaUrls.filter(m => m.is_image).map(m => m.url),
+        video_urls: mediaUrls.filter(m => m.is_video).map(m => m.url),
+        facebook_photos: mediaUrls.filter(m => m.is_image).map(m => ({ 
+          url: m.url, 
+          source: m.url, 
+          type: 'Photo',
+          media_type: 'Photo'
+        })),
         post_media_category: postMediaCategory, // 'image', 'video', o 'link'
         platforms: post.platforms || [],
         metadata: {
