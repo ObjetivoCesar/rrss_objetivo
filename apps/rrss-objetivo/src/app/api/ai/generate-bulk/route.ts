@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildSystemPrompt, PLATFORM_PROMPTS, POST_TYPES } from "@/lib/ai/prompts";
+import { getCarouselImageMasterPrompt, buildCarouselNarrative } from "@/lib/ai/carousel-protocol";
 import { ImageStyle } from "@/lib/ai/images/styles";
 import { rateLimit } from "@/lib/rate-limiter";
 
@@ -16,7 +17,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Demasiadas peticiones. Intenta de nuevo en un minuto." }, { status: 429 });
     }
 
-    const { message, targetMonth, topic, style, mixItems, objectiveContext, campaignStrategy } = await req.json();
+    const { message, targetMonth, topic, style, mixItems, objectiveContext, campaignStrategy, carouselSlides } = await req.json();
+    const slideCount = typeof carouselSlides === 'number' && carouselSlides >= 2 ? carouselSlides : 6;
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     const model = process.env.DEEPSEEK_MODEL || "deepseek-chat";
@@ -35,9 +37,17 @@ export async function POST(req: Request) {
     const postRequests = mixItems.map((item: MixItem, idx: number) => {
       const categoryDef = POST_TYPES.find(t => t.id === item.categoryId);
       const platformRule = PLATFORM_PROMPTS[item.platform] || PLATFORM_PROMPTS['instagram'];
+
+      // For carousels: inject the full Carousel Engine 2026 Protocol of Gold
+      // The narrative structure scales dynamically to the exact slide count chosen by the user.
+      let categoryPrompt = categoryDef?.prompt || '';
+      if (item.categoryId === 'carrusel') {
+        categoryPrompt = buildCarouselNarrative(slideCount);
+      }
+
       return `POST ${idx + 1}:
 - Categoría: ${categoryDef?.name || item.categoryId}
-- Instrucción de categoría: ${categoryDef?.prompt || ''}
+- Instrucción de categoría: ${categoryPrompt}
 - Plataforma objetivo: ${item.platform.toUpperCase()}
 ${platformRule}`;
     }).join("\n\n---\n\n");
@@ -52,15 +62,31 @@ ${platformRule}`;
       INSTRUCCIÓN CRÍTICA — GENERACIÓN POR PLATAFORMA:
       Cada post tiene una plataforma asignada. Las reglas de esa plataforma SON INELUDIBLES.
       Un post de LinkedIn NO puede parecerse a uno de TikTok. No son intercambiables.
-      El copy de cada plataforma debe sentirse nativo — como si lo hubiera escrito alguien que vive en esa red social.
+      El copy de cada plataforma debe sentirse nativo.
 
-      REGLA DE IMAGEN (para TODOS los posts):
+      ${mixItems.some((m: MixItem) => m.categoryId === 'carrusel') ? `
+      REGLA MAESTRA DE IMAGEN PARA CARRUSEL (MOTOR MANUS):
+      ${getCarouselImageMasterPrompt(slideCount, visualStyle?.promptSuffix || "high quality, professional photography, realistic lighting")}
+      
+      ATENCIÓN: Para los posts "carrusel", DEBES incluir una propiedad adicional "carouselSlides" dentro del JSON post.
+      Cada slide de "carouselSlides" debe tener: "slideNumber", "copy" (breve guion o idea de esta lámina), y "imagePrompt".
+      
+      EL "imagePrompt" DE CADA LÁMINA DEL CARRUSEL DEBE ESTAR EN ESPAÑOL Y SEGUIR EXTRICTAMENTE ESTA ESTRUCTURA DE 4 LÍNEAS (SIN EXCEPCIONES):
+      Metáfora Visual: [Describe la escena, iluminación y acción detallada de forma hiper-realista]
+      Texto a incluir (Grande): "[Frase corta y de impacto]"
+      Texto Secundario: "[Frase complementaria]"
+      Regla Logo: [Dónde y cómo integrar el logo sutilmente en la escena]
+      
+      Además, el "content" principal del post carrusel DEBE ser EXTREMADAMENTE CORTO (máximo 3 o 4 líneas directas tipo teaser instigando a deslizar las láminas). ¡Prohibido hacer captions largos para los carruseles!
+      ` : `
+      REGLA DE IMAGEN (para TODOS los posts NO carrusel):
       Además del copy, redacta un PROMPT DE IMAGEN en INGLÉS súper descriptivo, ideal para Midjourney o Flux.
       - Describe LITERALMENTE la escena: sujetos, objetos, entorno, iluminación, sentimiento.
       - Máximo 4-5 oraciones.
-      - FÍSICA REALISTA: personas que interactúan naturalmente con objetos (pies en el suelo, manos agarrando cosas correctamente).
-      - BRANDING NATURAL: si integras el logo 'Objetivo', que sea como mockup (en una pantalla, bordado en ropa, letrero en el fondo). Nunca "en una esquina".
+      - FÍSICA REALISTA: personas que interactúan naturalmente con objetos.
+      - BRANDING NATURAL: si integras el logo 'Objetivo', que sea como mockup.
       - Finaliza SIEMPRE con: ${visualStyle?.promptSuffix || "high quality, professional photography, realistic lighting"}.
+      `}
 
       FORMATO DE SALIDA ESTRICTO (SOLO JSON ARRAY):
       Devuelve un array JSON puro. Sin markdown de código. Sin texto fuera del JSON.
@@ -68,8 +94,15 @@ ${platformRule}`;
         {
           "platform": "instagram",
           "categoryId": "educativo",
-          "content": "El copy final adaptado a la plataforma, con su tono, longitud y hashtags correctos...",
-          "imagePrompt": "A highly detailed photography of... (escena relevante) + ${visualStyle?.promptSuffix || "high quality, professional"}"
+          "content": "Para carruseles: SOLO 3 líneas cortas y directas (Teaser + CTA). Para otros: El copy completo...",
+          "imagePrompt": "A highly detailed photography of... (solo si no es carrusel)",
+          "carouselSlides": [
+            {
+              "slideNumber": 1,
+              "copy": "Explicación interna de la lámina",
+              "imagePrompt": "Metáfora Visual: ...\\nTexto a incluir (Grande): ...\\nTexto Secundario: ...\\nRegla Logo: ..."
+            }
+          ]
         }
       ]
     `;

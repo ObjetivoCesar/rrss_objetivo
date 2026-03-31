@@ -9,11 +9,17 @@ import { processScheduledPosts } from './scheduler';
  * que haga GET /api/cron/process cada minuto.
  */
 
-const INTERVAL_MS = 60 * 1000; // 1 minuto
+const INTERVAL_MS = 5 * 60 * 1000; // 5 minutos para ahorrar CPU en local
 let intervalId: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
 
 async function tick() {
+  // Solo ejecutar si no estamos en desarrollo o si el modo dev-scheduler está forzado
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev && !process.env.FORCE_DEV_SCHEDULER) {
+    return;
+  }
+
   if (isRunning) {
     console.log('[AutoScheduler] ⏳ Ciclo anterior aún en curso, saltando...');
     return;

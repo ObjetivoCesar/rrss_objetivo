@@ -23,7 +23,7 @@ export async function generateAndUploadImage(
   seed?: number
 ): Promise<string> {
   const hash = getFilenameHash(prompt, seed);
-  const fileName = `ai_${hash}.webp`;
+  const fileName = `ai_${hash}.jpg`;
 
   // 1. Verificar si ya existe en Supabase para ahorrar créditos
   try {
@@ -46,10 +46,10 @@ export async function generateAndUploadImage(
     seed 
   });
   
-  // 3. Optimizar imagen con Sharp antes de subir
+  // 3. Optimizar imagen con Sharp antes de subir (Como JPG para Instagram)
   console.log(`[Storage] ⚡ Optimizando imagen de ${provider} (${buffer.length} bytes)...`);
   const optimizedBuffer = await sharp(buffer)
-    .webp({ quality: 80 })
+    .jpeg({ quality: 85, mozjpeg: true })
     .toBuffer();
   
   console.log(`[Storage] ✅ Imagen optimizada: ${optimizedBuffer.length} bytes (Reducción: ${Math.round((1 - optimizedBuffer.length / buffer.length) * 100)}%)`);
@@ -76,7 +76,7 @@ export async function uploadToSupabase(
   const { error } = await supabaseAdmin.storage
     .from(BUCKET)
     .upload(fileName, buffer as any, {
-      contentType: "image/webp",
+      contentType: "image/jpeg",
       upsert: true,
     });
 
@@ -112,7 +112,7 @@ export async function uploadToBunny(
   try {
     const resp = await fetch(`https://${HOST}/${ZONE}/${fileName}`, {
       method: "PUT",
-      headers: { AccessKey: KEY, "Content-Type": "image/webp" },
+      headers: { AccessKey: KEY, "Content-Type": "image/jpeg" },
       body: buffer as any,
     });
 

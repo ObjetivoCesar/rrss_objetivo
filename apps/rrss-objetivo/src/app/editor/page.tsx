@@ -3,7 +3,7 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   Sparkles, RotateCcw, Wand2, Image as ImageIcon,
-  Check, Save, Loader2, X, Plus, Zap, Link as LinkIcon
+  Check, Save, Loader2, X, Plus, Zap, Link as LinkIcon, Copy
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { IMAGE_STYLES, ImageStyle } from "@/lib/ai/images/styles";
@@ -19,6 +19,13 @@ interface MixItem {
   platform: string;
 }
 
+interface CarouselSlide {
+  slideNumber: number;
+  copy: string;
+  imagePrompt: string;
+  mediaUrl?: string;
+}
+
 interface GeneratedPost {
   content: string;
   categoryId: string;
@@ -28,6 +35,7 @@ interface GeneratedPost {
   selectedMediaUrl: string;
   saved: boolean;
   imagePrompt: string;
+  carouselSlides?: CarouselSlide[];
 }
 
 // ─── Step Labels ──────────────────────────────────────────────────────────────
@@ -130,6 +138,7 @@ export default function EditorPage() {
   const [isCarouselMode, setIsCarouselMode] = useState(false);
   const [manualMediaUrls, setManualMediaUrls] = useState<string[]>([]);
   const [externalLink, setExternalLink] = useState("");
+  const [carouselSlides, setCarouselSlides] = useState(6);
 
   useEffect(() => {
     fetch("/api/campaigns")
@@ -275,6 +284,7 @@ export default function EditorPage() {
           mixItems: mixItems.map(m => ({ categoryId: m.categoryId, platform: m.platform })),
           objectiveContext: selectedObjective ? `${selectedObjective.name}: ${selectedObjective.description}` : null,
           campaignStrategy: selectedCampaign ? `${selectedCampaign.name}: ${selectedCampaign.description}` : null,
+          carouselSlides,
         }),
       });
       const data = await res.json();
@@ -282,10 +292,15 @@ export default function EditorPage() {
 
       const results: GeneratedPost[] = data.posts.map((p: any, idx: number) => {
         const isNoImage = !includeImages || selectedStyle.id === 'no-image';
-        const safePrompt = isNoImage ? "" : (p.imagePrompt || "professional modern photography style").substring(0, 800);
+        
+        // NO FALLBACK: Use the AI's prompt or empty if not provided/wanted
+        const safePrompt = isNoImage ? "" : (p.imagePrompt || "").substring(0, 1000);
         
         let variants: string[] = [];
-        if (!isNoImage) {
+        // If we have manual images for a carousel, use those instead of AI variants
+        if (isCarouselMode && manualMediaUrls.length > 0) {
+          variants = manualMediaUrls;
+        } else if (!isNoImage && safePrompt) {
           variants = [1, 2, 3].map(() => {
             const seed = Math.floor(Math.random() * 1000000);
             return `/api/ai/image-proxy?prompt=${encodeURIComponent(safePrompt)}&seed=${seed}`;
@@ -294,10 +309,8 @@ export default function EditorPage() {
 
         // Use platform/category from mix item if AI didn't return it
         const mixRef = mixItems[idx];
-        
-        // Logical for External Link: If no images and link exists, use it as selectedMediaUrl
         const finalMediaUrls = variants;
-        const finalSelectedMediaUrl = isNoImage && externalLink.trim() ? externalLink.trim() : (variants[0] || "");
+        const finalSelectedMediaUrl = (isNoImage && externalLink.trim()) ? externalLink.trim() : (variants[0] || "");
 
         return {
           content: p.content,
@@ -308,6 +321,7 @@ export default function EditorPage() {
           selectedMediaUrl: finalSelectedMediaUrl,
           saved: false,
           imagePrompt: safePrompt,
+          carouselSlides: p.carouselSlides || [],
         };
       });
 
@@ -326,6 +340,14 @@ export default function EditorPage() {
     const post = generatedPosts[idx];
     if (!post || post.saved) return;
     try {
+      
+      const slidePhotos = (post.carouselSlides && post.carouselSlides.length > 0) 
+            ? post.carouselSlides.map(s => s.mediaUrl).filter(Boolean) as string[]
+            : [];
+            
+      // Si el carrusel no tiene fotos por slide pero sí subió en bulk (manualMediaUrls)
+      const finalMediaUrls = slidePhotos.length > 0 ? slidePhotos : (isCarouselMode && manualMediaUrls.length > 0 ? manualMediaUrls : [post.selectedMediaUrl]);
+
       const res = await fetch("/api/posts/save-ai-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -335,13 +357,13 @@ export default function EditorPage() {
           topic,
           platforms: [post.platform],
           categoryId: post.categoryId,
-          media_urls: isCarouselMode ? manualMediaUrls : [post.selectedMediaUrl],
+          media_urls: finalMediaUrls,
           campaign_id: selectedCampId || null,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al guardar");
-      toast.success(`Post guardado ✓`);
+      toast.success(`Post guardado en Borradores (Base de Datos) ✓`, { duration: 4000 });
       setGeneratedPosts(prev => prev.map((p, i) => i === idx ? { ...p, saved: true } : p));
     } catch {
       toast.error("No se pudo guardar el post");
@@ -456,44 +478,65 @@ export default function EditorPage() {
                 </select>
               </div>
             </div>
-            <div className="flex items-center justify-between pt-4 border-t border-neutral-800/50">
-               <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${isCarouselMode ? 'bg-amber-500/10 text-amber-500' : 'bg-neutral-800 text-neutral-500'}`}>
-                    <RotateCcw className={`w-5 h-5 ${isCarouselMode ? 'animate-spin-slow' : ''}`} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-tight">Modo Carrusel (Manual)</h3>
-                    <p className="text-[10px] text-neutral-500 font-medium">Sube tus propias láminas (máx. 8)</p>
-                  </div>
-               </div>
-               <button
-                  onClick={() => setIsCarouselMode(!isCarouselMode)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                    isCarouselMode ? "bg-amber-600" : "bg-neutral-800"
+            {/* --- SELECCIÓN DE FORMATO (NUEVO) --- */}
+            <div className="pt-4 border-t border-neutral-800/50 space-y-4">
+              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">¿Qué vamos a generar hoy?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setIsCarouselMode(false)}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                    !isCarouselMode 
+                      ? "bg-purple-600/10 border-purple-500 text-purple-400 shadow-lg shadow-purple-900/20" 
+                      : "bg-neutral-900/50 border-neutral-800 text-neutral-600 hover:border-neutral-700"
                   }`}
-               >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isCarouselMode ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-               </button>
+                >
+                  <ImageIcon className="w-6 h-6 mb-2" />
+                  <span className="text-sm font-bold uppercase tracking-tight">Post Estándar</span>
+                  <span className="text-[10px] opacity-60 font-medium">Foto, Video o Texto</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCarouselMode(true);
+                    setActiveCategory('carrusel');
+                    if (!['instagram', 'facebook'].includes(activePlatform)) {
+                      setActivePlatform('instagram');
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                    isCarouselMode 
+                      ? "bg-amber-600/10 border-amber-500 text-amber-500 shadow-lg shadow-amber-900/20" 
+                      : "bg-neutral-900/50 border-neutral-800 text-neutral-600 hover:border-neutral-700"
+                  }`}
+                >
+                  <RotateCcw className={`w-6 h-6 mb-2 ${isCarouselMode ? 'animate-spin-slow' : ''}`} />
+                  <span className="text-sm font-bold uppercase tracking-tight">Carrusel Estratégico</span>
+                  <span className="text-[10px] opacity-60 font-medium">Secuencia de Láminas</span>
+                </button>
+              </div>
             </div>
 
+            {/* --- CONFIGURACIÓN DINÁMICA DE CARRUSEL --- */}
             {isCarouselMode && (
-              <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Cargar Láminas del Carrusel</label>
-                <div className="bg-neutral-950/50 border border-neutral-800 rounded-3xl p-4">
-                  <MediaUploader 
-                    multiple={true} 
-                    onUploadComplete={(urls) => setManualMediaUrls(urls)} 
-                  />
-                  {manualMediaUrls.length > 0 && (
-                    <p className="text-[10px] text-amber-500 font-bold mt-2 text-center uppercase tracking-widest">
-                      {manualMediaUrls.length} láminas listas para el carrusel
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-400">
+                {/* Selector de Láminas (Movido a Step 1) */}
+                <div className="flex items-center gap-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl shadow-inner">
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-0.5 flex items-center gap-2">
+                       <Sparkles className="w-3.5 h-3.5" /> Cantidad de Láminas IA
                     </p>
-                  )}
+                    <p className="text-[10px] text-neutral-500 font-medium">Define cuántas slides generará la IA automáticamente</p>
+                  </div>
+                  <select
+                    value={carouselSlides}
+                    onChange={e => setCarouselSlides(Number(e.target.value))}
+                    className="bg-neutral-900 border border-amber-500/40 rounded-xl px-4 py-2 text-sm font-black text-amber-400 focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
+                  >
+                    {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      <option key={n} value={n}>{n} Láminas</option>
+                    ))}
+                  </select>
                 </div>
+
               </div>
             )}
 
@@ -604,35 +647,79 @@ export default function EditorPage() {
               {/* Platform Selector */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">1. Elige la Plataforma</label>
+                {activeCategory === 'carrusel' && (
+                  <p className="text-[10px] text-amber-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                    ⚠️ Carrusel disponible solo en Instagram y Facebook
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
-                  {PLATFORMS.map(p => (
-                    <button key={p.id} onClick={() => setActivePlatform(p.id)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${
-                        activePlatform === p.id
-                          ? `${p.colorBg} ${p.colorBorder} ${p.colorText} shadow-sm`
-                          : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:border-neutral-600"
-                      }`}>
-                      {p.emoji} {p.name}
-                    </button>
-                  ))}
+                  {PLATFORMS.map(p => {
+                    const isDisabledForCarousel = activeCategory === 'carrusel' && !['instagram', 'facebook'].includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => !isDisabledForCarousel && setActivePlatform(p.id)}
+                        disabled={isDisabledForCarousel}
+                        title={isDisabledForCarousel ? 'No disponible para Carrusel' : ''}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${
+                          isDisabledForCarousel
+                            ? 'bg-neutral-900 border-neutral-800 text-neutral-700 opacity-40 cursor-not-allowed'
+                            : activePlatform === p.id
+                              ? `${p.colorBg} ${p.colorBorder} ${p.colorText} shadow-sm ring-2 ring-offset-1 ring-offset-neutral-900 ring-current`
+                              : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:border-neutral-600'
+                        }`}
+                      >
+                        {p.emoji} {p.name}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Category Selector */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">2. Tipo de Contenido</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">2. Tipo de Contenido</label>
+                  {isCarouselMode && (
+                    <span className="text-[10px] bg-amber-500/20 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/30 font-black uppercase tracking-widest">
+                      Modo Carrusel Activo
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {POST_TYPES.map(type => (
-                    <button key={type.id} onClick={() => setActiveCategory(type.id)}
-                      className={`text-left p-3 rounded-xl border transition-all ${
-                        activeCategory === type.id
-                          ? "bg-purple-600/10 border-purple-500/50 text-white"
-                          : "bg-neutral-800/50 border-neutral-800 text-neutral-400 hover:border-neutral-700"
-                      }`}>
-                      <p className="font-bold text-sm">{type.name}</p>
-                      <p className="text-xs mt-0.5 opacity-70">{type.description}</p>
-                    </button>
-                  ))}
+                  {POST_TYPES.map(type => {
+                    // Si estamos en modo carrusel, desactivamos los que no son carrusel para evitar confusión
+                    const isDisabled = isCarouselMode && type.id !== 'carrusel';
+                    
+                    return (
+                      <button 
+                        key={type.id} 
+                        onClick={() => {
+                          if (isDisabled) {
+                             toast.error("Formatos mezclados no permitidos en Modo Carrusel");
+                             return;
+                          }
+                          setActiveCategory(type.id);
+                          // Deseleccionar plataformas no soportadas si se elige carrusel
+                          if (type.id === 'carrusel' && !['instagram', 'facebook'].includes(activePlatform)) {
+                            setActivePlatform('instagram');
+                          }
+                        }}
+                        className={`text-left p-3 rounded-xl border transition-all ${
+                          isDisabled 
+                            ? "opacity-30 grayscale cursor-not-allowed bg-neutral-900 border-neutral-800"
+                            : activeCategory === type.id
+                              ? "bg-purple-700 border-purple-500 text-white shadow-lg shadow-purple-900/50 scale-[1.02]"
+                              : "bg-neutral-800/50 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-300"
+                        }`}
+                      >
+                        <p className={`font-bold ${type.id === 'carrusel' ? 'text-base' : 'text-sm'}`}>
+                          {type.id === 'carrusel' ? '🚀 ' : ''}{type.name}
+                        </p>
+                        <p className={`text-xs mt-0.5 ${activeCategory === type.id ? 'text-purple-200/80' : 'opacity-70'}`}>{type.description}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -744,7 +831,7 @@ export default function EditorPage() {
                   }`}>
                   {/* Post header */}
                   <div className="flex items-center justify-between pb-3 border-b border-neutral-800/60">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] uppercase font-black tracking-widest text-neutral-600">#{idx + 1}</span>
                       <PlatformBadge platformId={post.platform} />
                       <span className="text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-black uppercase tracking-widest">
@@ -761,6 +848,18 @@ export default function EditorPage() {
                            <Sparkles className="w-3 h-3" /> Generar con IA ✨
                         </button>
                       )}
+                      {post.imagePrompt && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(post.imagePrompt);
+                            toast.success('Prompt copiado 📋', { duration: 2000 });
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] font-bold rounded-lg transition-all border border-neutral-700 hover:border-neutral-500"
+                          title="Copiar prompt para Midjourney / Flux"
+                        >
+                          <Copy className="w-3 h-3" /> Copiar Prompt
+                        </button>
+                      )}
                     </div>
                     {post.saved ? (
                       <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 rounded-xl">
@@ -775,33 +874,74 @@ export default function EditorPage() {
                   </div>
 
                   {/* Content + Image */}
-                  <div className={`grid grid-cols-1 ${post.selectedMediaUrl ? 'md:grid-cols-2' : ''} gap-4`}>
+                  <div className={`grid grid-cols-1 ${post.selectedMediaUrl || (post.carouselSlides && post.carouselSlides.length > 0) ? 'md:grid-cols-2' : ''} gap-4`}>
                     {/* Copy */}
-                    <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 overflow-y-auto max-h-[400px]">
-                      {post.content.toLowerCase().includes("lámina") ? (
+                    <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 overflow-y-auto max-h-[800px] scrollbar-thin scrollbar-thumb-neutral-800">
+                      <p className={`${(!post.selectedMediaUrl && !post.carouselSlides?.length) ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed whitespace-pre-wrap ${post.carouselSlides && post.carouselSlides.length > 0 ? "mb-6" : ""}`}>
+                        {post.content}
+                      </p>
+
+                      {/* Carousel Slides Rendering */}
+                      {post.carouselSlides && post.carouselSlides.length > 0 && (
                         <div className="space-y-4">
-                          {post.content.split(/(?=[Ll][ÁáAa]mina \d+:)/i).map((slide, sIdx) => {
-                            const [title, ...bodyParts] = slide.split(":");
-                            const body = bodyParts.join(":").trim();
-                            if (!body) return <p key={sIdx} className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{slide}</p>;
-                            return (
-                              <div key={sIdx} className="bg-neutral-900/50 border border-neutral-800/50 rounded-xl p-3 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${sIdx * 100}ms` }}>
-                                <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-black uppercase tracking-widest mb-2 inline-block">
-                                  {title.trim()}
-                                </span>
-                                <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{body}</p>
-                              </div>
-                            );
-                          })}
+                          <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-widest border-b border-neutral-800 pb-2">Láminas Visuales</h4>
+                          {post.carouselSlides.map((slide, sIdx) => (
+                             <div key={sIdx} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 space-y-3 shadow-inner">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">
+                                    Lámina {slide.slideNumber}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-neutral-300 leading-relaxed">{slide.copy}</p>
+                                <div className="bg-black/50 border border-neutral-800 rounded-lg p-3 group/prompt">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[10px] text-neutral-500 font-bold uppercase">Super Prompt (Pipeline Manus)</span>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(slide.imagePrompt);
+                                        toast.success(`Prompt Lámina ${slide.slideNumber} Copiado`);
+                                      }}
+                                      className="text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/10 px-2 py-1 rounded-md flex items-center gap-1 opacity-0 group-hover/prompt:opacity-100"
+                                    >
+                                      <Copy className="w-3 h-3" /> <span className="text-[10px] font-bold">Copiar</span>
+                                    </button>
+                                  </div>
+                                  <p className="text-[10px] text-neutral-400 font-mono line-clamp-3 hover:line-clamp-none transition-all cursor-text select-all">{slide.imagePrompt}</p>
+                                </div>
+                                <div className="pt-2 border-t border-neutral-800">
+                                  {slide.mediaUrl ? (
+                                    <div className="relative group/slide overflow-hidden rounded-lg border border-neutral-800">
+                                      <img src={slide.mediaUrl} alt={`Slide ${slide.slideNumber}`} className="w-full h-auto object-cover" />
+                                      <button 
+                                        onClick={() => {
+                                          const updated = [...generatedPosts];
+                                          updated[idx].carouselSlides![sIdx].mediaUrl = undefined;
+                                          setGeneratedPosts(updated);
+                                        }}
+                                        className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-md text-white opacity-0 group-hover/slide:opacity-100 transition-opacity hover:bg-red-500"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <MediaUploader 
+                                      multiple={false}
+                                      onUploadComplete={(urls) => {
+                                         const updated = [...generatedPosts];
+                                         updated[idx].carouselSlides![sIdx].mediaUrl = urls[0];
+                                         setGeneratedPosts(updated);
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                             </div>
+                          ))}
                         </div>
-                      ) : (
-                        <p className={`${!post.selectedMediaUrl ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed whitespace-pre-wrap`}>
-                          {post.content}
-                        </p>
                       )}
                     </div>
-                    {/* Image / Link Preview */}
-                    {post.selectedMediaUrl && (
+
+                    {/* Image / Link Preview (Fallback for Non-Carousels) */}
+                    {!post.carouselSlides?.length && post.selectedMediaUrl && (
                       <div className="bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden min-h-[300px] relative group flex flex-col">
                         <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
                           {(post.selectedMediaUrl.includes('http') && !post.selectedMediaUrl.includes('/api/ai/image-proxy') && !post.selectedMediaUrl.includes('supabase')) ? (

@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poiret_One, Montserrat } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poiretOne = Poiret_One({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-poiret",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const montserrat = Montserrat({
   subsets: ["latin"],
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors duration-300`}>
+      <body className={`${poiretOne.variable} ${montserrat.variable} antialiased bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors duration-300 font-montserrat`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

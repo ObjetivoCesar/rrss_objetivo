@@ -1,4 +1,5 @@
 // ADN de Marca y Reglas de Negocio para Donna (AI Social Media Manager)
+import { buildCarouselNarrative } from "./carousel-protocol";
 
 export const BRAND_DNA = `
 IDENTIDAD:
@@ -242,16 +243,7 @@ export const POST_TYPES = [
     id: "carrusel", 
     name: "Carrusel Estratégico", 
     description: "Secuencia de 6-8 láminas de alto impacto.", 
-    prompt: `PROTOCOLO DE CARRUSEL (6-8 Láminas):
-      Lámina 1: HOOK DISRUPTIVO (Máx 7 palabras).
-      Lámina 2: EL PROBLEMA (El dolor que vive el cliente hoy).
-      Lámina 3: AGITACIÓN (Lo que pierde por no resolverlo).
-      Lámina 4: LA SOLUCIÓN (Introduce ActivaQR como el héroe).
-      Láminas 5-6: BENEFICIOS CLAVE (Lista de 3 puntos rápidos).
-      Lámina 7: PRUEBA/TRANSFORMACIÓN (Cómo cambia su vida/negocio).
-      Lámina 8: CTA CLARO (Instrucción de respuesta directa).
-      
-      IMPORTANTE: Devuelve el texto numerado por láminas.` 
+    prompt: buildCarouselNarrative(8)
   },
   { 
     id: "guion-pitch-4", 

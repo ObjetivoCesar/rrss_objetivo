@@ -21,7 +21,8 @@ import {
   FileText, // New icon for Blog
   Network, // New icon for Estrategia
   Map, // New icon for Map
-  PenTool // New icon for Strategy Planner
+  PenTool, // New icon for Strategy Planner
+  Briefcase // New icon for Cotizaciones
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { href: "/donna",     label: "Donna AI",      icon: Sparkles },
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
   { href: "/strategy-planner", label: "Estrategia",       icon: PenTool },
+  { href: "/quotes",    label: "Cotizaciones",  icon: Briefcase },
   { href: "/settings",  label: "Configuración", icon: Settings },
 ];
 

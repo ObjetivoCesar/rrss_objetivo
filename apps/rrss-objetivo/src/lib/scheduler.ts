@@ -59,11 +59,17 @@ async function sendToMakeWithRetry(payload: any, postId: string): Promise<boolea
     try {
       await logDebug(`📤 [Scheduler] Intento ${attempt}/${MAX_RETRIES} — Post ${postId}`);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
       const response = await fetch(MAKE_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         return true;
@@ -145,7 +151,10 @@ export async function processScheduledPosts() {
   }
 
   if (!pendingPosts || pendingPosts.length === 0) {
-    await logDebug('😴 [Scheduler] No hay posts para publicar en este momento.', 'INFO');
+    // Solo loggear si realmente estamos en modo debug o producción
+    if (process.env.NODE_ENV === 'production' || process.env.DEBUG_SCHEDULER) {
+      await logDebug('😴 [Scheduler] No hay posts para publicar en este momento.', 'INFO');
+    }
     return;
   }
 
@@ -297,7 +306,7 @@ export async function processScheduledPosts() {
  * En pruebas (actual): Limpia tras 2 minutos de la publicación.
  */
 async function cleanupPublishedMedia() {
-  const isPruebas = true; // Cambiar a false para producción (limpieza 00:00)
+  const isPruebas = process.env.NODE_ENV === 'development'; // Solo en dev limpiamos agresivamente
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
