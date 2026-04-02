@@ -668,20 +668,17 @@ export async function POST(req: Request) {
 
     // ── Detección de intención: el usuario quiere GENERAR el mapa visual
     // IMPORTANTE: excluir URLs y mensajes donde 'strategy-planner' aparece como link, no como intención
-    const lastUserMessage = [...normalizedMessages].reverse().find(m => m.role === 'user');
-    const lastText = (lastUserMessage?.content || '').toLowerCase();
-    // Remover URLs para evitar falsos positivos (ej: "ver en /strategy-planner" ≠ "generar el mapa")
-    const lastTextNoUrls = lastText.replace(/https?:\/\/\S+|(\/strategy-[a-z-]+)/g, '');
     const wantsStrategyMap = [
       'genera el mapa', 'créa el mapa', 'crea el mapa', 'crea el flujo',
       'generar el flujo', 'genera el flujo', 'genera el mapa estratégico', 'crea el mapa estratégico',
+      '/crear', '/generar', 'crear mapa', 'generar mapa',
       'flujo visual', 'hazlo visual', 'plasmar', 'plasmarlo',
       'flujo de trabajo visual', 'cargar al canvas', 'cargar en el canvas',
       'cargar al planner', 'cargar en el planner',
       'mapa de esto', 'flujo de esto', 'convierte en flujo',
-    ].some(kw => lastTextNoUrls.includes(kw));
+    ].some(kw => lastText.includes(kw));
 
-    console.log(`[Donna Intent] wantsStrategyMap=${wantsStrategyMap} | text="${lastTextNoUrls.substring(0, 100)}"`);
+    console.log(`[Donna Intent] wantsStrategyMap=${wantsStrategyMap} | text="${lastText.substring(0, 100)}"`);
 
     // ── FAST PATH: si el usuario quiere el mapa, generamos el JSON directamente sin pasar
     // por herramientas (el enfoque toolChoice genera args vacíos en Gemini).

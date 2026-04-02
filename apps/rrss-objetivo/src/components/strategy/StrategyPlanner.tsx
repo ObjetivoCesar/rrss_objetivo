@@ -367,7 +367,7 @@ function StrategyPlannerInner() {
       name: sessionName.trim() || 'Nueva Planificación', 
       nodes: getNodes(), 
       edges: getEdges(),
-      objective_id: selectedObjectiveId === 'new' ? undefined : selectedObjectiveId,
+      objective_id: selectedObjectiveId === 'new' ? null : selectedObjectiveId,
       new_objective_name: selectedObjectiveId === 'new' ? newObjectiveName.trim() : undefined
     };
     const res = await fetch('/api/strategy-sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
