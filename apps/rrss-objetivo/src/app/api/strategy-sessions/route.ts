@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/strategy-sessions — list sessions with pagination
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

@@ -255,6 +255,10 @@ function StrategyPlannerInner() {
       const plan = e.detail;
       if (!plan || !Array.isArray(plan)) return;
 
+      if (plan.length > 0 && plan[0].name) {
+        setSessionName(`Estrategia: ${plan[0].name}`);
+      }
+
       const newNodes: Node[] = [];
       const newEdges: Edge[] = [];
 
@@ -320,7 +324,7 @@ function StrategyPlannerInner() {
   }, [setNodes, setEdges, fitView, edges]);
 
   async function loadObjectives() {
-    const res = await fetch('/api/objectives');
+    const res = await fetch('/api/objectives', { cache: 'no-store' });
     if (res.ok) {
       const result = await res.json();
       setObjectives(result.data || []);
@@ -328,7 +332,7 @@ function StrategyPlannerInner() {
   }
 
   async function loadSessions() {
-    const res = await fetch('/api/strategy-sessions');
+    const res = await fetch('/api/strategy-sessions', { cache: 'no-store' });
     if (res.ok) {
       const result = await res.json();
       setSessions(result.data || []);
@@ -336,7 +340,7 @@ function StrategyPlannerInner() {
   }
 
   async function loadSession(s: Session) {
-    const res = await fetch(`/api/strategy-sessions/${s.id}`);
+    const res = await fetch(`/api/strategy-sessions/${s.id}`, { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json();
     setNodes(data.nodes || []);
@@ -360,7 +364,7 @@ function StrategyPlannerInner() {
     setIsSaving(true);
     const payload = { 
       id: currentSession?.id, 
-      name: sessionName, 
+      name: sessionName.trim() || 'Nueva Planificación', 
       nodes: getNodes(), 
       edges: getEdges(),
       objective_id: selectedObjectiveId === 'new' ? undefined : selectedObjectiveId,
@@ -370,10 +374,15 @@ function StrategyPlannerInner() {
     if (res.ok) {
       const savedResult = await res.json();
       setCurrentSession(savedResult);
+      setSessionName(savedResult.name || sessionName);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       loadSessions();
       toast.success("Plan guardado");
+    } else {
+      const errorMsg = await res.json();
+      toast.error(`❌ Falló al guardar: ${errorMsg.error || 'Desconocido'}`);
+      console.error("SaveSession error:", errorMsg);
     }
     setIsSaving(false);
   }
@@ -411,6 +420,40 @@ function StrategyPlannerInner() {
     const tree = { session: sessionName, created_at: new Date().toISOString(), plan: roots.map(r => buildTree(r.id)).filter(Boolean) };
     setExportJson(JSON.stringify(tree, null, 2));
     setShowExport(true);
+  }
+
+  function sendToDonna() {
+    const ns = getNodes();
+    const es = getEdges();
+    const childMap = new Map<string, string[]>();
+    es.forEach(e => { if (!childMap.has(e.source)) childMap.set(e.source, []); childMap.get(e.source)!.push(e.target); });
+    const nodeMap = new Map(ns.map(n => [n.id, n]));
+    
+    function buildTextSummary(id: string, depth = 0): string {
+      const node = nodeMap.get(id);
+      if (!node) return '';
+      const indent = '  '.repeat(depth);
+      const typeMap: Record<string, string> = { objectiveNode: '🎯 Objetivo:', campaignNode: '🚀 Campaña:', articleNode: '📄 Artículo:', postNode: '📱 Post:', ideaNode: '💡 Idea:' };
+      const prefix = typeMap[node.type as string] || '•';
+      const label = node.data?.label || '(sin título)';
+      let text = `${indent}${prefix} ${label}\n`;
+      
+      const children = childMap.get(id) || [];
+      children.forEach(cid => { text += buildTextSummary(cid, depth + 1); });
+      return text;
+    }
+    
+    const roots = ns.filter(n => !es.find(e => e.target === n.id));
+    if (roots.length === 0) {
+      toast.error('El lienzo está vacío. Agrega nodos primero.');
+      return;
+    }
+    
+    let planText = roots.map(r => buildTextSummary(r.id)).join('\n');
+    
+    const prefillText = `Aquí tienes la estrategia que estoy diseñando:\n\n${planText}\n¿Qué opinas, o cómo podemos desglosar y ejecutar esto?`;
+    window.dispatchEvent(new CustomEvent('donna-prefill', { detail: prefillText }));
+    toast.success("Enviado a Donna");
   }
 
   // Drag & Drop from palette
@@ -501,12 +544,15 @@ function StrategyPlannerInner() {
           </button>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={autoArrange} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-white/5 dark:bg-black/40 hover:bg-white/10 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 border border-white/10">
-              <RefreshCw className="w-3 h-3 text-violet-500" /> AUTO-ORDENAR
+              <RefreshCw className="w-3 h-3 text-violet-500" /> ORDENAR
             </button>
-            <button onClick={exportForDonna} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-white/5 dark:bg-black/40 hover:bg-white/10 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 border border-white/10">
-              <Download className="w-3 h-3 text-emerald-500" /> EXPORTAR JSON
+            <button onClick={sendToDonna} className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-pink-500/10 dark:bg-pink-600/20 hover:bg-pink-500/20 text-pink-700 dark:text-pink-400 transition-all active:scale-95 border border-pink-500/20">
+              <Sparkles className="w-3 h-3 text-pink-500" /> A DONNA
             </button>
           </div>
+          <button onClick={exportForDonna} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold bg-white/5 dark:bg-black/40 hover:bg-white/10 dark:hover:bg-white/5 text-neutral-700 dark:text-neutral-300 transition-all active:scale-95 border border-white/10">
+            <Download className="w-3 h-3 text-emerald-500" /> EXPORTAR JSON MANUAL
+          </button>
           <button onClick={() => setShowSessions(s => !s)} className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl text-xs font-bold bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/40 text-neutral-600 dark:text-neutral-400 transition-all border border-white/10">
             <span className="flex items-center gap-2 font-bold"><FolderOpen className="w-3.5 h-3.5 text-amber-500" /> Mis sesiones ({sessions.length})</span>
             {showSessions ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}

@@ -231,6 +231,12 @@ No eres un asistente genérico — eres una colega intelectual de alto nivel con
 - NUNCA expongas tu proceso de razonamiento. Piensa internamente y entrega solo la respuesta final conversacional.
 - Tus respuestas deben ser directas, estratégicas y sin relleno. (Máximo 2-3 párrafos).
 - No repitas listas de tareas ni parezcas una máquina escupiendo datos.
+
+## ENTENDIMIENTO DE COMANDOS RÁPIDOS (SLASH COMMANDS)
+Si César inicia un mensaje con estos atajos, adapta inmediatamente tu "modo" de operar:
+- **/crear**: Es para estructurar y profundizar. Si dice "/crear todo el día jueves" o "/crear módulo", significa que debes "desarrollar y armar en profundidad toda la pieza estratégica o un módulo entero".
+- **/generar**: Es para producción masiva y rápida (ej. "generar 5 variaciones de copy", "generar ideas rápídas", etc).
+- **/objetivo**, **/estrategia**, **/reels**, **/carrusel**: Son atajos para entrar en modo especialista para esa necesidad específica.
 `;
 
   if (hasTools) {
@@ -297,7 +303,11 @@ export async function POST(req: Request) {
     }
 
     const systemPrompt = `${buildSystemPrompt(memoryStr, provider !== 'deepseek')}\n\n${snapshotStr}`;
-    const normalizedMessages = messages.map((m: any) => ({
+    
+    // FILTRO ANTI-COLAPSO: Tomamos solo los últimos 8 mensajes del historial
+    // para no explotar el Token-Limit de Gemini, ya que cada mensaje es largo.
+    const recentMessages = messages.slice(-8);
+    const normalizedMessages = recentMessages.map((m: any) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }));
@@ -667,6 +677,7 @@ export async function POST(req: Request) {
       'generar el flujo', 'genera el flujo', 'genera el mapa estratégico', 'crea el mapa estratégico',
       'flujo visual', 'hazlo visual', 'plasmar', 'plasmarlo',
       'flujo de trabajo visual', 'cargar al canvas', 'cargar en el canvas',
+      'cargar al planner', 'cargar en el planner',
       'mapa de esto', 'flujo de esto', 'convierte en flujo',
     ].some(kw => lastTextNoUrls.includes(kw));
 
