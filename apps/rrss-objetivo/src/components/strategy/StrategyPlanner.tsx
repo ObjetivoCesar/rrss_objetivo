@@ -66,7 +66,7 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
   };
 
   return (
-    <div className={`relative group min-w-[220px] max-w-[320px] rounded-2xl border bg-gradient-to-br ${cfg.bg} ${cfg.border} shadow-2xl transition-all backdrop-blur-md ${selected ? `ring-2 ${cfg.ring} shadow-lg` : ''}`}>
+    <div className={`relative group w-full h-full rounded-2xl border bg-gradient-to-br ${cfg.bg} ${cfg.border} shadow-2xl transition-all backdrop-blur-md ${selected ? `ring-2 ${cfg.ring} shadow-lg` : ''}`}>
       <NodeResizer minWidth={200} minHeight={80} isVisible={selected} color="#64748b" handleStyle={{ borderRadius: 4, background: '#64748b', border: '1px solid #94a3b8' }} />
       <NodeToolbar isVisible={selected} position={Position.Top} className="flex gap-1.5 bg-white/10 dark:bg-black/80 border border-white/10 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl">
         <button onClick={() => deleteElements({ nodes: [{ id }] })} className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-neutral-500 dark:text-neutral-400 transition-all" title="Eliminar nodo"><Trash2 className="w-3.5 h-3.5" /></button>
