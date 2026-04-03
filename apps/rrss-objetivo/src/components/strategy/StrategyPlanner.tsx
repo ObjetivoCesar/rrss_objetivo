@@ -33,14 +33,14 @@ import {
   Target, Rocket, FileText, Lightbulb, Smartphone,
   Plus, Save, Download, FolderOpen, Trash2, RefreshCw,
   X, ChevronRight, ChevronDown, Loader2, Check, Copy,
-  LayoutDashboard, Sparkles, Link2, Unlink,
+  LayoutDashboard, Sparkles, Link2, Unlink, Zap,
   BookOpen, Pen, Video, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Session { id: string; name: string; description?: string; created_at: string; updated_at: string; }
-type NodeKind = 'objectiveNode' | 'campaignNode' | 'articleNode' | 'postNode' | 'ideaNode';
+type NodeKind = 'objectiveNode' | 'campaignNode' | 'articleNode' | 'postNode' | 'ideaNode' | 'strategicPostNode';
 
 // ─── Node Color config ───────────────────────────────────────────────────────
 const NODE_CONFIG: Record<NodeKind, { color: string; bg: string; border: string; ring: string; label: string; icon: React.FC<any> }> = {
@@ -49,11 +49,12 @@ const NODE_CONFIG: Record<NodeKind, { color: string; bg: string; border: string;
   articleNode:   { color: 'text-emerald-300',bg: 'from-emerald-900 to-emerald-950',border: 'border-emerald-500/60',ring: 'ring-emerald-400/50',label: 'ARTÍCULO', icon: FileText },
   postNode:      { color: 'text-sky-300',    bg: 'from-sky-900 to-sky-950',        border: 'border-sky-500/60',    ring: 'ring-sky-400/50',    label: 'POST',     icon: Smartphone },
   ideaNode:      { color: 'text-yellow-300', bg: 'from-yellow-900 to-yellow-950',  border: 'border-yellow-500/60', ring: 'ring-yellow-400/50', label: 'IDEA',     icon: Lightbulb },
+  strategicPostNode: { color: 'text-orange-300', bg: 'from-neutral-900 to-neutral-950', border: 'border-orange-500/60', ring: 'ring-orange-400/50', label: 'POST ESTRATÉGICO', icon: Sparkles },
 };
 
 // ─── Generic Plan Node ──────────────────────────────────────────────────────
 function PlanNode({ id, data, selected, type }: { id: string; data: any; selected: boolean; type: NodeKind }) {
-  const { setNodes, deleteElements } = useReactFlow();
+  const { setNodes, deleteElements, getNodes, getEdges } = useReactFlow();
   const router = useRouter();
   const cfg = NODE_CONFIG[type] || NODE_CONFIG.ideaNode;
   const Icon = cfg.icon;
@@ -72,6 +73,61 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
         <button onClick={() => deleteElements({ nodes: [{ id }] })} className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-neutral-500 dark:text-neutral-400 transition-all" title="Eliminar nodo"><Trash2 className="w-3.5 h-3.5" /></button>
         <button onClick={() => { navigator.clipboard.writeText(data.label || ''); toast.success("Texto copiado"); }} className="p-1.5 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 text-neutral-500 dark:text-neutral-400 transition-all" title="Copiar texto"><Copy className="w-3.5 h-3.5" /></button>
         
+        {(type === 'postNode' || type === 'strategicPostNode') && (
+          <button 
+            onClick={() => {
+              // 🌉 CONTENT BRIDGE LOGIC
+              const nodes = getNodes();
+              const edges = getEdges();
+              
+              // 1. Encontrar ancestros (Campaña/Objetivo)
+              const findParent = (nodeId: string): Node | null => {
+                const edge = edges.find((e: any) => e.target === nodeId);
+                if (!edge) return null;
+                return nodes.find((n: any) => n.id === edge.source) || null;
+              };
+
+              let campaignNode = null;
+              let objectiveNode = null;
+              let current: Node | null = nodes.find(n => n.id === id) || null;
+              
+              // Subir por el árbol hasta encontrar Campaña u Objetivo
+              let safety = 0;
+              while (current && safety < 10) {
+                const parent = findParent(current.id);
+                if (!parent) break;
+                if (parent.type === 'campaignNode' && !campaignNode) campaignNode = parent;
+                if (parent.type === 'objectiveNode' && !objectiveNode) objectiveNode = parent;
+                current = parent;
+                safety++;
+              }
+
+              // 2. Preparar el payload
+              const bridgeData = {
+                content: type === 'strategicPostNode' 
+                  ? `${data.header || ''}\n\n${data.tag || ''}\n${data.line1 || ''}\n${data.line2 || ''}\n\n${data.body_text || ''}\n\n${data.cta || ''}`
+                  : (data.notes || data.label || ""),
+                node_id: id,
+                objective_id: objectiveNode?.data?.objective_id || null, // Si tiene link directo a DB
+                objective_name: objectiveNode?.data?.label || null,
+                campaign_name: campaignNode?.data?.label || null,
+                target_month: new Date().toLocaleString('es-ES', { month: 'long' }),
+                suggested_platforms: ['instagram'] // Fallback
+              };
+
+              // 3. Persistir y Redirigir
+              localStorage.setItem('rrss_content_bridge', JSON.stringify(bridgeData));
+              router.push('/editor?source=planner');
+              toast.success("Enviado al Editor de Contenidos 🚀");
+            }} 
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/20 text-orange-600 dark:text-orange-400 hover:bg-orange-500/30 transition-all border border-orange-500/30" 
+            title="Enviar a Editor de Contenidos"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold">ENVIAR A EDITOR</span>
+          </button>
+        )}
+
         {type === 'articleNode' && (
           <button 
             onClick={() => {
@@ -97,14 +153,14 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
         className="!w-3 !h-3 !rounded-full !bg-neutral-600 !border-2 !border-neutral-400 !cursor-crosshair hover:!bg-violet-400 !transition-colors !-top-1.5"
       />
 
-      <div className="px-4 pt-4 pb-3">
-        <div className={`flex items-center gap-2 mb-3`}>
-          <div className={`p-1.5 rounded-lg bg-white/5`}><Icon className={`w-4 h-4 ${cfg.color}`} /></div>
-          <span className={`text-[9px] font-black tracking-[0.2em] uppercase ${cfg.color}`}>{cfg.label}</span>
+      <div className="nodrag px-4 pt-4 pb-6 flex flex-col h-full overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className={`flex items-center gap-2 mb-3 shrink-0`}>
+          <div className={`p-1.5 rounded-lg bg-white/5 shrink-0`}><Icon className={`w-4 h-4 ${cfg.color}`} /></div>
+          <span className={`text-[9px] font-black tracking-[0.2em] uppercase ${cfg.color} truncate`}>{cfg.label}</span>
         </div>
 
         <textarea
-          className="nodrag nopan nowheel w-full bg-transparent text-sm font-bold text-white leading-tight resize-none outline-none overflow-hidden placeholder:text-white/30 rounded-lg p-1 focus:bg-white/5 transition-all shadow-none border-none"
+          className="nodrag nopan nowheel w-full bg-transparent text-sm font-bold text-white leading-tight resize-none outline-none overflow-hidden placeholder:text-white/30 rounded-lg p-1 focus:bg-white/5 transition-all shadow-none border-none shrink-0"
           value={data.label || ''}
           onChange={onLabelChange}
           onPointerDown={e => e.stopPropagation()}
@@ -117,15 +173,80 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
 
         {selected && (
           <textarea
-            className="nodrag nopan nowheel w-full mt-2 bg-black/20 text-xs text-white/70 resize-none outline-none rounded-lg p-2 placeholder:text-white/25 border border-white/10 focus:border-white/30 transition-all shadow-none"
+            className="nodrag nopan nowheel w-full mt-2 bg-black/20 text-xs text-white/70 resize-none outline-none rounded-lg p-2 placeholder:text-white/25 border border-white/10 focus:border-white/30 transition-all shadow-none flex-grow min-h-[60px]"
             value={data.notes || ''}
             onChange={onNotesChange}
             onPointerDown={e => e.stopPropagation()}
             onClick={e => e.stopPropagation()}
             onKeyDown={e => e.stopPropagation()}
             placeholder="Notas / descripción..."
-            rows={3}
+            style={{ height: '100%' }}
           />
+        )}
+
+        {/* ── Visual Replica for Strategic Post ── */}
+        {type === 'strategicPostNode' && (
+          <div className="mt-4 border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col flex-grow min-h-0">
+            {/* Black Header */}
+            <div className="bg-black px-3 py-2 flex items-center gap-2 shrink-0">
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <input 
+                className="bg-transparent border-none outline-none text-[10px] font-black text-white uppercase tracking-tighter w-full"
+                value={data.header || 'PRIMER REPORTE — fenómeno local'}
+                onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, header: e.target.value } } : n))}
+                placeholder="ENCABEZADO..."
+              />
+            </div>
+            
+            {/* Dark Body Section */}
+            <div className="bg-[#1C0A00] p-4 space-y-3 shrink-0">
+              <input 
+                className="bg-transparent border-none outline-none text-[10px] font-bold text-orange-400 uppercase tracking-widest block w-full"
+                value={data.tag || '#NEGOCIOSLOCALES'}
+                onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, tag: e.target.value } } : n))}
+                placeholder="#TAG"
+              />
+              <div className="space-y-1">
+                <textarea 
+                  className="bg-transparent border-none outline-none text-sm font-black text-white uppercase leading-none w-full resize-none overflow-hidden"
+                  value={data.line1 || 'TU CLIENTE TE BUSCA'}
+                  onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, line1: e.target.value } } : n))}
+                  rows={2}
+                  placeholder="LÍNEA 1"
+                />
+                <div className="h-[1px] bg-orange-500/60 w-full" />
+                <textarea 
+                  className="bg-transparent border-none outline-none text-sm font-black text-orange-400 uppercase leading-none w-full resize-none overflow-hidden"
+                  value={data.line2 || 'Y ENCUENTRA A OTRO'}
+                  onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, line2: e.target.value } } : n))}
+                  rows={2}
+                  placeholder="LÍNEA 2"
+                />
+              </div>
+            </div>
+
+            {/* Light Bottom Section */}
+            <div className="bg-[#f0f0f0] p-4 space-y-3 flex-grow flex flex-col min-h-0 overflow-hidden">
+              <textarea 
+                className="bg-transparent border-none outline-none text-[11px] text-neutral-600 font-medium leading-relaxed w-full resize-none flex-grow min-h-[40px] focus:bg-black/5 rounded-md p-1 transition-all"
+                value={data.body_text || ''}
+                onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, body_text: e.target.value } } : n))}
+                placeholder="Tono / Caption principal..."
+                style={{ height: '100%', minHeight: '60px' }}
+              />
+              <div className="flex shrink-0">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-neutral-300 rounded-full shadow-sm">
+                  <span className="text-[9px] font-bold text-neutral-500 dark:text-neutral-500">CTA →</span>
+                  <input 
+                    className="bg-transparent border-none outline-none text-[9px] font-black text-neutral-800 tracking-tight w-24"
+                    value={data.cta || 'Comenta y vota'}
+                    onChange={e => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, cta: e.target.value } } : n))}
+                    placeholder="Acción..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {data.tags?.length > 0 && (
@@ -150,8 +271,9 @@ function PlanNode({ id, data, selected, type }: { id: string; data: any; selecte
 const ObjectiveNodeC = (p: any) => <PlanNode {...p} type="objectiveNode" />;
 const CampaignNodeC  = (p: any) => <PlanNode {...p} type="campaignNode" />;
 const ArticleNodeC   = (p: any) => <PlanNode {...p} type="articleNode" />;
-const PostNodeC      = (p: any) => <PlanNode {...p} type="postNode" />;
-const IdeaNodeC      = (p: any) => <PlanNode {...p} type="ideaNode" />;
+const PostNodeC          = (p: any) => <PlanNode {...p} type="postNode" />;
+const IdeaNodeC          = (p: any) => <PlanNode {...p} type="ideaNode" />;
+const StrategicPostNodeC = (p: any) => <PlanNode {...p} type="strategicPostNode" />;
 
 const nodeTypes = {
   objectiveNode: ObjectiveNodeC,
@@ -159,6 +281,7 @@ const nodeTypes = {
   articleNode:   ArticleNodeC,
   postNode:      PostNodeC,
   ideaNode:      IdeaNodeC,
+  strategicPostNode: StrategicPostNodeC,
 };
 
 // ─── Deletable Edge ─────────────────────────────────────────────────────────
@@ -240,6 +363,7 @@ function StrategyPlannerInner() {
   const [showSessions, setShowSessions] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportJson, setExportJson] = useState('');
+  const [strategyRules, setStrategyRules] = useState('');
   const { screenToFlowPosition, fitView, getNodes, getEdges } = useReactFlow();
 
   // Canvas arranca en blanco — el usuario construye su plan desde cero
@@ -345,6 +469,7 @@ function StrategyPlannerInner() {
     const data = await res.json();
     setNodes(data.nodes || []);
     setEdges(data.edges || []);
+    setStrategyRules(data.description || '');
     setCurrentSession(s);
     setSessionName(s.name);
     setShowSessions(false);
@@ -365,6 +490,7 @@ function StrategyPlannerInner() {
     const payload = { 
       id: currentSession?.id, 
       name: sessionName.trim() || 'Nueva Planificación', 
+      description: strategyRules,
       nodes: getNodes(), 
       edges: getEdges(),
       objective_id: selectedObjectiveId === 'new' ? null : selectedObjectiveId,
@@ -438,6 +564,16 @@ function StrategyPlannerInner() {
       const label = node.data?.label || '(sin título)';
       let text = `${indent}${prefix} ${label}\n`;
       
+      // Detalles extra para Post Estratégico
+      if (node.type === 'strategicPostNode' && node.data) {
+        if (node.data.header) text += `${indent}  [Cabecera]: ${node.data.header}\n`;
+        if (node.data.tag)    text += `${indent}  [Tag]: ${node.data.tag}\n`;
+        if (node.data.line1)  text += `${indent}  [Línea 1]: ${node.data.line1}\n`;
+        if (node.data.line2)  text += `${indent}  [Línea 2]: ${node.data.line2}\n`;
+        if (node.data.body_text) text += `${indent}  [Tono/Body]: ${node.data.body_text}\n`;
+        if (node.data.cta)    text += `${indent}  [CTA]: ${node.data.cta}\n`;
+      }
+
       const children = childMap.get(id) || [];
       children.forEach(cid => { text += buildTextSummary(cid, depth + 1); });
       return text;
@@ -450,6 +586,11 @@ function StrategyPlannerInner() {
     }
     
     let planText = roots.map(r => buildTextSummary(r.id)).join('\n');
+    
+    // Inyectar reglas globales si existen
+    if (strategyRules.trim()) {
+      planText = `REGLAS DE ESTRATEGIA PARA ESTA SESIÓN:\n${strategyRules}\n\nESTRUCTURA DEL MAPA:\n${planText}`;
+    }
     
     const prefillText = `Aquí tienes la estrategia que estoy diseñando:\n\n${planText}\n¿Qué opinas, o cómo podemos desglosar y ejecutar esto?`;
     window.dispatchEvent(new CustomEvent('donna-prefill', { detail: prefillText }));
@@ -467,7 +608,17 @@ function StrategyPlannerInner() {
       id: `${type}-${Date.now()}`,
       type,
       position,
-      data: { label: `Nuevo ${cfg.label.toLowerCase()}`, notes: '', tags: [] },
+      data: { 
+        label: type === 'strategicPostNode' ? 'Post Estratégico' : `Nuevo ${cfg.label.toLowerCase()}`, 
+        notes: '', 
+        tags: [],
+        header: type === 'strategicPostNode' ? 'PRIMER REPORTE — fenómeno local' : undefined,
+        tag: type === 'strategicPostNode' ? '#NEGOCIOSLOCALES' : undefined,
+        line1: type === 'strategicPostNode' ? 'TU CLIENTE TE BUSCA' : undefined,
+        line2: type === 'strategicPostNode' ? 'Y ENCUENTRA A OTRO' : undefined,
+        body_text: type === 'strategicPostNode' ? 'Algo que nadie dice en voz alta sobre los negocios en Loja...' : undefined,
+        cta: type === 'strategicPostNode' ? 'Comenta y vota' : undefined
+      },
     };
     setNodes(nds => [...nds, newNode]);
   }, [screenToFlowPosition, setNodes]);
@@ -480,6 +631,7 @@ function StrategyPlannerInner() {
     { type: 'campaignNode',  label: 'Campaña / Iniciativa', icon: Rocket,     color: 'text-amber-300',  bg: 'bg-amber-500/5 hover:bg-amber-500/15' },
     { type: 'articleNode',   label: 'Artículo / Anchor',    icon: FileText,   color: 'text-emerald-300',bg: 'bg-emerald-500/5 hover:bg-emerald-500/15' },
     { type: 'postNode',      label: 'Post / Reel / Video',  icon: Smartphone, color: 'text-sky-300',    bg: 'bg-sky-500/5 hover:bg-sky-500/15' },
+    { type: 'strategicPostNode', label: 'Post Estratégico', icon: Sparkles,   color: 'text-orange-300', bg: 'bg-orange-500/5 hover:bg-orange-500/15' },
     { type: 'ideaNode',      label: 'Idea libre',           icon: Lightbulb,  color: 'text-yellow-300', bg: 'bg-yellow-500/5 hover:bg-yellow-500/15' },
   ];
 
@@ -533,6 +685,20 @@ function StrategyPlannerInner() {
               autoFocus
             />
           )}
+        </div>
+
+        {/* Global Strategy Rules */}
+        <div className="px-4 pb-2">
+          <label className="text-[10px] font-bold text-neutral-500 dark:text-neutral-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">
+            <BookOpen className="w-3 h-3 text-amber-500" /> Reglas de Estrategia
+          </label>
+          <textarea
+            value={strategyRules}
+            onChange={e => setStrategyRules(e.target.value)}
+            rows={5}
+            className="w-full bg-white/5 dark:bg-black/40 border border-white/10 text-neutral-900 dark:text-white text-[11px] px-3 py-2.5 rounded-xl outline-none focus:border-amber-500/50 transition-all placeholder:text-neutral-500 resize-none scrollbar-thin scrollbar-thumb-white/10 font-medium leading-relaxed"
+            placeholder="Pega aquí las reglas tácticas, tonos, restricciones y leyes de esta estrategia..."
+          />
         </div>
 
         {/* Action Buttons */}

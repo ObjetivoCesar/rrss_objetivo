@@ -36,6 +36,8 @@ interface GeneratedPost {
   saved: boolean;
   imagePrompt: string;
   carouselSlides?: CarouselSlide[];
+  node_id?: string | null; // Origin node from Planner
+  scheduled_for?: string | null; // Manual override
 }
 
 // ─── Step Labels ──────────────────────────────────────────────────────────────
@@ -174,6 +176,48 @@ export default function EditorPage() {
 
     window.addEventListener('donna-pilot-editor', handleDonnaPilot);
     return () => window.removeEventListener('donna-pilot-editor', handleDonnaPilot);
+  }, []);
+
+  // ── 🌉 THE BRIDGE: Hidratación desde el Planner
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('source') === 'planner') {
+      const bridgeDataRaw = localStorage.getItem('rrss_content_bridge');
+      if (bridgeDataRaw) {
+        try {
+          const bridgeData = JSON.parse(bridgeDataRaw);
+          
+          // Crear un post "v2" basado en los datos del Planner
+          const plannerPost: GeneratedPost = {
+            content: bridgeData.content || "",
+            categoryId: "educativo", // Default
+            platform: bridgeData.suggested_platforms?.[0] || "instagram",
+            style: IMAGE_STYLES[0],
+            mediaUrls: [],
+            selectedMediaUrl: "",
+            saved: false,
+            imagePrompt: "",
+            carouselSlides: [],
+            node_id: bridgeData.node_id || null,
+            scheduled_for: null
+          };
+
+          setGeneratedPosts([plannerPost]);
+          if (bridgeData.objective_id) setSelectedObjId(bridgeData.objective_id);
+          if (bridgeData.target_month) setTargetMonth(bridgeData.target_month);
+          
+          setStep(4);
+          toast.success('🌉 Estrategia importada desde el Planner');
+          
+          // Limpiar para evitar recargas molestas
+          localStorage.removeItem('rrss_content_bridge');
+          // Limpiar URL sin recargar
+          window.history.replaceState({}, '', window.location.pathname);
+        } catch (e) {
+          console.error("Bridge Error:", e);
+        }
+      }
+    }
   }, []);
 
   // Modals for inline creation
@@ -322,6 +366,8 @@ export default function EditorPage() {
           saved: false,
           imagePrompt: safePrompt,
           carouselSlides: p.carouselSlides || [],
+          node_id: p.node_id || null,
+          scheduled_for: null,
         };
       });
 
@@ -359,6 +405,12 @@ export default function EditorPage() {
           categoryId: post.categoryId,
           media_urls: finalMediaUrls,
           campaign_id: selectedCampId || null,
+          objective_id: selectedObjId || null,
+          scheduled_for: post.scheduled_for || null,
+          metadata: {
+            node_id: post.node_id || null,
+            source: post.node_id ? 'planner' : 'editor'
+          }
         }),
       });
       const data = await res.json();
@@ -622,10 +674,31 @@ export default function EditorPage() {
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  const manualPost: GeneratedPost = {
+                    content: "",
+                    categoryId: "educativo",
+                    platform: activePlatform || "instagram",
+                    style: IMAGE_STYLES[0],
+                    mediaUrls: [],
+                    selectedMediaUrl: "",
+                    saved: false,
+                    imagePrompt: "",
+                    carouselSlides: [],
+                    scheduled_for: null
+                  };
+                  setGeneratedPosts([manualPost]);
+                  setStep(4);
+                }}
+                className="flex items-center gap-2 px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-400 text-sm font-bold rounded-xl transition-all border border-neutral-800"
+              >
+                <Plus className="w-4 h-4" /> Crear Manualmente
+              </button>
               <button
                 onClick={() => { if (!centralIdea.trim()) { toast.error("Escribe la idea central"); return; } setStep(2); }}
-                className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-xl transition-all"
+                className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20"
               >
                 Siguiente → Mix de Plataformas
               </button>
@@ -866,10 +939,25 @@ export default function EditorPage() {
                         <Check className="w-4 h-4" /> Guardado
                       </span>
                     ) : (
-                      <button onClick={() => savePost(idx)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all border border-neutral-700 hover:border-emerald-500">
-                        <Save className="w-3.5 h-3.5" /> Guardar
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl px-2 py-1">
+                          <Zap className="w-3 h-3 text-yellow-500" />
+                          <input 
+                            type="datetime-local" 
+                            className="bg-transparent text-[10px] text-neutral-300 focus:outline-none"
+                            value={post.scheduled_for || ''}
+                            onChange={(e) => {
+                              const updated = [...generatedPosts];
+                              updated[idx].scheduled_for = e.target.value;
+                              setGeneratedPosts(updated);
+                            }}
+                          />
+                        </div>
+                        <button onClick={() => savePost(idx)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all border border-neutral-700 hover:border-emerald-500">
+                          <Save className="w-3.5 h-3.5" /> Guardar
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -877,9 +965,16 @@ export default function EditorPage() {
                   <div className={`grid grid-cols-1 ${post.selectedMediaUrl || (post.carouselSlides && post.carouselSlides.length > 0) ? 'md:grid-cols-2' : ''} gap-4`}>
                     {/* Copy */}
                     <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-5 overflow-y-auto max-h-[800px] scrollbar-thin scrollbar-thumb-neutral-800">
-                      <p className={`${(!post.selectedMediaUrl && !post.carouselSlides?.length) ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed whitespace-pre-wrap ${post.carouselSlides && post.carouselSlides.length > 0 ? "mb-6" : ""}`}>
-                        {post.content}
-                      </p>
+                      <textarea 
+                        className={`w-full bg-transparent ${(!post.selectedMediaUrl && !post.carouselSlides?.length) ? 'text-base md:text-lg' : 'text-sm'} text-neutral-300 leading-relaxed resize-none focus:outline-none ${post.carouselSlides && post.carouselSlides.length > 0 ? "mb-6" : ""}`}
+                        rows={8}
+                        value={post.content}
+                        onChange={(e) => {
+                          const updated = [...generatedPosts];
+                          updated[idx].content = e.target.value;
+                          setGeneratedPosts(updated);
+                        }}
+                      />
 
                       {/* Carousel Slides Rendering */}
                       {post.carouselSlides && post.carouselSlides.length > 0 && (

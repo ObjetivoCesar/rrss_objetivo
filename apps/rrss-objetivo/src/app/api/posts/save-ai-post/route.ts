@@ -16,6 +16,8 @@ export async function POST(req: Request) {
       media_urls,
       status = "pending",
       campaign_id = null,
+      objective_id = null,
+      scheduled_for = null,
       metadata = {}
     } = body;
 
@@ -30,8 +32,10 @@ export async function POST(req: Request) {
     // 🌉 REALIZAR IMÁGENES: Convertir URLs de proxy a URLs permanentes en Storage
     const realizedUrls = await realizeMediaUrls(media_urls || [], categoryId);
 
-    // Generar fecha óptima de publicación
-    const scheduledFor = await getOptimalScheduleDate(platforms);
+    // Generar fecha óptima de publicación si no se proporciona manualmente
+    const scheduledFor = scheduled_for 
+      ? new Date(scheduled_for) 
+      : await getOptimalScheduleDate(platforms);
 
     // Insertar en Supabase
     const { data, error } = await supabase
@@ -48,7 +52,12 @@ export async function POST(req: Request) {
           status: status,
           scheduled_for: scheduledFor.toISOString(),
           campaign_id: campaign_id,
-          metadata: metadata
+          objective_id: objective_id,
+          metadata: {
+            ...metadata,
+            source: metadata.source || 'editor',
+            node_id: metadata.node_id || null
+          }
         },
       ])
       .select()

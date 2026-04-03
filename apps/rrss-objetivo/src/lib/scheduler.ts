@@ -316,9 +316,11 @@ async function cleanupPublishedMedia() {
     return;
   }
 
-  // Si es pruebas, limpiar posts publicados hace más de 2 minutos
-  const offsetMinutes = isPruebas ? 2 : 0; 
-  const cutoff = new Date(Date.now() - offsetMinutes * 60 * 1000).toISOString();
+  // En producción: Limpiamos posts de hace más de 7 días para auditoría.
+  // En pruebas: Limpiamos posts de hace más de 1 hora.
+  const offsetDays = isPruebas ? 0 : 7;
+  const offsetMinutes = isPruebas ? 60 : 0;
+  const cutoff = new Date(Date.now() - (offsetDays * 24 * 60 * 60 * 1000) - (offsetMinutes * 60 * 1000)).toISOString();
 
   await logDebug(`🧹 [Cleanup] Buscando media para limpiar (Publicados antes de: ${cutoff})...`);
 
