@@ -666,6 +666,10 @@ export async function POST(req: Request) {
     let responseText = '';
     let uiAction: any = null;
 
+    // Obtener el último texto del usuario para detección de intención
+    const lastUserMessage = [...normalizedMessages].reverse().find(m => m.role === 'user');
+    const lastText = lastUserMessage?.content || '';
+
     // ── Detección de intención: el usuario quiere GENERAR el mapa visual
     // IMPORTANTE: excluir URLs y mensajes donde 'strategy-planner' aparece como link, no como intención
     const wantsStrategyMap = [
