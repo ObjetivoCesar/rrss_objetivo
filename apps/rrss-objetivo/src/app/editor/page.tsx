@@ -48,10 +48,17 @@ const STEPS = [
   { id: 4, label: "Resultado" },
 ];
 
-function StepBar({ current }: { current: number }) {
+function StepBar({ current, bridgeMode = false }: { current: number, bridgeMode?: boolean }) {
+  const stepsToUse = bridgeMode ? [
+    { id: 1, label: "Configurar" },
+    { id: 2, label: "Omitido" },
+    { id: 3, label: "Omitido" },
+    { id: 4, label: "Editar y Guardar" },
+  ] : STEPS;
+
   return (
     <div className="flex items-center gap-0 mb-8">
-      {STEPS.map((step, i) => {
+      {stepsToUse.map((step, i) => {
         const done = current > step.id;
         const active = current === step.id;
         return (
@@ -68,7 +75,7 @@ function StepBar({ current }: { current: number }) {
                 active ? "text-purple-400" : done ? "text-purple-600" : "text-neutral-600"
               }`}>{step.label}</span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < stepsToUse.length - 1 && (
               <div className={`flex-1 h-0.5 mb-5 mx-1 transition-all ${done ? "bg-purple-600" : "bg-neutral-800"}`} />
             )}
           </div>
@@ -120,7 +127,7 @@ function LinkCard({ url }: { url: string }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function EditorPage() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<number>(1);
 
   // ── Step 1: Setup ──
   const [targetMonth, setTargetMonth] = useState("Marzo");
@@ -141,6 +148,13 @@ export default function EditorPage() {
   const [manualMediaUrls, setManualMediaUrls] = useState<string[]>([]);
   const [externalLink, setExternalLink] = useState("");
   const [carouselSlides, setCarouselSlides] = useState(6);
+
+  // 🌉 Bridge Configurator State
+  const [bridgeMode, setBridgeMode] = useState(false);
+  const [bridgeData, setBridgeData] = useState<any>(null);
+  const [bridgeFormat, setBridgeFormat] = useState<'simple' | 'carousel' | 'text-only'>('simple');
+  const [bridgeMediaStrategy, setBridgeMediaStrategy] = useState<'ai' | 'upload' | 'gallery' | 'none'>('ai');
+  const [bridgePlatform, setBridgePlatform] = useState<string>('instagram');
 
   useEffect(() => {
     fetch("/api/campaigns")
@@ -185,33 +199,20 @@ export default function EditorPage() {
       const bridgeDataRaw = localStorage.getItem('rrss_content_bridge');
       if (bridgeDataRaw) {
         try {
-          const bridgeData = JSON.parse(bridgeDataRaw);
+          const storedData = JSON.parse(bridgeDataRaw);
+          setBridgeData(storedData);
+          setBridgeMode(true);
           
-          // Crear un post "v2" basado en los datos del Planner
-          const plannerPost: GeneratedPost = {
-            content: bridgeData.content || "",
-            categoryId: "educativo", // Default
-            platform: bridgeData.suggested_platforms?.[0] || "instagram",
-            style: IMAGE_STYLES[0],
-            mediaUrls: [],
-            selectedMediaUrl: "",
-            saved: false,
-            imagePrompt: "",
-            carouselSlides: [],
-            node_id: bridgeData.node_id || null,
-            scheduled_for: null
-          };
-
-          setGeneratedPosts([plannerPost]);
-          if (bridgeData.objective_id) setSelectedObjId(bridgeData.objective_id);
-          if (bridgeData.target_month) setTargetMonth(bridgeData.target_month);
+          if (storedData.objective_id) setSelectedObjId(storedData.objective_id);
+          if (storedData.campaign_id) setSelectedCampId(storedData.campaign_id);
+          if (storedData.target_month) setTargetMonth(storedData.target_month);
+          if (storedData.suggested_platforms?.[0]) setBridgePlatform(storedData.suggested_platforms[0]);
           
-          setStep(4);
-          toast.success('🌉 Estrategia importada desde el Planner');
+          setStep(1); // Mantenemos en el Step 1 para que configure
+          toast.success('🌉 Estrategia importada. Por favor, configura el formato del post.');
           
           // Limpiar para evitar recargas molestas
           localStorage.removeItem('rrss_content_bridge');
-          // Limpiar URL sin recargar
           window.history.replaceState({}, '', window.location.pathname);
         } catch (e) {
           console.error("Bridge Error:", e);
@@ -445,12 +446,155 @@ export default function EditorPage() {
           </p>
         </div>
 
-        <StepBar current={step} />
+        <StepBar current={step} bridgeMode={bridgeMode} />
 
         {/* ── STEP 1: SETUP ─────────────────────────────────────────────────── */}
         {step === 1 && (
           <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl shadow-black/5 dark:shadow-black/20 rounded-3xl p-8 space-y-6">
 
+            {bridgeMode ? (
+              <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+                <div>
+                  <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-emerald-500" />
+                    Importando desde Strategy Planner
+                  </h2>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1 font-medium">
+                    Has enviado un nodo estratégico ({bridgeData?.target_month || 'Estrategia'}). Configura el contenedor visual.
+                  </p>
+                </div>
+
+                {/* 1. FORMATO */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">1. Formato Principal</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {[
+                      { id: 'simple', label: 'Post Simple', desc: '1 Imagen o Link', icon: ImageIcon },
+                      { id: 'carousel', label: 'Carrusel', desc: 'Múltiples Láminas', icon: Copy },
+                      { id: 'text-only', label: 'Solo Texto', desc: 'Sin archivo multimedia', icon: LinkIcon }
+                    ].map(f => (
+                      <button key={f.id} onClick={() => setBridgeFormat(f.id as any)}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all ${bridgeFormat === f.id ? "bg-emerald-500/10 border-emerald-500" : "bg-neutral-900/50 border-neutral-800 hover:border-neutral-700"}`}
+                      >
+                        <f.icon className={`w-6 h-6 mb-2 ${bridgeFormat === f.id ? "text-emerald-400" : "text-neutral-500"}`} />
+                        <h4 className={`font-bold ${bridgeFormat === f.id ? "text-emerald-100" : "text-neutral-300"}`}>{f.label}</h4>
+                        <p className="text-xs text-neutral-500 mt-1">{f.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* OPCIONAL: NÚMERO DE LÁMINAS SI ES CARRUSEL */}
+                {bridgeFormat === 'carousel' && (
+                  <div className="space-y-3 p-4 bg-neutral-900/50 border border-amber-500/30 rounded-2xl">
+                    <label className="text-xs font-bold text-amber-500 uppercase tracking-wide">Configurar Carrusel</label>
+                    <div className="flex items-center gap-4">
+                      <select value={carouselSlides} onChange={e => setCarouselSlides(Number(e.target.value))}
+                        className="bg-neutral-950 border border-amber-500/40 rounded-xl px-4 py-2 text-sm font-black text-amber-400 focus:outline-none"
+                      >
+                        {[2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} Láminas</option>)}
+                      </select>
+                      <p className="text-[10px] text-neutral-400">Las láminas se generarán vacías para que ingreses el texto e imagen de cada una.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. PLATAFORMA */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">2. Red Social Principal</label>
+                  <div className="flex flex-wrap gap-2">
+                    {PLATFORMS.map(p => {
+                      const isDisabled = bridgeFormat === 'carousel' && !['instagram', 'facebook', 'linkedin'].includes(p.id);
+                      return (
+                        <button key={p.id} onClick={() => !isDisabled && setBridgePlatform(p.id)} disabled={isDisabled}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border ${
+                            isDisabled ? 'bg-neutral-900 border-neutral-800 opacity-40' :
+                            bridgePlatform === p.id ? "bg-emerald-600 border-emerald-500 text-white" : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-600"
+                          }`}
+                        >
+                          <span>{p.emoji}</span> {p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 3. MEDIA STRATEGY (Si no es solo texto) */}
+                {bridgeFormat !== 'text-only' && (
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">3. Estrategia Visual (Multimedia)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { id: 'ai', label: '✨ Generar con Inteligencia Artificial', desc: 'Donna aplicará el ADN de marca' },
+                        { id: 'upload', label: '📤 Ya tengo mis propias imágenes', desc: 'Las subiré en el siguiente paso' }
+                      ].map(s => (
+                        <button key={s.id} onClick={() => setBridgeMediaStrategy(s.id as any)}
+                          className={`px-4 py-3 rounded-xl border transition-all text-left ${bridgeMediaStrategy === s.id ? "bg-blue-500/10 border-blue-500" : "bg-neutral-900 border-neutral-800"}`}
+                        >
+                          <h4 className={`text-sm font-bold ${bridgeMediaStrategy === s.id ? "text-blue-300" : "text-neutral-400"}`}>{s.label}</h4>
+                          <p className="text-[10px] text-neutral-500 mt-0.5">{s.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SI ES IA, SELECCIONAR ESTILO */}
+                {bridgeFormat !== 'text-only' && bridgeMediaStrategy === 'ai' && (
+                  <div className="space-y-3 p-4 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
+                    <label className="text-xs font-bold text-neutral-400 uppercase tracking-wide">Elegir Estilo Visual</label>
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                       {IMAGE_STYLES.map((style) => (
+                         <button key={style.id} onClick={() => setSelectedStyle(style)}
+                           className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                             selectedStyle.id === style.id ? "border-purple-500" : "border-transparent"
+                           }`}
+                         >
+                           <img src={style.previewUrl} alt={style.name} className="w-full h-full object-cover" />
+                           <div className="absolute bottom-0 inset-x-0 bg-black/60 p-1 pb-1.5 text-[9px] text-white font-bold leading-tight">{style.name}</div>
+                         </button>
+                       ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-4 border-t border-neutral-800">
+                  <button onClick={() => {
+                    const bridgePost: GeneratedPost = {
+                      content: bridgeData?.content || "",
+                      categoryId: bridgeFormat === 'carousel' ? 'carrusel' : 'educativo',
+                      platform: bridgePlatform,
+                      style: bridgeMediaStrategy === 'ai' ? selectedStyle : IMAGE_STYLES[0],
+                      mediaUrls: [],
+                      selectedMediaUrl: "",
+                      saved: false,
+                      imagePrompt: "",
+                      carouselSlides: bridgeFormat === 'carousel' ? Array.from({length: carouselSlides}).map((_, i) => ({
+                        slideNumber: i + 1,
+                        copy: i === 0 ? (bridgeData?.content || "Contenido slide 1") : "Contenido slide " + (i+1),
+                        imagePrompt: ""
+                      })) : [],
+                      node_id: bridgeData?.node_id || null,
+                      scheduled_for: null
+                    };
+                    
+                    // Asegurar flags correctos para el editor
+                    setIncludeImages(bridgeFormat !== 'text-only');
+                    if (bridgeFormat === 'text-only') {
+                      bridgePost.style = IMAGE_STYLES.find(s => s.id === 'no-image') || bridgePost.style;
+                    }
+                    
+                    setGeneratedPosts([bridgePost]);
+                    setIsCarouselMode(bridgeFormat === 'carousel');
+                    setStep(4);
+                  }}
+                  className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20">
+                    Siguiente: Editar y Guardar →
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
             {/* 🌉 DONNA JARVIS BANNER */}
             {donnaBanner && (
               <div className="flex items-start gap-3 p-3.5 bg-gradient-to-r from-violet-100/80 to-pink-100/60 dark:from-violet-950/80 dark:to-pink-950/60 border border-pink-300/40 dark:border-pink-500/40 backdrop-blur-md rounded-2xl animate-in fade-in slide-in-from-top-2 duration-500">
@@ -703,6 +847,8 @@ export default function EditorPage() {
                 Siguiente → Mix de Plataformas
               </button>
             </div>
+              </>
+            )}
           </div>
         )}
 
