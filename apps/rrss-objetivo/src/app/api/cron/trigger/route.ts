@@ -1,24 +1,26 @@
 import { NextResponse } from 'next/server';
+import { processScheduledPosts } from '@/lib/scheduler';
 
 /**
- * Proxy seguro para disparar el scheduler manualmente desde la UI.
- * Este endpoint agrega internamente el CRON_SECRET al llamar a /api/cron/process,
- * sin exponer el secreto al cliente/browser.
+ * POST /api/cron/trigger
+ *
+ * Proxy seguro para disparar el scheduler desde la UI sin exponer CRON_SECRET.
+ * Llama directamente a processScheduledPosts() en el servidor, evitando 
+ * el problema de fetch interno entre funciones serverless de Vercel.
  */
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    
-    const response = await fetch(`${baseUrl}/api/cron/process`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${process.env.CRON_SECRET || ''}`,
-      }
+    await processScheduledPosts();
+    return NextResponse.json({
+      success: true,
+      message: 'Scheduler ejecutado correctamente.',
+      timestamp: new Date().toISOString(),
     });
-
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[trigger] Error en scheduler:', error.message);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
