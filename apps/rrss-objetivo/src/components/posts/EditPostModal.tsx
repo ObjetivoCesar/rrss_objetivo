@@ -19,7 +19,8 @@ export default function EditPostModal({ post, onClose, onSave }: EditPostModalPr
   const [content, setContent] = useState(post?.content_text || "");
   const [platforms, setPlatforms] = useState<string[]>(post?.platforms || []);
   const [scheduledAt, setScheduledAt] = useState(post?.scheduled_for ? new Date(post.scheduled_for).toISOString().slice(0, 16) : "");
-  const [shouldApprove, setShouldApprove] = useState(post?.status === "pending");
+  // Default: siempre aprobado. El usuario puede descheckear si solo quiere guardar el borrador.
+  const [shouldApprove, setShouldApprove] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   // Escapar para cerrar con tecla ESC
@@ -52,10 +53,13 @@ export default function EditPostModal({ post, onClose, onSave }: EditPostModalPr
     // Si el usuario lo aprueba y la fecha de programación es en el pasado o ahora,
     // disparamos el scheduler automáticamente para publicación instantánea.
     if (shouldApprove) {
-      const scheduledTime = new Date(scheduledAt).getTime();
-      const now = new Date().getTime();
-      // Si la fecha es menor a 2 minutos en el futuro, disparemos el cron por si acaso.
-      if (scheduledTime <= now + 2 * 60000) {
+      // Comparamos la fecha programada vs ahora, ambas en hora local.
+      // new Date(scheduledAt) puede tener offset si scheduledAt no incluye timezone,
+      // así que construimos la fecha explícitamente desde el string datetime-local.
+      const scheduledTime = scheduledAt ? new Date(scheduledAt).getTime() : 0;
+      const now = Date.now();
+      // Si el post debe publicarse en los próximos 5 minutos (o ya pasó), disparamos el scheduler.
+      if (scheduledTime <= now + 5 * 60 * 1000) {
         try {
           await fetch('/api/cron/trigger', { method: 'POST' });
         } catch (e) {
