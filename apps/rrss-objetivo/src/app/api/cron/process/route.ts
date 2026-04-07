@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { processScheduledPosts } from '@/lib/scheduler';
 
 // ⏱️ Extender el timeout a 60 segundos para dar tiempo al webhook de Make.com
-export const maxDuration = 60;
+
 
 // Este endpoint puede ser llamado por un CRON externo (como pg_cron de Supabase o Vercel Cron)
 // para despertar al motor cada minuto.

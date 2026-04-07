@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { processScheduledPosts } from '@/lib/scheduler';
 
 // ⏱️ Extender el timeout máximo de esta función a 60 segundos (requiere Vercel Pro)
-export const maxDuration = 60;
+
 
 /**
  * POST /api/cron/trigger
