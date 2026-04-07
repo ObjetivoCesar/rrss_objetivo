@@ -1,26 +1,27 @@
 import { NextResponse } from 'next/server';
 import { processScheduledPosts } from '@/lib/scheduler';
 
+// ⏱️ Extender el timeout máximo de esta función a 60 segundos (requiere Vercel Pro)
+export const maxDuration = 60;
+
 /**
  * POST /api/cron/trigger
  *
  * Proxy seguro para disparar el scheduler desde la UI sin exponer CRON_SECRET.
- * Llama directamente a processScheduledPosts() en el servidor, evitando 
- * el problema de fetch interno entre funciones serverless de Vercel.
+ * Usa fire-and-forget: devuelve 200 inmediatamente y corre el scheduler en paralelo.
+ * Esto evita el timeout de 10s de Vercel Hobby mientras Make.com procesa el webhook.
  */
 export async function POST() {
-  try {
-    await processScheduledPosts();
-    return NextResponse.json({
-      success: true,
-      message: 'Scheduler ejecutado correctamente.',
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error: any) {
-    console.error('[trigger] Error en scheduler:', error.message);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
+  // Lanzar el scheduler de forma asíncrona (fire-and-forget)
+  // No hacemos await para no bloquear la respuesta HTTP.
+  processScheduledPosts().catch(err => {
+    console.error('[trigger] Error en scheduler (background):', err.message);
+  });
+
+  // Responder inmediatamente con 200 — el scheduler corre en background
+  return NextResponse.json({
+    success: true,
+    message: 'Scheduler iniciado en background.',
+    timestamp: new Date().toISOString(),
+  });
 }
