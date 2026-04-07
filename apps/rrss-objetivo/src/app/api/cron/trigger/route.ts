@@ -12,16 +12,18 @@ import { processScheduledPosts } from '@/lib/scheduler';
  * Esto evita el timeout de 10s de Vercel Hobby mientras Make.com procesa el webhook.
  */
 export async function POST() {
-  // Lanzar el scheduler de forma asíncrona (fire-and-forget)
-  // No hacemos await para no bloquear la respuesta HTTP.
-  processScheduledPosts().catch(err => {
-    console.error('[trigger] Error en scheduler (background):', err.message);
-  });
-
-  // Responder inmediatamente con 200 — el scheduler corre en background
-  return NextResponse.json({
-    success: true,
-    message: 'Scheduler iniciado en background.',
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    const result = await processScheduledPosts();
+    return NextResponse.json({
+      success: true,
+      message: 'Scheduler ejecutado.',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error('[trigger] Error en scheduler:', error.message);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
 }
