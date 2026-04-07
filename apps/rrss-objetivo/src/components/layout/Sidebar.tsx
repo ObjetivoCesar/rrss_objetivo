@@ -22,7 +22,8 @@ import {
   Network, // New icon for Estrategia
   Map, // New icon for Map
   PenTool, // New icon for Strategy Planner
-  Briefcase // New icon for Cotizaciones
+  Briefcase, // New icon for Cotizaciones
+  Megaphone // Icon for Marketing
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
   { href: "/strategy-planner", label: "Estrategia",       icon: PenTool },
   { href: "/quotes",    label: "Cotizaciones",  icon: Briefcase },
+  { href: "/marketing", label: "Marketing",     icon: Megaphone },
   { href: "/settings",  label: "Configuración", icon: Settings },
 ];
 
