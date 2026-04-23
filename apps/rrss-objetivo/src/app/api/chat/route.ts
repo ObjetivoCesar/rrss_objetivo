@@ -803,6 +803,7 @@ REGLAS DE RAZONAMIENTO ESTRATÉGICO:
           },
           required: ['content', 'platforms'],
         }),
+        // @ts-ignore
         execute: async ({ content, platforms, campaign_id, objective_id, scheduled_for, media_url, media_urls, external_links, is_instant, topic }: any) => {
           console.log(`[Donna Tool] Ejecutando propose_post (is_instant=${!!is_instant}, scheduled_for=${scheduled_for})`); 
           
