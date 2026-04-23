@@ -335,6 +335,9 @@ Tienes acceso a la herramienta **save_session**. Tu responsabilidad es usarla. L
 }
 
 export async function POST(req: Request) {
+  console.log('[RRSS Auth] Secret recibido:', req.headers.get('x-donna-secret'));
+  console.log('[RRSS Auth] Secret esperado:', process.env.DONNA_SECRET?.substring(0, 5) + '...');
+
   const donnaSecret = req.headers.get('x-donna-secret');
   const validSecret = process.env.DONNA_SECRET;
 
