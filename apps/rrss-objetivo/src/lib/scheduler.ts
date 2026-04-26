@@ -306,43 +306,53 @@ export async function processScheduledPosts() {
           .eq('id', post.id);
       }
 
-      // Array de objetos enriquecidos — solo para lógica interna del scheduler
-      const mediaItems = Array.isArray(cleanedUrls)
+      const mediaUrls = Array.isArray(cleanedUrls)
         ? cleanedUrls
             .filter((url: string | null) => url && typeof url === 'string' && url.trim().length > 0)
             .map((url: string) => {
               const lowerUrl = url.toLowerCase();
               const isVideo = lowerUrl.endsWith('.mp4');
               const isImage = lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.webp') || lowerUrl.endsWith('.gif') || url.includes('image-proxy');
-              return { url, is_image: isImage, is_video: isVideo };
+              
+              let mediaType = 'LINK';
+              if (isVideo) mediaType = 'VIDEO';
+              else if (isImage) mediaType = 'IMAGE';
+
+              return {
+                media_type: mediaType,
+                url,
+                image_url: isImage ? url : null,
+                video_url: isVideo ? url : null,
+                type: isVideo ? 'video' : (isImage ? 'image' : 'link'),
+                is_link: !isImage && !isVideo,
+                is_image: isImage,
+                is_video: isVideo
+              };
             })
         : [];
 
-      // Arrays planos de URLs — los que se envían a Make.com (INAMOVIBLE según Skill make-automation)
-      const plainMediaUrls: string[] = mediaItems.map(m => m.url);
-      const plainImageUrls: string[] = mediaItems.filter(m => m.is_image).map(m => m.url);
-      const plainVideoUrls: string[] = mediaItems.filter(m => m.is_video).map(m => m.url);
-
       // Determinar categoría principal del post para filtrado fácil en Make
-      const hasImage = mediaItems.some(m => m.is_image);
-      const isVideoPost = mediaItems.some(m => m.is_video);
-      const isCarousel = mediaItems.filter(m => m.is_image).length > 1;
+      const hasImage = mediaUrls.some(m => m.is_image);
+      const isVideoPost = mediaUrls.some(m => m.is_video);
+      const isCarousel = mediaUrls.filter(m => m.is_image).length > 1;
       const postMediaCategory = isVideoPost ? 'video' : (isCarousel ? 'carousel' : (hasImage ? 'image' : 'link'));
 
       const payload = {
         api_secret: MAKE_WEBHOOK_SECRET,
         post_id: post.id,
-        version: "v3-plain-urls", // Marca de versión
+        version: "v2-media-link-fixed-101", // Marca de versión para debug
         text: post.content_text,
-        // INAMOVIBLE (Skill make-automation 2026-04-26):
-        // media_url   = string singular (Facebook usa este)
-        // media_urls  = array de strings planos (Instagram usa {{1.media_urls}})
-        media_url: plainImageUrls[0] || plainVideoUrls[0] || plainMediaUrls[0] || post.media_url || null,
-        media_urls: plainMediaUrls,          // ← STRINGS PLANOS, no objetos
-        photo_urls: plainImageUrls,
-        video_urls: plainVideoUrls,
-        facebook_photos: plainImageUrls.map(url => ({ url, source: url, type: 'Photo', media_type: 'Photo' })),
-        post_media_category: postMediaCategory,
+        media_url: post.media_url || null,
+        media_urls: mediaUrls,
+        photo_urls: mediaUrls.filter(m => m.is_image).map(m => m.url),
+        video_urls: mediaUrls.filter(m => m.is_video).map(m => m.url),
+        facebook_photos: mediaUrls.filter(m => m.is_image).map(m => ({ 
+          url: m.url, 
+          source: m.url, 
+          type: 'Photo',
+          media_type: 'Photo'
+        })),
+        post_media_category: postMediaCategory, // 'image', 'video', o 'link'
         platforms: post.platforms || [],
         metadata: {
           youtube_title: metadata.youtube_title || post.content_text?.slice(0, 100) || '',
