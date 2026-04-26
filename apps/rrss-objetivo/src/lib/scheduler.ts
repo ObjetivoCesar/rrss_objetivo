@@ -1,6 +1,8 @@
 import { supabaseAdmin } from './supabase-admin';
-import { deleteFromSupabase, realizeMediaUrls } from './storage';
+import { deleteFromSupabase, realizeMediaUrls, uploadToSupabase } from './storage';
 import { logger } from './logger';
+import fetch from 'node-fetch';
+import { processImageFromUrl } from './image-utils';
 
 const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL!;
 const MAKE_WEBHOOK_SECRET = process.env.MAKE_WEBHOOK_SECRET!;
@@ -94,6 +96,78 @@ async function sendToMakeWithRetry(payload: any, postId: string): Promise<boolea
 }
 
 /**
+ * PASO PRE-MAKE: Validación de aspect ratio para posts de Instagram.
+ * La Graph API de Instagram rechaza imágenes fuera del rango 0.8–1.91 (Error 36003).
+ * Este validador bloquea el envío ANTES de gastar operaciones de Make.
+ *
+ * @returns null si todo está OK, o un string con el mensaje de error si hay problema.
+ */
+async function validateInstagramAspectRatio(imageUrl: string): Promise<string | null> {
+  const INSTAGRAM_RATIO_MIN = 0.8;   // 4:5 vertical
+  const INSTAGRAM_RATIO_MAX = 1.91;  // 1.91:1 horizontal
+
+  try {
+    // Descargamos solo los primeros 128KB para extraer las dimensiones sin bajar la imagen completa
+    const response = await fetch(imageUrl, {
+      headers: { Range: 'bytes=0-131071' },
+    });
+
+    if (!response.ok) {
+      return `No se pudo acceder a la imagen (HTTP ${response.status}). Verifica que la URL sea pública y accesible.`;
+    }
+
+    const buffer = await response.buffer();
+
+    // Leer dimensiones desde los bytes del encabezado JPEG/PNG sin librerías extra
+    let width = 0;
+    let height = 0;
+
+    const bytes = new Uint8Array(buffer);
+
+    // JPEG: buscar marcadores SOF0 (0xFF 0xC0) o SOF2 (0xFF 0xC2)
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8) {
+      let i = 2;
+      while (i < bytes.length - 8) {
+        if (bytes[i] !== 0xFF) break;
+        const marker = bytes[i + 1];
+        if (marker === 0xC0 || marker === 0xC2) {
+          height = (bytes[i + 5] << 8) | bytes[i + 6];
+          width  = (bytes[i + 7] << 8) | bytes[i + 8];
+          break;
+        }
+        const segLen = (bytes[i + 2] << 8) | bytes[i + 3];
+        i += 2 + segLen;
+      }
+    }
+
+    // PNG: ancho en bytes 16-19, alto en bytes 20-23
+    if (bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+      width  = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+      height = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+    }
+
+    if (!width || !height) {
+      // No pudimos leer las dimensiones: dejamos pasar (Make reportará el error si lo hay)
+      await logDebug(`⚠️ [AspectRatio] No se pudieron leer las dimensiones de: ${imageUrl}. Se omite la validación.`, 'WARNING');
+      return null;
+    }
+
+    const ratio = width / height;
+
+    if (ratio < INSTAGRAM_RATIO_MIN || ratio > INSTAGRAM_RATIO_MAX) {
+      return `Instagram Error 36003: El aspect ratio de la imagen es ${ratio.toFixed(2)} (${width}x${height}px), fuera del rango permitido [0.8 (4:5) – 1.91 (1.91:1)]. Cambia o recorta la imagen antes de reprogramar este post.`;
+    }
+
+    await logDebug(`✅ [AspectRatio] Imagen válida para Instagram: ratio ${ratio.toFixed(2)} (${width}x${height}px)`);
+    return null;
+
+  } catch (err: any) {
+    await logDebug(`⚠️ [AspectRatio] Error al validar la imagen ${imageUrl}: ${err.message}. Se omite la validación.`, 'WARNING');
+    return null; // Si no podemos validar, dejamos pasar (fail-open) — Make reportará si hay error
+  }
+}
+
+/**
  * Hook para Evolution API: notifica al propietario por WhatsApp cuando un post falla.
  * Se activa solo si EVOLUTION_API_URL y EVOLUTION_PHONE están configurados.
  */
@@ -177,6 +251,46 @@ export async function processScheduledPosts() {
       }
 
       // PASO 3: Construir payload universal para Make
+      
+      // NUEVO: Autocorrección de ratio para Instagram si se solicitó vía metadata
+      const metadata = post.metadata || {};
+      const requestedFormat = (metadata as any)?.instagram_format;
+      
+      if (requestedFormat && post.platforms?.includes('instagram')) {
+        const primaryImage = post.media_url;
+        if (primaryImage && typeof primaryImage === 'string') {
+           try {
+             await logDebug(`🛠️ [Scheduler] Aplicando autocorrección ${requestedFormat} para post ${post.id}`);
+             
+             // La utilidad procesa la imagen y devuelve un Buffer
+             const processedBuffer = await processImageFromUrl(primaryImage, requestedFormat as '1:1' | '4:5');
+             const fileName = `corrected_${post.id}_${Date.now()}.jpg`;
+             
+             // La subimos a Supabase
+             const newUrl = await uploadToSupabase(processedBuffer, fileName);
+             
+             // Actualizar el objeto local para que el resto del flujo use la nueva URL
+             post.media_url = newUrl;
+             if (post.media_urls && Array.isArray(post.media_urls)) {
+               post.media_urls = post.media_urls.map((u: string) => u === primaryImage ? newUrl : u);
+             }
+             
+             // Actualizar la DB para persistir el cambio
+             await supabaseAdmin
+               .from('social_posts')
+               .update({ 
+                 media_url: newUrl,
+                 media_urls: post.media_urls 
+               })
+               .eq('id', post.id);
+               
+             await logDebug(`✅ [Scheduler] Imagen corregida y subida: ${newUrl}`);
+           } catch (err: any) {
+             await logDebug(`⚠️ [Scheduler] Falló la autocorrección: ${err.message}`, 'WARNING');
+           }
+        }
+      }
+
       // 🌉 SEGURIDAD: Asegurar que no enviamos URLs de proxy a Make.com
       const cleanedUrls = await realizeMediaUrls(post.media_urls || [], post.category_id || 'educativo');
       
@@ -223,8 +337,6 @@ export async function processScheduledPosts() {
       const isCarousel = mediaUrls.filter(m => m.is_image).length > 1;
       const postMediaCategory = isVideoPost ? 'video' : (isCarousel ? 'carousel' : (hasImage ? 'image' : 'link'));
 
-      const metadata = post.metadata || {};
-
       const payload = {
         api_secret: MAKE_WEBHOOK_SECRET,
         post_id: post.id,
@@ -251,6 +363,24 @@ export async function processScheduledPosts() {
           tiktok_disable_duet: metadata.tiktok_disable_duet || false,
         },
       };
+
+      // PASO 3.5: Validación de Aspect Ratio para Instagram ANTES de gastar operaciones de Make
+      // (Instagram Graph API Error 36003 — rango válido: 0.8 a 1.91)
+      if (post.platforms?.includes('instagram')) {
+        const imagesToCheck = mediaUrls.filter(m => m.is_image).map(m => m.url);
+        for (const imgUrl of imagesToCheck) {
+          const ratioError = await validateInstagramAspectRatio(imgUrl);
+          if (ratioError) {
+            await logDebug(`🚫 [Scheduler] Post ${post.id} bloqueado por ratio inválido: ${ratioError}`, 'ERROR');
+            await supabaseAdmin
+              .from('social_posts')
+              .update({ status: 'failed', error_log: ratioError, updated_at: new Date().toISOString() })
+              .eq('id', post.id);
+            await notifyFailureViaWhatsApp(post.id, ratioError);
+            continue; // Saltar este post, pasar al siguiente
+          }
+        }
+      }
 
       // PASO 4: Enviar a Make con reintentos automáticos
       const success = await sendToMakeWithRetry(payload, post.id);
