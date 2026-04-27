@@ -132,6 +132,82 @@ export async function uploadToBunny(
 }
 
 /**
+ * Toma una imagen (URL) y la ajusta para cumplir con los ratios de Instagram (0.8 - 1.91).
+ * Si la imagen está fuera de rango, añade bordes (padding) negros para llevarla a un ratio seguro.
+ */
+export async function optimizeImageForInstagram(imageUrl: string): Promise<string> {
+  console.log(`[Storage] 🪄 Optimizando imagen para Instagram: ${imageUrl.substring(0, 80)}...`);
+  
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status} al descargar imagen`);
+    
+    // Convertir response a Buffer (usando arrayBuffer() que es el estándar moderno)
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    const image = sharp(buffer);
+    const metadata = await image.metadata();
+    
+    if (!metadata.width || !metadata.height) throw new Error("No se pudieron leer las dimensiones de la imagen");
+    
+    const ratio = metadata.width / metadata.height;
+    const MIN_RATIO = 0.8;
+    const MAX_RATIO = 1.91;
+    
+    let result = image;
+    let changed = false;
+
+    if (ratio < MIN_RATIO) {
+      // Demasiado alta (vertical) -> Añadir bandas a los lados para llegar a 0.8 (4:5)
+      const targetWidth = Math.ceil(metadata.height * MIN_RATIO);
+      const padding = Math.ceil((targetWidth - metadata.width) / 2);
+      
+      console.log(`[Storage] ↕️  Imagen muy alta (${ratio.toFixed(2)}). Añadiendo padding horizontal: ${padding}px`);
+      
+      result = image.extend({
+        top: 0, bottom: 0,
+        left: padding,
+        right: padding,
+        background: { r: 18, g: 18, b: 18, alpha: 1 } // Gris oscuro/negro elegante
+      });
+      changed = true;
+    } else if (ratio > MAX_RATIO) {
+      // Demasiado ancha (horizontal) -> Añadir bandas arriba/abajo para llegar a 1.91
+      const targetHeight = Math.ceil(metadata.width / MAX_RATIO);
+      const padding = Math.ceil((targetHeight - metadata.height) / 2);
+      
+      console.log(`[Storage] ↔️  Imagen muy ancha (${ratio.toFixed(2)}). Añadiendo padding vertical: ${padding}px`);
+      
+      result = image.extend({
+        left: 0, right: 0,
+        top: padding,
+        bottom: padding,
+        background: { r: 18, g: 18, b: 18, alpha: 1 }
+      });
+      changed = true;
+    }
+
+    if (!changed) {
+      console.log(`[Storage] ✅ Imagen ya cumple con los ratios de Instagram (${ratio.toFixed(2)}).`);
+      return imageUrl;
+    }
+
+    const optimizedBuffer = await result
+      .jpeg({ quality: 90, mozjpeg: true })
+      .toBuffer();
+      
+    const hash = createHash('sha256').update(imageUrl).digest('hex').substring(0, 8);
+    const newFileName = `opt_${hash}_${Date.now()}.jpg`;
+    
+    return await uploadToSupabase(optimizedBuffer, newFileName);
+  } catch (err: any) {
+    console.error(`[Storage] ❌ Error optimizando imagen:`, err.message);
+    throw err;
+  }
+}
+
+/**
  * Elimina un archivo del bucket de Supabase Storage.
  */
 export async function deleteFromSupabase(fileName: string): Promise<boolean> {

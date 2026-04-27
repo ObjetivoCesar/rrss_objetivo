@@ -37,6 +37,13 @@ export async function POST(req: Request) {
       ? new Date(scheduled_for) 
       : await getOptimalScheduleDate(platforms);
 
+    // Extraer campos adicionales para las nuevas columnas
+    const contentType = metadata.content_type || "text";
+    const isEvergreen = metadata.is_evergreen || false;
+    const videoUrl = metadata.youtube_url || (contentType === 'video' ? realizedUrls[0] : null);
+    const linkUrl = metadata.link_url || null;
+    const linkPreview = metadata.link_preview || null;
+
     // Insertar en Supabase
     const { data, error } = await supabase
       .from("social_posts")
@@ -53,6 +60,11 @@ export async function POST(req: Request) {
           scheduled_for: scheduledFor.toISOString(),
           campaign_id: campaign_id,
           objective_id: objective_id,
+          content_type: contentType,
+          video_url: videoUrl,
+          link_url: linkUrl,
+          link_preview: linkPreview,
+          is_evergreen: isEvergreen,
           metadata: {
             ...metadata,
             source: metadata.source || 'editor',
