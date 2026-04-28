@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap, RotateCcw, LayoutDashboard } from 'lucide-react';
+import { Bot, User, Send, BrainCircuit, Sparkles, AlertCircle, Mic, Square, Loader2, X, ChevronLeft, Zap, RotateCcw, LayoutDashboard, ImagePlus, Link, Globe, Video, Play, FileVideo } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -41,6 +42,15 @@ const WELCOME: ChatMessage = {
 
 ¿Qué quieres atacar hoy?`,
 };
+
+const SLASH_COMMANDS = [
+  { cmd: '/crear', desc: 'Desarrolla o estructura un módulo estratégico' },
+  { cmd: '/generar', desc: 'Crear contenido rápido, borradores masivos o ideas' },
+  { cmd: '/objetivo', desc: 'Crear o discutir un objetivo estratégico' },
+  { cmd: '/estrategia', desc: 'Planificar una nueva campaña' },
+  { cmd: '/reels', desc: 'Redactar guiones o ideas para Reels' },
+  { cmd: '/carrusel', desc: 'Invocación del Motor de Carruseles 2026' }
+];
 
 export default function DonnaChatPanel() {
   const router = useRouter();
@@ -101,11 +111,24 @@ export default function DonnaChatPanel() {
   }
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Listen for external open events
+  // Listen for external events
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
+    const handlePrefill = (e: CustomEvent) => {
+      setIsOpen(true);
+      setTimeout(() => {
+        setInput(e.detail);
+        textareaRef.current?.focus();
+      }, 50);
+    };
+    
     window.addEventListener('open-donna', handleOpen);
-    return () => window.removeEventListener('open-donna', handleOpen);
+    window.addEventListener('donna-prefill', handlePrefill as EventListener);
+    
+    return () => {
+      window.removeEventListener('open-donna', handleOpen);
+      window.removeEventListener('donna-prefill', handlePrefill as EventListener);
+    };
   }, []);
 
   // Auto-scroll to bottom using scroll container to prevent page jump
@@ -115,6 +138,17 @@ export default function DonnaChatPanel() {
     }
   }, [messages]);
 
+  const [attachments, setAttachments] = useState<string[]>([]);
+  // stickyAttachments persiste la imagen/video entre turnos hasta que propose_post la use
+  const [stickyAttachments, setStickyAttachments] = useState<string[]>([]);
+  
+  // NUEVO: Gestión de Links externos (YouTube, artículos)
+  const [stickyLinks, setStickyLinks] = useState<string[]>([]);
+  const [linkInput, setLinkInput] = useState('');
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  
+  const [isUploading, setIsUploading] = useState(false);
+
   // WhatsApp-style auto-growing textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -122,6 +156,119 @@ export default function DonnaChatPanel() {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   }, [input]);
+
+  /**
+   * Converts an image File to JPEG format (required by Instagram API)
+   */
+  async function convertToJPEG(file: File, quality = 0.88): Promise<{ file: File; converted: boolean }> {
+    if (file.type === "image/jpeg") return { file, converted: false };
+    return new Promise((resolve) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { resolve({ file, converted: false }); return; }
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve({ file, converted: false }); return; }
+          const jpegName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+          resolve({ file: new File([blob], jpegName, { type: "image/jpeg" }), converted: true });
+        }, "image/jpeg", quality);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve({ file, converted: false });
+      };
+      img.src = objectUrl;
+    });
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    setIsUploading(true);
+    try {
+      const fileList = Array.from(files).slice(0, 10); // Máximo 10 archivos
+      
+      for (const file of fileList) {
+        const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.mov');
+        
+        if (isVideo) {
+          // SUBIDA A BUNNY.NET (Proxy seguro)
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('folder', 'donna-chat/videos');
+
+          const uploadRes = await fetch('/api/upload-media', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) throw new Error('Error subiendo video a Bunny.net');
+          const { url } = await uploadRes.json();
+          setAttachments(prev => [...prev, url]);
+          setStickyAttachments(prev => [...prev, url]);
+          toast.success('Video listo en la nube 🎬');
+        } else {
+          // SUBIDA A SUPABASE (Imágenes optimizadas)
+          const { file: optimizedFile } = await convertToJPEG(file);
+          const fileName = `${Date.now()}-${optimizedFile.name}`;
+          const filePath = `donna-chat/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("posts-assets")
+            .upload(filePath, optimizedFile, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage.from("posts-assets").getPublicUrl(filePath);
+          setAttachments(prev => [...prev, publicUrl]);
+          setStickyAttachments(prev => [...prev, publicUrl]);
+          toast.success('Imagen lista 🚀');
+        }
+      }
+    } catch (err: any) {
+      toast.error('Error en la carga: ' + err.message);
+    } finally {
+      setIsUploading(false);
+      if (textareaRef.current) textareaRef.current.focus();
+    }
+  };
+
+  const handleLinkAdd = () => {
+    if (!linkInput.trim()) return;
+    let url = linkInput.trim();
+    if (!url.startsWith('http')) url = 'https://' + url;
+    
+    try {
+      new URL(url);
+      setStickyLinks(prev => [...prev, url]);
+      setLinkInput('');
+      setShowLinkInput(false);
+      toast.success('Link agregado 🔗');
+    } catch (e) {
+      toast.error('URL inválida');
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setStickyAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeLink = (index: number) => {
+    setStickyLinks(prev => prev.filter((_, i) => i !== index));
+  };
 
   const sendMessage = useCallback(async (userText: string) => {
     if (!userText.trim() || isLoading) return;
@@ -152,7 +299,13 @@ export default function DonnaChatPanel() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, provider }),
+        // Enviamos media y links persistentes (sticky)
+        body: JSON.stringify({ 
+          messages: history, 
+          provider, 
+          attachments: stickyAttachments,
+          links: stickyLinks
+        }),
         signal: abortRef.current.signal,
       });
 
@@ -175,17 +328,20 @@ export default function DonnaChatPanel() {
 
       // 🌉 THE BRIDGE: si Donna activa pilot_editor, crear evento y navegar
       if (uiAction?.action === 'pilot_editor') {
-        // Dispatch event para que EditorPage lo capture
         window.dispatchEvent(new CustomEvent('donna-pilot-editor', { detail: uiAction.payload }));
-        // Navegar al editor tras un breve delay para que el usuario lea la respuesta
         setTimeout(() => {
           router.push('/editor');
         }, 1800);
       } else if (uiAction?.toolActions?.some((t: any) => ['create_objective', 'manage_campaign'].includes(t.tool))) {
-        // Dispatch event for client components to re-fetch
         window.dispatchEvent(new CustomEvent('donna-refresh-campaigns'));
-        // Refresh the current route to fetch updated data (e.g., campaigns list)
         router.refresh();
+      }
+
+      // Si Donna ejecutó propose_post exitosamente, podemos limpiar media y links
+      const didPublish = uiAction?.toolActions?.some((t: any) => t.tool === 'propose_post');
+      if (didPublish) {
+        setStickyAttachments([]);
+        setStickyLinks([]);
       }
     } catch (err: unknown) {
       if ((err as Error).name === 'AbortError') return;
@@ -194,9 +350,11 @@ export default function DonnaChatPanel() {
       setMessages(prev => prev.filter(m => m.id !== assistantId));
     } finally {
       setIsLoading(false);
+      setAttachments([]); // Limpiar preview temporal después de cada envío
       textareaRef.current?.focus();
     }
-  }, [messages, isLoading, provider, router]);
+  }, [messages, isLoading, provider, router, stickyAttachments, stickyLinks]);
+
   
   const clearSession = useCallback(() => {
     setMessages([WELCOME]);
@@ -466,9 +624,140 @@ export default function DonnaChatPanel() {
         </div>
       )}
 
-      {/* Input */}
-      <div className="p-4 bg-[#f4f2ee] dark:bg-[#0a0a0a] border-t border-neutral-200 dark:border-neutral-800">
-        <div className="relative flex items-end gap-2 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-2xl p-2 focus-within:border-pink-500/50 dark:focus-within:border-pink-500/50 transition-colors shadow-sm dark:shadow-inner">
+      {/* Input Area */}
+      <div className="p-4 bg-[#f4f2ee] dark:bg-[#0a0a0a] border-t border-neutral-200 dark:border-neutral-800 relative">
+        {/* Slash Commands Menu */}
+        {input.startsWith('/') && (
+          <div className="absolute bottom-[calc(100%-8px)] left-4 right-4 mb-2 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden z-10 animate-in slide-in-from-bottom-2">
+            <div className="px-3 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-black/50">
+              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3 text-amber-500" /> COMANDOS RÁPIDOS</span>
+            </div>
+            <div className="p-1 max-h-48 overflow-y-auto scrollbar-thin">
+              {SLASH_COMMANDS.filter(c => c.cmd.toLowerCase().startsWith(input.toLowerCase())).map((cmd) => (
+                <button
+                  key={cmd.cmd}
+                  onClick={() => { setInput(cmd.cmd + ' '); textareaRef.current?.focus(); }}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-500/10 flex items-center gap-2 group transition-colors"
+                >
+                  <span className="text-sm font-bold text-pink-600 dark:text-pink-400">{cmd.cmd}</span>
+                  <span className="text-[11px] text-neutral-500 group-hover:text-neutral-700 dark:group-hover:text-neutral-300 truncate">{cmd.desc}</span>
+                </button>
+              ))}
+              {SLASH_COMMANDS.filter(c => c.cmd.toLowerCase().startsWith(input.toLowerCase())).length === 0 && (
+                <div className="px-3 py-2 text-xs text-neutral-500 text-center">No hay comandos coincidentes</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Attachments Preview (Imágenes, Videos y Links) */}
+        {(attachments.length > 0 || stickyLinks.length > 0) && (
+          <div className="flex flex-wrap gap-2 mb-2 p-2 bg-white/50 dark:bg-black/50 rounded-xl border border-dashed border-pink-500/30">
+            {/* Visual Media (Imágenes y Videos) */}
+            {attachments.map((url, i) => {
+              const isVideo = url.toLowerCase().includes('.mp4') || url.toLowerCase().includes('.mov') || url.includes('donna-chat/videos');
+              return (
+                <div key={`media-${i}`} className="relative group w-16 h-16">
+                  {isVideo ? (
+                    <div className="w-full h-full bg-neutral-800 rounded-lg border border-white/20 flex flex-col items-center justify-center overflow-hidden">
+                      <Play className="w-6 h-6 text-white mb-1" />
+                      <span className="text-[7px] text-white/70 uppercase font-bold">Video</span>
+                    </div>
+                  ) : (
+                    <img src={url} alt="Attachment" className="w-full h-full object-cover rounded-lg border border-white/20" />
+                  )}
+                  <button 
+                    onClick={() => removeAttachment(i)}
+                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white p-0.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
+            
+            {/* Links chips */}
+            {stickyLinks.map((url, i) => (
+              <div key={`link-${i}`} className="relative group h-16 px-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 flex flex-col justify-center gap-1 max-w-[120px]">
+                <div className="flex items-center gap-1.5 text-pink-500">
+                  <Globe className="w-3 h-3" />
+                  <span className="text-[9px] font-bold uppercase tracking-tighter">Link</span>
+                </div>
+                <span className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate font-mono">{url.replace(/^https?:\/\//, '')}</span>
+                <button 
+                  onClick={() => removeLink(i)}
+                  className="absolute -top-1.5 -right-1.5 bg-red-500 text-white p-0.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+
+            {isUploading && (
+              <div className="w-16 h-16 rounded-lg border border-pink-500/20 bg-pink-500/5 flex items-center justify-center animate-pulse">
+                <Loader2 className="w-4 h-4 text-pink-500 animate-spin" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Input Bar */}
+        <div className="relative flex items-end gap-2 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-2xl p-2 focus-within:border-pink-500/50 dark:focus-within:border-pink-500/50 transition-colors shadow-sm dark:shadow-inner z-20">
+          <input
+            type="file"
+            id="donna-attachment"
+            className="hidden"
+            accept="image/*,video/mp4,video/quicktime"
+            multiple
+            onChange={handleFileUpload}
+            disabled={isUploading}
+          />
+          <div className="flex items-center">
+            <button
+              onClick={() => document.getElementById('donna-attachment')?.click()}
+              disabled={isUploading || isLoading}
+              className={`p-2 transition-colors ${isUploading ? 'text-pink-500 animate-pulse' : 'text-neutral-500 hover:text-pink-600'}`}
+              title="Adjuntar Fotos o Video (.mp4)"
+            >
+              {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImagePlus className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={() => setShowLinkInput(!showLinkInput)}
+              disabled={isLoading}
+              className={`p-2 transition-colors ${showLinkInput ? 'text-pink-500' : 'text-neutral-500 hover:text-pink-600'}`}
+              title="Añadir Link (YouTube o Artículo)"
+            >
+              <Link className="w-5 h-5" />
+            </button>
+          </div>
+
+          {showLinkInput && (
+            <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 p-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl flex items-center gap-2 animate-in slide-in-from-bottom-2 z-30">
+              <Globe className="w-4 h-4 text-pink-500 shrink-0" />
+              <input 
+                type="text"
+                placeholder="Pega una URL..."
+                className="flex-1 bg-transparent border-none outline-none text-sm dark:text-white"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLinkAdd();
+                  }
+                  if (e.key === 'Escape') setShowLinkInput(false);
+                }}
+                autoFocus
+              />
+              <button 
+                onClick={handleLinkAdd}
+                className="bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold hover:bg-pink-700 transition-colors"
+              >
+                Añadir
+              </button>
+            </div>
+          )}
+
           <textarea
             ref={textareaRef}
             rows={1}
@@ -519,6 +808,7 @@ export default function DonnaChatPanel() {
         </div>
         <p className="text-[9px] text-neutral-600 text-center mt-2 font-medium">SOCI@ ESTRATÉGICO · RRSS OBJETIVO</p>
       </div>
+
 
       {/* Clear Session Confirmation Modal */}
       {showClearConfirm && (

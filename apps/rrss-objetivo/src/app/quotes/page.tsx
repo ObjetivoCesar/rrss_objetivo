@@ -3,7 +3,7 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Briefcase, Plus, Trash2, Send, FileText, Layout, List, CheckCircle, ChevronRight, Info, Eye, EyeOff, Sparkles, Clock, DollarSign, Calendar, Globe } from "lucide-react";
+import { Briefcase, Plus, Trash2, Send, FileText, Layout, List, CheckCircle, ChevronRight, Info, Eye, EyeOff, Sparkles, Clock, DollarSign, Calendar, Globe, Save, FolderOpen } from "lucide-react";
 import { clsx } from "clsx";
 
 interface Etapa {
@@ -89,6 +89,54 @@ export default function QuotesPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageFilename, setImageFilename] = useState("");
   const [lastUrl, setLastUrl] = useState<string | null>(null);
+
+  // States for AI quote generator
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiForm, setAiForm] = useState({ cliente: "", sector: "", contexto: "", servicios: "" });
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // States for Drafts
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
+  const [showDraftsPanel, setShowDraftsPanel] = useState(false);
+  const [draftsList, setDraftsList] = useState<any[]>([]);
+
+  const saveDraft = async () => {
+    if (!data.id) {
+      toast.error("Por favor ingresa un Slug Identificador (URL) antes de guardar el borrador.");
+      return;
+    }
+    setIsSavingDraft(true);
+    try {
+      const res = await fetch("/api/cotizaciones/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.message || "Error al guardar borrador");
+      toast.success("Borrador guardado exitosamente");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const loadDrafts = async () => {
+    setIsLoadingDrafts(true);
+    setShowDraftsPanel(true);
+    try {
+      const res = await fetch("/api/cotizaciones/drafts");
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.message || "Error al cargar borradores");
+      setDraftsList(resData.drafts || []);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsLoadingDrafts(false);
+    }
+  };
 
   const handleUpdate = (section: keyof QuoteData, field: string, value: any) => {
     setData((prev) => ({
@@ -241,6 +289,58 @@ export default function QuotesPage() {
     }
   };
 
+  const generateWithAI = async () => {
+    if (!aiForm.cliente || !aiForm.sector) {
+      toast.error("Cliente y Sector son requeridos para usar la IA.", { id: "ia-error" });
+      return;
+    }
+
+    setIsGenerating(true);
+    const loadingToast = toast.loading("🤖 Generando propuesta estratégica (Gemini 2.5)...");
+
+    try {
+      const response = await fetch("/api/cotizaciones/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cliente: aiForm.cliente,
+          sector: aiForm.sector,
+          contexto: aiForm.contexto,
+          servicios: aiForm.servicios.split(",").map(s => s.trim()).filter(Boolean)
+        }),
+      });
+
+      const rawText = await response.text();
+      let parsed;
+      try {
+        const jsonStr = rawText.replace(/```json\n?|\n?```/g, "").trim();
+        parsed = JSON.parse(jsonStr);
+      } catch (e) {
+        throw new Error("La IA no devolvió un JSON válido. Inténtalo de nuevo.");
+      }
+
+      const oldFondo = data.portada.url_fondo;
+      const oldLogo = data.portada.url_logo_cliente;
+
+      setData(prev => ({
+        ...prev,
+        ...parsed,
+        portada: {
+          ...parsed.portada,
+          url_fondo: parsed.portada?.url_fondo || oldFondo,
+          url_logo_cliente: parsed.portada?.url_logo_cliente || oldLogo
+        }
+      }));
+
+      toast.success("¡Propuesta generada con la Estrategia César! 🚀", { id: loadingToast });
+      setShowAiPanel(false);
+    } catch (e: any) {
+      toast.error(`Error: ${e.message}`, { id: loadingToast });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-8 pb-20">
@@ -287,7 +387,39 @@ export default function QuotesPage() {
              </button>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+             <button
+               onClick={loadDrafts}
+               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all border bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:border-blue-500/30 hover:text-blue-600 dark:hover:text-blue-400"
+             >
+               <FolderOpen className="w-4 h-4" />
+               Ver Pendientes
+             </button>
+             <button 
+               onClick={() => setShowAiPanel(!showAiPanel)}
+               className={clsx(
+                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all border",
+                 showAiPanel
+                   ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30"
+                   : "bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:border-purple-500/30 hover:text-purple-600 dark:hover:text-purple-400"
+               )}
+             >
+               <Sparkles className="w-4 h-4" />
+               IA Prompt
+             </button>
+             <button 
+               onClick={saveDraft}
+               disabled={isSavingDraft}
+               className={clsx(
+                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all border",
+                 isSavingDraft
+                   ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                   : "bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-white/10 hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+               )}
+             >
+               <Save className="w-4 h-4" />
+               {isSavingDraft ? "Guardando..." : "Borrador"}
+             </button>
              <button 
                onClick={publishQuote}
                disabled={isSubmitting}
@@ -300,9 +432,90 @@ export default function QuotesPage() {
              >
                <Send className="w-5 h-5" />
                {isSubmitting ? "Enviando..." : "Publicar"}
-             </button>
+              </button>
           </div>
         </div>
+
+        {/* Panel IA Colapsable */}
+        {showAiPanel && !showPreview && (
+          <div className="bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-500/20 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl shadow-purple-500/10 animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-purple-500/10 blur-3xl rounded-full pointer-events-none"></div>
+            
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-500/20 rounded-xl">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-purple-900 dark:text-purple-400 tracking-tight">Motor de Inteligencia Estratégica</h2>
+                <p className="text-xs text-purple-700/60 dark:text-purple-400/60 font-bold uppercase tracking-widest mt-0.5">Gemini 2.5 Flash • Contexto Estratégico</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+              <div>
+                <label className="block text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase mb-2 ml-2 tracking-widest">Nombre del Cliente / Empresa *</label>
+                <input 
+                  type="text" 
+                  value={aiForm.cliente}
+                  onChange={(e) => setAiForm({...aiForm, cliente: e.target.value})}
+                  placeholder="ej: Clínica Abendaño"
+                  className="w-full bg-white/60 dark:bg-black/40 border border-purple-500/20 focus:border-purple-500/50 rounded-2xl px-5 py-3.5 text-sm font-medium transition-all outline-none md:text-md text-purple-900 dark:text-white placeholder:text-purple-900/30 dark:placeholder:text-white/20"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase mb-2 ml-2 tracking-widest">Sector / Cuestión de Autoridad *</label>
+                <input 
+                  type="text" 
+                  value={aiForm.sector}
+                  onChange={(e) => setAiForm({...aiForm, sector: e.target.value})}
+                  placeholder="ej: Traumatología en rodilla"
+                  className="w-full bg-white/60 dark:bg-black/40 border border-purple-500/20 focus:border-purple-500/50 rounded-2xl px-5 py-3.5 text-sm font-medium transition-all outline-none md:text-md text-purple-900 dark:text-white placeholder:text-purple-900/30 dark:placeholder:text-white/20"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase mb-2 ml-2 tracking-widest">Contexto y Objetivos (Opcional pero recomendado)</label>
+                <textarea 
+                  rows={2}
+                  value={aiForm.contexto}
+                  onChange={(e) => setAiForm({...aiForm, contexto: e.target.value})}
+                  placeholder="ej: Tienen prestigio pero mala presencia digital. Buscan liderar en consultas privadas y cirugías..."
+                  className="w-full bg-white/60 dark:bg-black/40 border border-purple-500/20 focus:border-purple-500/50 rounded-2xl px-5 py-3.5 text-sm font-medium transition-all outline-none md:text-md text-purple-900 dark:text-white placeholder:text-purple-900/30 dark:placeholder:text-white/20 resize-none"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase mb-2 ml-2 tracking-widest">Módulos Sugeridos (Opcional, separados por coma)</label>
+                <input 
+                  type="text" 
+                  value={aiForm.servicios}
+                  onChange={(e) => setAiForm({...aiForm, servicios: e.target.value})}
+                  placeholder="ej: Dominio Web, SEO de Autoridad, Publicidad Táctica"
+                  className="w-full bg-white/60 dark:bg-black/40 border border-purple-500/20 focus:border-purple-500/50 rounded-2xl px-5 py-3.5 text-sm font-medium transition-all outline-none md:text-md text-purple-900 dark:text-white placeholder:text-purple-900/30 dark:placeholder:text-white/20"
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end relative z-10">
+              <button 
+                onClick={generateWithAI}
+                disabled={isGenerating || !aiForm.cliente || !aiForm.sector}
+                className={clsx(
+                  "flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all shadow-xl",
+                  isGenerating || !aiForm.cliente || !aiForm.sector
+                    ? "bg-purple-500/20 text-purple-500/50 cursor-not-allowed shadow-none"
+                    : "bg-purple-600 hover:bg-purple-500 text-white shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                )}
+              >
+                {isGenerating ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-white" />
+                )}
+                {isGenerating ? "Mapeando Estrategia..." : "Forjar Cotización Estratégica"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {lastUrl && (
           <div className="bg-emerald-500/10 border border-emerald-500/30 shadow-2xl shadow-emerald-500/10 rounded-3xl p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-6 duration-700">
@@ -812,7 +1025,10 @@ export default function QuotesPage() {
                    <div className="space-y-8">
                       <h1 className="text-5xl md:text-[5.5rem] font-poiret tracking-tight leading-[1] text-white">
                         {data.portada.titulo_principal} <br />
-                        <span className="text-[#3b82f6] italic">{data.portada.titulo_destacado}</span>
+                        <span 
+                          className="text-[#3b82f6] italic"
+                          dangerouslySetInnerHTML={{ __html: data.portada.titulo_destacado || "" }}
+                        />
                       </h1>
                       <div className="w-24 h-1 bg-gradient-to-r from-[#3b82f6] to-transparent rounded-full" />
                       <p className="text-xl md:text-3xl text-zinc-300 leading-relaxed max-w-3xl font-light">
@@ -900,9 +1116,10 @@ export default function QuotesPage() {
                                    </div>
                                 </div>
 
-                                <p className="text-lg text-zinc-500 leading-relaxed max-w-3xl font-light">
-                                   {etapa.descripcion}
-                                </p>
+                                <p 
+                                  className="text-lg text-zinc-500 leading-relaxed max-w-3xl font-light"
+                                  dangerouslySetInnerHTML={{ __html: (etapa.descripcion || "").replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
+                                />
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
                                    <div className="space-y-6">
@@ -1046,6 +1263,81 @@ export default function QuotesPage() {
                    <div className="w-12 h-px bg-white/10" />
                 </div>
              </footer>
+          </div>
+        )}
+
+        {/* Panel de Borradores (Modal) */}
+        {showDraftsPanel && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+              <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <FolderOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-black text-neutral-900 dark:text-white">Borradores Pendientes</h3>
+                </div>
+                <button onClick={() => setShowDraftsPanel(false)} className="text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors">
+                  Cerrar
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                {isLoadingDrafts ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-neutral-500">
+                    <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="font-bold">Cargando borradores...</p>
+                  </div>
+                ) : draftsList.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-neutral-500 font-medium">No hay cotizaciones pendientes.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {draftsList.map((draft, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-5 bg-neutral-50 dark:bg-black/50 border border-neutral-200 dark:border-white/5 rounded-2xl hover:border-blue-500/30 transition-all group">
+                        <div>
+                          <p className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">{draft.filename.replace('.json', '')}</p>
+                          <h4 className="text-lg font-bold text-neutral-900 dark:text-white">{draft.data?.portada?.preparado_para || "Sin Cliente"}</h4>
+                          <p className="text-xs text-neutral-500 mt-1">
+                            {new Date(draft.updated_at).toLocaleDateString('es-EC', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const normalized = {
+                               ...INITIAL_DATA,
+                               ...draft.data,
+                               id: draft.data?.id || "",
+                               portada: { ...INITIAL_DATA.portada, ...(draft.data?.portada || {}) },
+                               introduccion: { ...INITIAL_DATA.introduccion, ...(draft.data?.introduccion || {}) },
+                               cierre: { ...INITIAL_DATA.cierre, ...(draft.data?.cierre || {}) },
+                               etapas: draft.data?.etapas?.map((e: any) => ({
+                                  numero: e.numero || "",
+                                  etiqueta_tiempo: e.etiqueta_tiempo || "",
+                                  nombre: e.nombre || "",
+                                  eslogan: e.eslogan || "",
+                                  precio: e.precio || "",
+                                  precio_subtitulo: e.precio_subtitulo || "",
+                                  descripcion: e.descripcion || "",
+                                  entregables: e.entregables || [],
+                                  nota_especial: e.nota_especial || "",
+                                  detalles_pie: e.detalles_pie || [],
+                               })) || []
+                            };
+                            setData(normalized);
+                            setShowDraftsPanel(false);
+                            toast.success(`Borrador de ${draft.data?.portada?.preparado_para} cargado.`);
+                          }}
+                          className="px-5 py-2 bg-neutral-200 dark:bg-white/10 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-neutral-700 dark:text-white rounded-xl text-sm font-bold transition-all"
+                        >
+                          Cargar Data
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

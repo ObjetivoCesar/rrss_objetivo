@@ -19,7 +19,7 @@ export async function DELETE(req: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data, error } = await supabase.from("social_posts").delete().eq("id", id).select();
+    const { data, error } = await supabase.from("social_posts").update({ archived_at: new Date().toISOString() }).eq("id", id).select();
 
     if (error) {
       console.error("Supabase Delete Error:", error);

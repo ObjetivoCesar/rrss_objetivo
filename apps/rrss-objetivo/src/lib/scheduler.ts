@@ -251,9 +251,14 @@ export async function processPendingPosts() {
               const lowerUrl = url.toLowerCase();
               const isVideo = lowerUrl.endsWith('.mp4');
               const isImage = lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.webp') || url.includes('image-proxy');
+              
               return {
                 media_type: isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'LINK'),
                 url,
+                image_url: isImage ? url : null,
+                video_url: isVideo ? url : null,
+                type: isVideo ? 'video' : (isImage ? 'image' : 'link'),
+                is_link: !isVideo && !isImage,
                 is_image: isImage,
                 is_video: isVideo
               };
@@ -262,14 +267,29 @@ export async function processPendingPosts() {
 
       const payload = {
         api_secret: MAKE_WEBHOOK_SECRET,
+        version: "v2-media-link-fixed-101",
         post_id: post.id,
         text: post.content_text,
+        media_url: mediaUrls.find(m => m.is_image)?.url || (mediaUrls.find(m => m.is_video)?.url) || null,
         media_urls: mediaUrls,
+        photo_urls: mediaUrls.filter(m => m.is_image).map(m => m.url),
+        video_urls: mediaUrls.filter(m => m.is_video).map(m => m.url),
+        facebook_photos: mediaUrls.filter(m => m.is_image).map(m => ({
+          url: m.url,
+          source: m.url,
+          type: 'Photo',
+          media_type: 'Photo'
+        })),
+        post_media_category: mediaUrls.some(m => m.is_video) ? 'video' : 'image',
         link_para_post: post.link_url || post.video_url || null,
         platforms: post.platforms || [],
         metadata: {
           youtube_title: metadata.youtube_title || '',
           youtube_description: metadata.youtube_description || '',
+          linkedin_title: metadata.linkedin_title || '',
+          tiktok_privacy: metadata.tiktok_privacy || 'public_to_everyone',
+          tiktok_disable_comment: metadata.tiktok_disable_comment || false,
+          tiktok_disable_duet: metadata.tiktok_disable_duet || false
         },
       };
 

@@ -68,9 +68,9 @@ export default function PostsPage() {
     try {
       const res = await fetch(`/api/posts/delete?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "No se pudo eliminar");
+      if (!res.ok) throw new Error(data.error || "No se pudo archivar");
       
-      toast.success("Post eliminado definitivamente");
+      toast.success("Post archivado (soft delete)");
       setPosts(prev => prev.filter(p => p.id !== id));
     } catch (err: any) {
       toast.error("No se pudo eliminar: " + err.message);
