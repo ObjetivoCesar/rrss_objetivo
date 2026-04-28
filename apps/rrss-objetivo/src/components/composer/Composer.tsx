@@ -208,13 +208,13 @@ export default function Composer() {
         is_evergreen: state.isEvergreen
       };
 
-      if (state.contentType === 'youtube' && state.videoId) {
-        metadata.youtube_id = state.videoId;
+      if (state.contentType === 'youtube' && state.videoUrl) {
+        if (state.videoId) metadata.youtube_id = state.videoId;
         metadata.youtube_url = state.videoUrl;
       }
 
-      if (state.contentType === 'link' && state.linkPreviewData) {
-        metadata.link_preview = state.linkPreviewData;
+      if (state.contentType === 'link' && state.linkUrl) {
+        if (state.linkPreviewData) metadata.link_preview = state.linkPreviewData;
         metadata.link_url = state.linkUrl;
       }
 
