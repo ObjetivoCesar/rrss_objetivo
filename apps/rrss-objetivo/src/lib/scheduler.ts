@@ -244,21 +244,31 @@ export async function processPendingPosts() {
           .eq('id', post.id);
       }
 
-      const mediaUrls = Array.isArray(cleanedUrls)
-        ? cleanedUrls
-            .filter((url: string | null) => url && typeof url === 'string')
-            .map((url: string) => {
-              const lowerUrl = url.toLowerCase();
-              const isVideo = lowerUrl.endsWith('.mp4');
-              const isImage = lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.webp') || url.includes('image-proxy');
-              return {
-                media_type: isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'LINK'),
-                url,
-                is_image: isImage,
-                is_video: isVideo
-              };
-            })
-        : [];
+      const allUrls = [...(cleanedUrls || [])];
+      
+      // Inject video_url or link_url if media_urls is empty, so Make.com receives it
+      if (allUrls.length === 0) {
+        if (post.video_url) {
+          allUrls.push(post.video_url);
+        } else if (post.link_url) {
+          allUrls.push(post.link_url);
+        }
+      }
+
+      const mediaUrls = allUrls
+        .filter((url: string | null) => url && typeof url === 'string')
+        .map((url: string) => {
+          const lowerUrl = url.toLowerCase();
+          // Meta API primarily requires .mp4 or direct video URLs
+          const isVideo = lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be') || lowerUrl.includes('mediadelivery.net');
+          const isImage = lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.webp') || url.includes('image-proxy');
+          return {
+            media_type: isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'LINK'),
+            url,
+            is_image: isImage,
+            is_video: isVideo
+          };
+        });
 
       const payload = {
         api_secret: MAKE_WEBHOOK_SECRET,
