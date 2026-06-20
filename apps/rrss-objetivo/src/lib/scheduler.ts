@@ -3,9 +3,11 @@ import { deleteFromSupabase, realizeMediaUrls, uploadToSupabase } from './storag
 import { logger } from './logger';
 import fetch from 'node-fetch';
 import { processImageFromUrl } from './image-utils';
+// MetaPublisher desactivado — canal Make.com restaurado (2026-06-20)
 
-const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL!;
-const MAKE_WEBHOOK_SECRET = process.env.MAKE_WEBHOOK_SECRET!;
+// Legacy Make.com config (mantenido para compatibilidad durante la transición)
+const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL;
+const MAKE_WEBHOOK_SECRET = process.env.MAKE_WEBHOOK_SECRET;;
 
 // Tiempo máximo que un post puede estar en 'processing' antes de ser recuperado
 const PROCESSING_TIMEOUT_MINUTES = 10;
@@ -53,52 +55,9 @@ async function recoverStuckPosts() {
 }
 
 /**
- * Envía el post a Make.com con reintentos automáticos.
- * Retorna true si tuvo éxito, false si agotó los reintentos.
- */
-async function sendToMakeWithRetry(payload: any, postId: string): Promise<boolean> {
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      await logDebug(`📤 [Scheduler] Intento ${attempt}/${MAX_RETRIES} — Post ${postId}`);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        return true;
-      }
-
-      const errorText = await response.text();
-      await logDebug(
-        `⚠️ [Scheduler] Make respondió ${response.status} en intento ${attempt}: ${errorText}`,
-        'WARNING'
-      );
-    } catch (err: any) {
-      await logDebug(`⚠️ [Scheduler] Error de red en intento ${attempt}: ${err.message}`, 'WARNING');
-    }
-
-    // Backoff exponencial: 5s, 10s antes del último intento
-    if (attempt < MAX_RETRIES) {
-      await new Promise(r => setTimeout(r, attempt * 5000));
-    }
-  }
-
-  return false;
-}
-
-/**
- * PASO PRE-MAKE: Validación de aspect ratio para posts de Instagram.
+ * PASO PRE-PUBLICACIÓN: Validación de aspect ratio para posts de Instagram.
  * La Graph API de Instagram rechaza imágenes fuera del rango 0.8–1.91 (Error 36003).
- * Este validador bloquea el envío ANTES de gastar operaciones de Make.
+ * Este validador bloquea el envío ANTES de gastar llamadas a la API.
  *
  * @returns null si todo está OK, o un string con el mensaje de error si hay problema.
  */
@@ -307,19 +266,39 @@ export async function processPendingPosts() {
         }
       }
 
-      const success = await sendToMakeWithRetry(payload, post.id);
+      // ─── MAKE.COM WEBHOOK (Canal Oficial Restaurado — 2026-06-20) ────
+      if (!MAKE_WEBHOOK_URL) {
+        throw new Error('MAKE_WEBHOOK_URL no configurada. Verifica el archivo .env.');
+      }
 
-      if (success) {
+      await logDebug(`🚀 [Scheduler] Enviando post ${post.id} a Make.com...`);
+
+      const makeResponse = await fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (makeResponse.ok) {
         await supabaseAdmin
           .from('social_posts')
-          .update({ status: 'published', updated_at: new Date().toISOString() })
+          .update({
+            status: 'published',
+            updated_at: new Date().toISOString(),
+            error_log: null,
+          })
           .eq('id', post.id);
-        await logDebug(`✅ [Scheduler] Post ${post.id} publicado.`);
+        await logDebug(`✅ [Scheduler] Post ${post.id} enviado a Make.com OK`);
       } else {
-        const errorMessage = `Agotó ${MAX_RETRIES} intentos de envío a Make.com`;
+        const errorText = await makeResponse.text();
+        const errorMessage = `Make.com HTTP ${makeResponse.status}: ${errorText}`;
         await supabaseAdmin
           .from('social_posts')
-          .update({ status: 'failed', error_log: errorMessage, updated_at: new Date().toISOString() })
+          .update({
+            status: 'failed',
+            error_log: errorMessage,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', post.id);
         await notifyFailureViaWhatsApp(post.id, errorMessage);
       }

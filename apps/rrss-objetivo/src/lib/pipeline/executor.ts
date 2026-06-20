@@ -88,9 +88,9 @@ export async function runBrainstormPipeline(options: RunPipelineOptions): Promis
     const styleLower = style.toLowerCase()
     let mappedStyle: ContentStyle = 'vlog'
     if (styleLower.includes('educa') || styleLower.includes('enseña') || styleLower.includes('disimulado')) mappedStyle = 'educativo'
-    else if (styleLower.includes('historia') || styleLower.includes('story')) mappedStyle = 'storytelling'
+    else if (styleLower.includes('historia') || styleLower.includes('story') || styleLower.includes('copyfilms')) mappedStyle = 'storytelling'
+    else if (styleLower.includes('controversia')) mappedStyle = 'opinion' // Controversia es similar a opinión/reacción
     else if (styleLower.includes('tuto') || styleLower.includes('paso')) mappedStyle = 'tutorial'
-    else if (styleLower.includes('opini') || styleLower.includes('reac')) mappedStyle = 'opinion'
     else if (styleLower.includes('emo') || styleLower.includes('inspi')) mappedStyle = 'emocional'
     else if (styleLower.includes('tec') || styleLower.includes('pro')) mappedStyle = 'tecnico'
 

@@ -355,6 +355,9 @@ export default function PipelinePage() {
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-violet-500 outline-none transition-colors">
                     <option value="retorical">Retórica Clásica</option>
                     <option value="cta_disimulado">Soft Sell (CTA Disimulado)</option>
+                    <option value="controversia">Video de Controversia</option>
+                    <option value="educacion">Video de Educación</option>
+                    <option value="copyfilms">Comercial (Copy/Films)</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
