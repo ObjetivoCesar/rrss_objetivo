@@ -11,15 +11,16 @@
 - [x] Establecer la regla de precio por contexto de lead (ActivaQR vs. Consultoría de $2,000+) en la documentación maestro.
 - [x] Eliminar archivos obsoletos y redundantes (`PLAN_DISTRIBUCION_SOCIAL_2026.md` y `ESTRATEGIA_STORIES_OPERATIVAS.md`) de `docs/estrategia-posicionamiento/`.
 - [x] Diseñar un [MAPA.md](file:///c:/Users/Cesar/Documents/GRUPO%20EMPRESARIAL%20REYES/PROYECTOS/RRSS_objetivo/Jarvis/MAPA.md) unificado y limpio para que sirva de guía única de posicionamiento a los agentes (Donna y Jarvis).
+- [x] Diseñar y redactar en detalle los guiones, copys e historias de **Sábado y Domingo** para iniciar la Semana 1 en [SEMANA-01-MARCA-PERSONAL.md](file:///c:/Users/Cesar/Documents/GRUPO%20EMPRESARIAL%20REYES/PROYECTOS/RRSS_objetivo/Jarvis/SEMANA-01-MARCA-PERSONAL.md).
 
 ## Archivos tocados
 - `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` — [MODIFICADO] Versión 3.0 de la estrategia de marca personal.
+- `Jarvis/SEMANA-01-MARCA-PERSONAL.md` — [MODIFICADO] Llenado con guiones y copys de Sábado y Domingo (Semana 1).
 - `Jarvis/MAPA.md` — [MODIFICADO] Mapa maestro de posicionamiento limpio y unificado.
 - `estado-sesion.md` — [MODIFICADO] Registro de la sesión y limpieza.
 
 ## Pendientes para la próxima sesión
-- [ ] Definir el copy definitivo del Reel 1 (Domingo/Dolor) para iniciar la Semana 1.
-- [ ] Ampliar calendario en CSV e incluir fin de semana (Sábado y Domingo).
+- [ ] Diseñar el guion y copy de Lunes (Video Cero de la serie "Construyéndome desde cero") y Martes (Caso de Estudio de Titanos Gym Loja).
 - [ ] Enviar propuesta a Ing. Carlos Rafael Reyes por WhatsApp.
 
 ---
