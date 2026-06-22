@@ -1,0 +1,255 @@
+<!-- // DEPRECADO 2026-05-02 — MUDADO A .agents/skills/skill-madre/SKILL.md -->
+# ⚠️ ARCHIVO LEGACY (AUDITORÍA PENDIENTE)
+La fuente de verdad absoluta para el ADN de OBJETIVO ahora vive en la Skill Madre.
+
+# OBJETIVO — Empresa de Tecnología a Medida
+## Documento Maestro v1.0 — Abril 2026
+
+> *"No me creas a mí. Mira el sistema funcionando. Eso es lo que OBJETIVO entrega."*
+
+---
+
+# PARTE I — VISIÓN GLOBAL DE LA EMPRESA
+
+## 1.1 ¿Qué es OBJETIVO?
+
+OBJETIVO es la empresa de tecnología a medida del Grupo Empresarial Reyes, fundada y dirigida por César Reyes Jaramillo, con sede en Loja, Ecuador. Su misión es resolver los problemas operativos reales de empresas ecuatorianas mediante software personalizado, automatizaciones inteligentes e integración de inteligencia artificial — sin plantillas genéricas, sin código importado, sin soluciones "para todo el mundo".
+
+OBJETIVO no vende tecnología. Vende **eficiencia operativa demostrable** — antes y después, con números.
+
+El diferenciador no es la tecnología en sí misma. Es que **OBJETIVO entiende el negocio del cliente antes de escribir una sola línea de código.**
+
+---
+
+## 1.2 El ADN filosófico de OBJETIVO
+
+Existe una brecha enorme entre las herramientas tecnológicas disponibles y la capacidad real de las empresas ecuatorianas para adoptarlas y explotarlas. Las grandes empresas tienen departamentos de IT. Las medianas y pequeñas tienen... WhatsApp, Excel y buena voluntad.
+
+OBJETIVO llena esa brecha.
+
+No con soluciones genéricas importadas (que nadie usa después del primer mes), sino con sistemas que:
+1. Nacen del proceso real de la empresa, no al revés
+2. Se explican en el idioma del usuario, no en jerga técnica
+3. Se entregan funcionando, no como "versión beta"
+4. Se mantienen y evolucionan con el negocio
+
+> *"Cualquier empresa puede contratar un sistema. Lo difícil es que el sistema se adapte a cómo trabaja tu empresa — no que tu empresa tenga que adaptarse al sistema."*
+
+---
+
+## 1.3 El protagonista NO es César, es el resultado
+
+A diferencia de la marca personal, en OBJETIVO el protagonista es el **producto funcionando y el resultado del cliente**.
+
+El contenido de OBJETIVO muestra:
+- Pantallas del sistema operando en tiempo real
+- Flujos de trabajo antes (manual/caótico) vs. después (automatizado/visible)
+- Testimonios de clientes reales con métricas concretas
+- Demostraciones de "dos clics" que muestran el valor sin explicaciones largas
+
+---
+
+# PARTE II — PORTAFOLIO DE SERVICIOS
+
+## 2.1 Software a Medida (CRM, ERP, Sistemas de Gestión)
+
+**Para:** Empresas con procesos internos que dependen de Excel, WhatsApp o sistemas que ya no escalan con el negocio.
+
+OBJETIVO construye sistemas de gestión personalizados que se convierten en el sistema nervioso central de la empresa: registro de clientes, seguimiento de ventas, gestión de inventarios, control de personal, reportes automáticos.
+
+**Stack tecnológico:**
+- Frontend: Next.js (mismo stack de Google y Netflix — velocidad y escalabilidad garantizadas)
+- Backend: Node.js + Supabase (base de datos en tiempo real, RLS y seguridad robusta)
+- Integraciones: WhatsApp Business API, pasarelas de pago, Google Workspace
+
+**Ejemplos de sistemas entregados:**
+- Hexadent: sistema de gestión clínica odontológica (agenda, fichas, pagos)
+- Aquatech: plataforma de distribución y pedidos de agua purificada
+
+---
+
+## 2.2 Automatización de Procesos
+
+**Para:** Empresas que tienen procesos repetitivos que consumen tiempo humano valioso — seguimientos, notificaciones, reportes, actualizaciones de base de datos, envío de documentos.
+
+OBJETIVO diseña flujos automatizados que trabajan solos, 24 horas al día, sin error humano.
+
+**Herramientas utilizadas:**
+- n8n (automatización de workflows con lógica compleja)
+- Make.com (integraciones entre plataformas SaaS)
+- WhatsApp Business API (notificaciones y bots conversacionales)
+- APIs propias y de terceros
+
+**Casos de uso típicos:**
+- Notificación automática al cliente cuando su pedido está listo
+- Recordatorio de citas con confirmación por WhatsApp
+- Generación y envío automático de facturas o reportes
+- Sincronización de datos entre plataformas (CRM ↔ contabilidad ↔ inventario)
+
+---
+
+## 2.3 Integración de Inteligencia Artificial
+
+**Para:** Empresas que quieren usar IA de forma práctica para ahorrar tiempo, mejorar la atención al cliente o tomar mejores decisiones basadas en datos.
+
+OBJETIVO no implementa IA "porque está de moda". La implementa donde hay un problema real que la IA resuelve mejor que un humano o que un proceso manual.
+
+**Áreas de aplicación:**
+- **Transcripción y análisis:** Convertir audios de reuniones, llamadas o reclamos en texto estructurado y accionable (base de ActivaQR 2)
+- **Análisis de sentimiento:** Clasificar automáticamente la urgencia y tono de reportes, quejas o mensajes
+- **Chatbots inteligentes:** Atención al cliente automatizada con contexto real del negocio, no respuestas genéricas
+- **Generación de contenido:** Borradores de propuestas, reportes o comunicaciones a partir de datos internos
+- **Clasificación y etiquetado:** Organizar grandes volúmenes de información sin trabajo manual
+
+---
+
+## 2.4 Desarrollo Web Profesional
+
+**Para:** Empresas que necesitan una presencia digital de nivel corporativo — no una plantilla de WordPress, sino un sitio que cargue rápido, posicione en Google y convierta visitas en clientes.
+
+**Tecnología:** Next.js con SEO técnico desde el código — títulos, metadatos, Schema.org, velocidad Core Web Vitals optimizada.
+
+**Diferencia con otras agencias:**
+- El sitio es un activo, no un gasto. Se construye para que trabaje 24/7 generando consultas
+- El SEO está en el código, no en un plugin. No depende de herramientas de terceros
+- El cliente puede actualizar contenido sin tocar código
+
+---
+
+## 2.5 Mantenimiento y Evolución de Sistemas
+
+Los sistemas no son estáticos. Los negocios cambian, crecen, agregan áreas, cambian de proceso. OBJETIVO ofrece planes de mantenimiento mensual que aseguran:
+- Actualizaciones de seguridad
+- Mejoras de rendimiento
+- Nuevas funcionalidades a demanda
+- Soporte prioritario ante incidencias
+
+---
+
+# PARTE III — ESTRUCTURA COMERCIAL
+
+## 3.1 Principios de Precio
+
+OBJETIVO cobra por la solución, no por las horas. El precio refleja:
+- La complejidad del sistema (número de módulos, integraciones, usuarios)
+- El impacto medible en la operación del cliente
+- El tiempo de desarrollo y personalización
+
+**Rangos orientativos de inversión:**
+
+| Tipo de proyecto | Rango de Inversión |
+|---|---|
+| Automatización simple (1-2 flujos) | $300 – $800 |
+| Automatización compleja (múltiples flujos e integraciones) | $800 – $2,000 |
+| **Ecosistema de 3 Opciones (SME Pack)** | **Desde $100 - $350** |
+| Sistema de gestión básico (CRM/ERP ligero) | $1,500 – $4,000 |
+| Sistema de gestión complejo (múltiples módulos) | $4,000 – $10,000+ |
+| Sitio web profesional | $1,000 – $3,000 |
+| Integración de IA en sistema existente | $500 – $2,500 |
+| Mantenimiento mensual | $150 – $600/mes |
+
+### 3.2 El Modelo SME (Pequeñas y Medianas Empresas) — NUEVO 2026
+Para negocios que necesitan digitalización por fases sin una inversión inicial masiva de desarrollo a medida.
+
+1. **Opción A: Infraestructura y Posicionamiento (Desde $350)**
+   - Migración a Next.js y SEO Local.
+2. **Opción B: Ecosistema CRM (Desde $300)**
+   - Registro multimedia (fotos/video), Control de Gastos por obra, Agendamiento y modo Offline.
+3. **Opción C: Vallas Publicitarias Móviles (Desde $100)**
+   - QR vehicular de alta conversión y landing page dinámica.
+
+> Los rangos varían según alcance exacto, tiempos y requerimientos específicos del cliente.
+
+---
+
+## 3.2 Modelo de Fases
+
+Los proyectos grandes se dividen en fases para reducir el riesgo del cliente y permitir validación antes de continuar:
+
+- **Fase 1:** MVP funcional con los módulos core (50-60% del proyecto)
+- **Fase 2:** Funcionalidades avanzadas, integraciones y automatizaciones
+- **Fase 3 (si aplica):** Escala, IA avanzada, reportería y módulos adicionales
+
+Cada fase tiene su propio costo y entregables definidos antes de comenzar.
+
+---
+
+## 3.3 Proceso de Venta
+
+1. **Diagnóstico inicial (gratuito, 30-60 min):** Entender el proceso actual, el problema real y el impacto esperado.
+2. **Propuesta técnica y comercial personalizada:** No hay plantillas. Cada propuesta es específica para el problema del cliente.
+3. **Aprobación de Fase 1:** Se comienza siempre por la fase de mayor valor con menor riesgo.
+4. **Entrega iterativa:** El cliente ve avances reales, no "estamos trabajando en eso".
+5. **Capacitación:** OBJETIVO no entrega un sistema sin enseñar a usarlo. La adopción es parte del proyecto.
+6. **Mantenimiento:** Se ofrece siempre un plan post-entrega. Un sistema sin mantenimiento es un sistema que muere.
+
+---
+
+## 3.4 Con quién NO trabaja OBJETIVO
+
+- Clientes que solo quieren "algo barato" sin claridad sobre el problema que quieren resolver
+- Proyectos donde el cliente no tiene disponibilidad para las sesiones de levantamiento de requerimientos
+- Empresas que quieren copiar el sistema de otra empresa sin adaptación (no hacemos clonaciones)
+- Clientes que esperan que OBJETIVO defina el negocio por ellos — OBJETIVO construye la herramienta, no la estrategia de negocio
+
+---
+
+# PARTE IV — EQUIPO Y MÉTODO DE TRABAJO
+
+## 4.1 El Equipo
+
+OBJETIVO opera con un equipo pequeño y de alta especialización:
+- **César Reyes Jaramillo:** Dirección estratégica, relación con el cliente y arquitectura de soluciones
+- **Abel:** Desarrollo técnico, implementación y control de calidad
+
+El modelo de equipo reducido garantiza que quien habla con el cliente es quien realmente entiende el problema — no hay intermediarios que distorsionen la información.
+
+---
+
+## 4.2 Metodología de Trabajo
+
+1. **Levantamiento de requerimientos:** Sesiones estructuradas para mapear el proceso actual y el proceso deseado
+2. **Diseño de arquitectura:** Antes de programar, se define la estructura de datos, flujos y pantallas
+3. **Desarrollo iterativo:** Entregas por módulos, con validación del cliente en cada etapa
+4. **Pruebas con usuarios reales:** No se entrega un sistema que solo funciona en el computador del desarrollador
+5. **Documentación:** Todo sistema entregado incluye manual de usuario básico
+
+---
+
+# PARTE V — ESTRATEGIA DE CONTENIDO Y POSICIONAMIENTO
+
+## 5.1 El Contenido de OBJETIVO
+
+El contenido de OBJETIVO muestra resultados, no procesos internos. El formato predominante es:
+- **Grabaciones de pantalla** mostrando el sistema en uso real
+- **Antes vs. Después:** El proceso manual que reemplazamos vs. el sistema que construimos
+- **Casos de éxito narrados por el cliente** (video testimonial o texto con métricas)
+
+---
+
+## 5.2 Posicionamiento en Ecuador
+
+OBJETIVO no compite con las grandes agencias de Quito o Guayaquil. Compite con la inercia — con el "seguimos usando Excel porque siempre lo hemos hecho así". El argumento no es tecnológico, es económico:
+
+> *"¿Cuánto te cuesta al mes tener a una persona haciendo a mano algo que un sistema haría en segundos? Ese es el precio real de no automatizar."*
+
+---
+
+## 5.3 Relación con las Otras Marcas
+
+- **César Reyes:** La puerta de entrada. Los clientes que confían en César como persona llegan a OBJETIVO con predisposición positiva.
+- **ActivaQR:** Producto complementario. Muchos clientes de OBJETIVO también son candidatos para ActivaQR 1 o ActivaQR 2.
+
+---
+
+## 5.4 Canales de Contacto
+
+- **WhatsApp:** +593 98 323 7491
+- **Web OBJETIVO:** En construcción (proyecto prioritario Q2 2026)
+- **LinkedIn:** OBJETIVO Ecuador
+- **Instagram:** @objetivo.ec
+
+---
+
+*Documento Maestro elaborado por análisis de fuentes primarias: catálogo de servicios, proyectos entregados y estrategia comercial — Abril 2026*
+*Versión 1.0 — Para uso interno y estratégico*

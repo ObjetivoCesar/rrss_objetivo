@@ -1,0 +1,120 @@
+const fetch = require('node-fetch');
+
+// Versión de IMPACTO FINAL: Copy Directo + CTA Corporativo
+const body = {
+  "id": "podocarpus-ecosistema-2026",
+  "hero_image": "https://cesarweb.b-cdn.net/activaqr/cooperativa_podocarpus_loja.webp",
+  "portada": {
+    "etiqueta": "Ecosistema Digital 2026",
+    "titulo_principal": "\u00bfQuiere ser el #1 en Loja?",
+    "titulo_destacado": "Cooperativa <span>Podocarpus</span>",
+    "subtitulo": "Podocarpus: La cooperativa m\u00e1s moderna de Loja.",
+    "preparado_para": "Sr. Wilmer Gonz\u00e1les (Presidente)",
+    "preparado_por": "Ing. C\u00e9sar Reyes Jaramillo",
+    "fecha": "Abril 2026",
+    "imagen_url": "https://cesarweb.b-cdn.net/activaqr/cooperativa_podocarpus_loja.webp",
+    "url_fondo": "https://cesarweb.b-cdn.net/activaqr/cooperativa_podocarpus_loja.webp",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "El fin de la gesti\u00f3n manual\ny el inicio de la era digital.",
+    "parrafos": [
+      "Usted tiene cosas m\u00e1s importantes que hacer que perseguir socios para cobrar. Los reportes en papel no deber\u00edan perderse: deber\u00edan estar en su celular.",
+      "La Cooperativa Podocarpus tiene 74 unidades que son en potencia vallas publicitarias m\u00f3viles. Es momento de activar ese canal de ingresos con publicidad digital en cada bus.",
+      "**Con esta propuesta, el control de la cooperativa no vive en un archivero, sino en la palma de su mano.**"
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Nodo 1 \u00b7 Fase de Autoridad",
+      "nombre": "Autoridad Web e Ingresos Extra",
+      "eslogan": "\"Sea la primera opci\u00f3n cuando alguien busque transporte\"",
+      "precio": "Desde $700",
+      "precio_subtitulo": "Inversi\u00f3n inicial",
+      "descripcion": "No es solo una p\u00e1gina web; es su vitrina digital. 74 unidades circulando con un QR que conecta a los padres directamente con la cooperativa. \n\n**Beneficio:** Capacidad de generar ingresos anuales extra vendiendo espacios publicitarios digitales a negocios locales en su propio portal.",
+      "entregables": [
+        "Portal Corporativo de Alto Impacto",
+        "Estrategia SEO 'Loja Dominante'",
+        "Sistema de Gesti\u00f3n de Sponsors (Ingresos Publicitarios)"
+      ],
+      "nota_especial": "Este nodo se autofinancia con los primeros patrocinadores locales.",
+      "detalles_pie": [
+        "\u23f1 <strong>Implementaci\u00f3n:</strong> 15 d\u00edas",
+        "\ud83d\udcc8 <strong>ROI:</strong> Recuperaci\u00f3n en < 3 meses"
+      ]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Nodo 2 \u00b7 Fase Operativa",
+      "nombre": "Centro de Mando desde el Celular",
+      "eslogan": "\"Deje de perseguir socios; controle todo desde su smartphone\"",
+      "precio": "Desde $1,200",
+      "precio_subtitulo": "Implementaci\u00f3n CRM",
+      "descripcion": "Un CRM operativo dise\u00f1ado para el transporte. 74 oficinas digitales donde usted controla morosidad, contabilidad SEPS y cumplimiento administrativo en tiempo real.",
+      "entregables": [
+        "Dashboard de Comando (KPIs y Morosidad)",
+        "Gesti\u00f3n Digital de los 74 Socios",
+        "Log\u00edstica y Rutas en Mapa T\u00e1ctico",
+        "Recaudaci\u00f3n e Historial de Cobros",
+        "Alertas de Mantenimiento Preventivo",
+        "Contabilidad SEPS y Finanzas",
+        "Portal Privado para el Socio",
+        "Tracking Hist\u00f3rico de Recorridos"
+      ],
+      "nota_especial": "Control total de morosidad y cumplimiento administrativo sin mover un papel.",
+      "detalles_pie": [
+        "\u23f1 <strong>Implementaci\u00f3n:</strong> 30 d\u00edas",
+        "\ud83d\udd12 <strong>Seguridad:</strong> Datos encriptados"
+      ]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Nodo 3 \u00b7 Fase de IA",
+      "nombre": "WhatsApp: Atenci\u00f3n las 24 horas autom\u00e1tico",
+      "eslogan": "\"Su cooperativa responde mientras usted descansa\"",
+      "precio": "Desde $700",
+      "precio_subtitulo": "Ecosistema Inteligente",
+      "descripcion": "WhatsApp con IA entrenada para atender a padres y clientes corporativos las 24 horas del d\u00eda. Cierre contratos y resuelva dudas sin levantar un dedo.",
+      "entregables": [
+        "Asistente Inteligente de Ventas y Rutas",
+        "Canal de Notificaciones de Cobro Autom\u00e1tico",
+        "Generador de Comunicados Estrat\u00e9gicos con IA"
+      ],
+      "nota_especial": "Ahorro estimado de 15+ horas de gesti\u00f3n semanal.",
+      "detalles_pie": [
+        "\u23f1 <strong>Implementaci\u00f3n:</strong> 10 d\u00edas",
+        "\ud83e\udd16 <strong>Tecnolog\u00eda:</strong> IA de Vanguardia"
+      ]
+    }
+  ],
+  "cierre": {
+    "titulo": "Tecnolog\u00eda que trabaja por usted",
+    "texto": "\u00bfListo para comenzar la modernizaci\u00f3n? Escr\u00edbame a negocios@cesarreyesjaramillo.com para coordinar el inicio de la Fase 1.",
+    "frase_final": "La tecnolog\u00eda a favor <span>del transportista.</span>"
+  }
+};
+
+async function publish() {
+  console.log('🚀 Publicando Versión Final (Corrección imagen_url + Desde + Copy)...');
+  const resp = await fetch('https://cesarreyesjaramillo.com/api/webhooks/cotizaciones', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer CesarQuotes2026',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  
+  if (resp.ok) {
+    const data = await resp.json();
+    console.log('\u2705 Publicada con \u00e9xito!');
+    console.log('\ud83d\udd17 URL:', data.url || 'https://cesarreyesjaramillo.com/cotizaciones/podocarpus-ecosistema-2026');
+  } else {
+    const text = await resp.text();
+    console.error('\u274c Error publicando:', resp.status, text);
+  }
+}
+
+publish();
+

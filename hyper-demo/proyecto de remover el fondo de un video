@@ -1,0 +1,66 @@
+OBJETIVO — Brief Técnico para Antigravity
+Pipeline: Remoción de Fondo en Videos + Composición con Fondo Nuevo
+Contexto del proyecto
+César graba sus videos en una salita con fondo blanco y luz natural. El objetivo es procesar esos videos localmente (sin pagar servicios externos) para:
+
+→	Eliminar el fondo blanco usando IA de segmentación
+→	Reemplazarlo por una imagen de fondo nueva (imagen estática o video de fondo)
+→	Exportar el resultado final como .mp4 listo para publicar
+
+Todo el pipeline debe correr en el VPS Hostinger KVM2 existente o en local, sin costos adicionales. Las herramientas son 100% open source.
+
+Stack de herramientas
+El pipeline usa estas tres herramientas encadenadas:
+
+→	backgroundremover (PyPI: nadermx/backgroundremover) — remoción de fondo con IA (modelo u2net), soporta video directo
+→	FFmpeg — composición del video sin fondo sobre el fondo nuevo
+→	Python 3.10+ — para el script de orquestación y automatización del batch
+
+Si la máquina tiene GPU NVIDIA: instalar PyTorch con CUDA para velocidad 5-10x. Si no, CPU también funciona (más lento pero funcional).
+
+Hitos de implementación
+HITO 1: Entorno y dependencias
+Crear entorno virtual Python. Instalar backgroundremover, torch, ffmpeg-python y ffmpeg en sistema. Verificar que backgroundremover procesa correctamente un video corto de prueba (10-15 segundos) y genera el .mov con canal alpha.
+Criterio de éxito: el video de prueba sale con fondo transparente, sin errores en consola.
+
+Comando de verificación rápida:
+python -m backgroundremover.cmd.cli -i "test.mp4" -mk -o "test_nobg.mov"
+
+HITO 2: Script de composición con FFmpeg
+Crear script Python que reciba: (1) el .mov sin fondo generado en Hito 1, y (2) una imagen de fondo elegida por César. El script compone ambos con FFmpeg y exporta el .mp4 final.
+El script debe manejar automáticamente la resolución: tomar las dimensiones del video original y escalar el fondo a esa misma resolución antes de componer.
+Criterio de éxito: el .mp4 resultante muestra a César sobre el fondo nuevo, sin artefactos evidentes en los bordes.
+
+Lógica FFmpeg esperada:
+ffmpeg -i fondo.jpg -i video_nobg.mov -filter_complex "[0]scale=W:H[bg];[bg][1]overlay=0:0" -c:v libx264 output.mp4
+
+HITO 3: Script unificado (pipeline de un solo comando)
+Unir los dos pasos anteriores en un único script Python: recibe el video original + la imagen de fondo, y entrega directamente el .mp4 final. Sin pasos manuales intermedios.
+El script debe copiar también el audio del video original al output final (backgroundremover elimina el audio, FFmpeg lo restaura).
+Criterio de éxito: se ejecuta con un comando, y el resultado tiene video+audio correctos sobre el fondo elegido.
+
+Interfaz esperada del script:
+python pipeline.py --input video.mp4 --bg fondo.jpg --output resultado.mp4
+
+HITO 4: Batch processing para múltiples videos
+Adaptar el script para procesar una carpeta entera. César deposita todos los videos en /input/, indica la imagen de fondo, y el script procesa todos y deja los resultados en /output/.
+Agregar un log básico (nombre de archivo procesado, tiempo, errores) para que César pueda hacer seguimiento.
+Criterio de éxito: 3 videos procesados en batch sin intervención manual entre archivos.
+
+Interfaz esperada batch:
+python pipeline.py --input_folder ./videos/ --bg fondo.jpg --output_folder ./salida/
+
+Consideraciones técnicas importantes
+El fondo es blanco, lo cual es favorable para la segmentación IA. Sin embargo:
+
+→	Si hay sombras en la pared o la iluminación no es uniforme, los bordes van a quedar sucios. Documentar si esto ocurre y en qué tipo de tomas.
+→	El modelo u2net es el recomendado para personas. No cambiar a otros modelos sin probarlo primero.
+→	backgroundremover elimina el audio al procesar. El pipeline DEBE restaurarlo en el paso FFmpeg usando -map para copiar el stream de audio del original.
+→	En CPU, procesar 1 minuto de video puede tomar 10-20 minutos. Planificar el procesamiento en lotes nocturnos si el volumen es alto.
+→	Resolución de salida: mantener la misma del original. No reescalar el video de César.
+
+Entregables esperados de Antigravity
+→	pipeline.py — script unificado y documentado
+→	requirements.txt — todas las dependencias con versiones
+→	README.md breve — cómo instalar y cómo usar (3 comandos máximo)
+→	Un video de muestra procesado como prueba de concepto

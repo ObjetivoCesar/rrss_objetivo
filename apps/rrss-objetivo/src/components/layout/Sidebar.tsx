@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { href: "/donna",     label: "Donna AI",      icon: Sparkles },
   { href: "/metrics",   label: "Métricas",      icon: BarChart2 },
   { href: "/strategy-planner", label: "Estrategia",       icon: PenTool },
+  { href: "/brand-planner",     label: "Spreadsheet",     icon: FileText },
   { href: "/quotes",    label: "Cotizaciones",  icon: Briefcase },
   { href: "/marketing", label: "Marketing",     icon: Megaphone },
   { href: "/settings",  label: "Configuración", icon: Settings },

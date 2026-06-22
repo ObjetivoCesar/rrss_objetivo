@@ -1,0 +1,150 @@
+{
+  "id": "alianza-carlos-masache-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Alianza Comercial",
+    "titulo_principal": "Representación y Ventas ActivaQR",
+    "titulo_destacado": "Tu zona, tus reglas.",
+    "subtitulo": "Preparado para Carlos Masache | Junio 2026",
+    "preparado_para": "Carlos Masache",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Este producto no se explica. Se muestra.",
+    "parrafos": [
+      "Carlos, te propongo algo concreto. Vas a ser el representante comercial de ActivaQR en Cariamanga. No te voy a dar un manual lleno de tecnicismos — te voy a contar exactamente qué vas a hacer cuando estés frente al dueño de un negocio.",
+      "Tu único maletín de ventas es una tarjeta impresa con un código QR. Eso es todo lo que necesitas para salir a cerrar. Lo que ven los clientes cuando escanean ese QR es tan claro, que la venta se hace sola.",
+      "A continuación, el protocolo completo: el producto que vas a vender, cuánto ganas, cómo haces la venta paso a paso, y cómo manejas las objeciones."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "El Producto · ActivaQR",
+      "nombre": "Plan Catálogo Digital ActivaQR",
+      "eslogan": "\"Un sistema de ventas web completo, no un PDF desactualizado.\"",
+      "precio": "$200",
+      "precio_subtitulo": "Setup Inicial (Año 1)",
+      "descripcion": "Venderás el Plan Catálogo Digital ActivaQR para boutiques, almacenes, restaurantes, repuestos y cualquier local comercial. El cliente paga $200 el primer año y $100 anuales de renovación para mantener el servicio activo. Tú solo lo cierras — nosotros hacemos el 100% del trabajo técnico.",
+      "entregables": [
+        "Portal Web y Catálogo por categorías",
+        "Código QR impreso para exhibición en el local",
+        "Pedidos estructurados directos a WhatsApp del dueño",
+        "Actualizaciones en tiempo real desde el celular",
+        "Link propio (ej: activaqr.com/card/mj-mochilas-jampi)",
+        "Soporte técnico y montaje completo en 48 horas"
+      ],
+      "nota_especial": "Nosotros nos encargamos del 100% del desarrollo y la infraestructura técnica.",
+      "detalles_pie": ["⏱ 48 horas de entrega", "📋 Renovación anual: $100"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Tus Ganancias · Comisión",
+      "nombre": "Comisión por Venta Nueva",
+      "eslogan": "\"Dinero rápido, predecible y al instante.\"",
+      "precio": "$50 USD",
+      "precio_subtitulo": "Por cada catálogo cerrado",
+      "descripcion": "Cobrarás $50 en efectivo o transferencia bancaria de manera inmediata, una vez que el cliente realice el pago del setup. Sin límites, sin topes. Si cierras 2 locales al día, son $100 diarios directamente para ti.",
+      "entregables": [
+        "Comisión inmediata de $50 USD por venta",
+        "Pago al instante tras el abono del cliente",
+        "Sin límites ni topes de ventas mensuales",
+        "Acompañamiento en tus primeros cierres"
+      ],
+      "nota_especial": "El dinero lo recibes tú primero. Tú me transfieres la diferencia a mí.",
+      "detalles_pie": ["💰 Pago al instante", "🚀 Comisiona desde el día uno"]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Paso 1 de 4 · La Entrada",
+      "nombre": "Encuentra al dueño — no al empleado",
+      "eslogan": "\"Si no está el dueño, no pierdas tiempo.\"",
+      "precio": "Protocolo de campo",
+      "precio_subtitulo": "Cómo hacer la venta",
+      "descripcion": "Entra al local con calma. Lo primero que haces es identificar si el dueño está presente. No hay venta sin el dueño.",
+      "entregables": [
+        "Saluda con calma, sin apuro",
+        "Pregunta: «¿Usted es el dueño del negocio?»",
+        "Si no está el dueño: pregunta a qué hora regresa y vuelve",
+        "Objetivo: llegar al tomador de decisiones"
+      ],
+      "nota_especial": "Un empleado nunca decide. Tu tiempo vale. No lo inviertas en quien no puede decir que sí.",
+      "detalles_pie": ["🎯 Solo habla con el dueño", "⏰ Vuelve si no está"]
+    },
+    {
+      "numero": "4",
+      "etiqueta_tiempo": "Paso 2 de 4 · La Demo",
+      "nombre": "El circo del QR",
+      "eslogan": "\"No digas nada mientras carga. Deja que él lo vea.\"",
+      "precio": "Tu tarjeta QR",
+      "precio_subtitulo": "Tu única herramienta",
+      "descripcion": "Cuando estés frente al dueño, saca una hoja impresa con la imagen de un letrero con un QR y dile: «Imagínese que su cliente ve su QR en el letrero». Él escanea el QR de esa hoja, se abre la página demo — ahí está la magia. No expliques nada. Deja que lo vea.",
+      "entregables": [
+        "Saca la tarjeta demo y dile: «Mire, le quiero mostrar algo rápido. Escanéeme este código con su celular.»",
+        "Espera en silencio mientras carga",
+        "Deja que él vea la página sin interrumpir",
+        "Luego dile: «Eso es exactamente lo que sus clientes verían de su negocio. Desde cualquier celular, a cualquier hora, sin que usted tenga que atenderlos.»"
+      ],
+      "nota_especial": "El silencio mientras carga es parte de la estrategia. No lo rompas.",
+      "detalles_pie": ["📱 La demo hace el trabajo", "🤐 Silencio = tensión positiva"]
+    },
+    {
+      "numero": "5",
+      "etiqueta_tiempo": "Paso 3 de 4 · El Dolor",
+      "nombre": "Haz que sienta el problema",
+      "eslogan": "\"Escúchalo. Él te va a dar el cierre.\"",
+      "precio": "Una pregunta",
+      "precio_subtitulo": "Que abre todo",
+      "descripcion": "Después de la demo, haz esta pregunta y cállate. Lo que él describa es exactamente el problema que resuelve ActivaQR. Ese momento es el cierre.",
+      "entregables": [
+        "Pregunta: «¿Cuántas veces al día le escriben por WhatsApp preguntando qué tiene, qué precio tiene, si hay en su talla?»",
+        "Escúchalo sin interrumpir",
+        "Cada cosa que diga es un problema que nosotros resolvemos",
+        "No necesitas convencerlo — él mismo se convence"
+      ],
+      "nota_especial": "La pregunta revela el dolor. Tu trabajo es escuchar, no hablar.",
+      "detalles_pie": ["👂 Escucha activa", "💡 El dolor = la venta"]
+    },
+    {
+      "numero": "6",
+      "etiqueta_tiempo": "Paso 4 de 4 · El Cierre",
+      "nombre": "El precio y lo que necesitas",
+      "eslogan": "\"Si dice que sí, tómale foto al menú ahí mismo.\"",
+      "precio": "$200",
+      "precio_subtitulo": "La frase de cierre",
+      "descripcion": "Presenta el precio sin rodeos y pide los datos en ese mismo momento. No dejes que se vaya a 'pensarlo'. El cierre se hace en el local, en ese instante.",
+      "entregables": [
+        "Di: «Lo que acaba de ver, se lo armamos para su negocio por $200 el primer año. En 48 horas lo tiene funcionando con su propio QR en la puerta.»",
+        "Si acepta: tómale foto a su menú, catálogo o lista de productos con tu celular",
+        "Pídele el nombre del negocio, su WhatsApp y cómo quiere su link",
+        "Envíame esa info y yo proceso el pedido"
+      ],
+      "nota_especial": "Tú consigues la información. Yo programo. Tú cobras tu comisión al instante.",
+      "detalles_pie": ["📸 Foto del menú = cierre hecho", "💰 Tu comisión: $50 inmediatos"]
+    },
+    {
+      "numero": "7",
+      "etiqueta_tiempo": "Objeciones · Respuestas",
+      "nombre": "Cuando dicen que no — qué responder",
+      "eslogan": "\"No es un no. Es una pregunta disfrazada.\"",
+      "precio": "3 frases",
+      "precio_subtitulo": "Que resuelven todo",
+      "descripcion": "Estas son las objeciones que más vas a escuchar y la respuesta exacta para cada una. Memoríza­las.",
+      "entregables": [
+        "«Es muy caro» → «¿Cuánto le cuesta perder un cliente que entró, no encontró lo que buscaba y se fue? Esto vale menos de 60 centavos al día.»",
+        "«No sé de tecnología» → «Lo que vio, ¿le pareció difícil? Es como subir una foto y enviarla por WhatsApp.»",
+        "«Ya tengo WhatsApp Business» → «WhatsApp vive dentro de WhatsApp. Esto vive en internet, en Google, en un QR en su puerta. Son cosas distintas.»"
+      ],
+      "nota_especial": "Si da una cuarta objeción distinta, escríbeme y lo agregamos al protocolo.",
+      "detalles_pie": ["🧠 Respuesta exacta", "📞 Consúltame si hay una nueva"]
+    }
+  ],
+  "cierre": {
+    "titulo": "Lo que me envías cuando cierras",
+    "texto": "Foto del menú, catálogo o lista de productos · Nombre del negocio · Número de WhatsApp del dueño · Nombre que quiere para su link. Yo programo, tú cobras tu comisión de inmediato.",
+    "frase_final": "Nos vemos <span>en la calle.</span>"
+  }
+}

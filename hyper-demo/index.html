@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { 
+        margin: 0; 
+        width: 1080px; 
+        height: 1920px; 
+        overflow: hidden; 
+        background: #000; 
+      }
+      .clip { position: absolute; }
+      
+      /* CONTENEDOR AJUSTADO A ZONA SEGURA (Template NetBangers) */
+      .sub-container {
+        position: absolute;
+        width: 850px; /* Reducido para evitar botones de interacción a la derecha */
+        left: 115px;  /* Centrado respetando márgenes laterales */
+        bottom: 22%;  /* Subido para evitar descripción y barra de música */
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        pointer-events: none;
+      }
+
+      .sub-professional {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 110px; /* Tamaño reducido según petición */
+        line-height: 0.85;
+        color: #ffffff;
+        text-align: center;
+        text-transform: uppercase;
+        text-shadow: 0 10px 40px rgba(0,0,0,0.9);
+        opacity: 0;
+        display: none;
+        letter-spacing: -0.03em;
+      }
+
+      .highlight {
+        color: #FFD60A; /* Dorado OBJETIVO */
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="23.27"
+      data-width="1080"
+      data-height="1920"
+    >
+      <video 
+        id="main-video" 
+        class="clip" 
+        src="clip-limpio.mp4" 
+        data-start="0" 
+        data-duration="23.27" 
+        data-track-index="1"
+        data-has-audio="true"
+        style="width: 100%; height: 100%; object-fit: cover;"
+      ></video>
+
+      <div id="sub-wrapper"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // DATOS REALES SINCRONIZADOS
+      const srtData = [
+        {start: 0.0, end: 0.98, text: "un comentario <span class='highlight'>malo</span>"},
+        {start: 0.98, end: 1.44, text: "en <span class='highlight'>booking</span>"},
+        {start: 1.44, end: 2.42, text: "o google y"},
+        {start: 2.42, end: 3.04, text: "¡ay, ay, ay!"},
+        {start: 3.28, end: 4.08, text: "Para un <span class='highlight'>hotelero</span>"},
+        {start: 4.08, end: 4.94, text: "tener un <span class='highlight'>mal</span>"},
+        {start: 4.94, end: 5.66, text: "comentario en"},
+        {start: 5.66, end: 6.28, text: "<span class='highlight'>Booking</span> o en"},
+        {start: 6.28, end: 7.58, text: "Google es perder"},
+        {start: 7.58, end: 8.52, text: "muchísimo <span class='highlight'>dinero</span>"},
+        {start: 8.88, end: 10.4, text: "Un <span class='highlight'>9.6</span> como"},
+        {start: 10.4, end: 11.14, text: "<span class='highlight'>Remigio</span> no es casual"},
+        {start: 11.66, end: 13.14, text: "sabe <span class='highlight'>exactamente</span>"},
+        {start: 13.14, end: 14.12, text: "qué es lo que pasa"},
+        {start: 14.12, end: 14.96, text: "en su hotel y"},
+        {start: 14.96, end: 15.72, text: "se <span class='highlight'>anticipa</span> a"},
+        {start: 15.72, end: 16.56, text: "que el turista"},
+        {start: 16.56, end: 17.5, text: "saque su <span class='highlight'>aplicación</span>"},
+        {start: 17.5, end: 18.62, text: "y le deje un <span class='highlight'>mal</span> comentario"},
+        {start: 18.86, end: 20.14, text: "Si quieres <span class='highlight'>saber</span> cómo"},
+        {start: 20.14, end: 21.04, text: "lo hace <span class='highlight'>Remigio</span>"},
+        {start: 21.04, end: 22.04, text: "mañana lo estará"},
+        {start: 22.04, end: 23.2, text: "presentando en una <span class='highlight'>historia</span>"}
+      ];
+
+      const wrapper = document.getElementById('sub-wrapper');
+
+      srtData.forEach((s, index) => {
+        const container = document.createElement('div');
+        container.className = 'sub-container';
+        const el = document.createElement('div');
+        el.id = 'sub-' + index;
+        el.className = 'sub-professional';
+        el.innerHTML = s.text;
+        container.appendChild(el);
+        wrapper.appendChild(container);
+
+        const duration = s.end - s.start;
+
+        tl.set(el, { display: "block" }, s.start);
+        tl.fromTo(el, 
+          { opacity: 0, scale: 0.8 }, 
+          { opacity: 1, scale: 1, duration: 0.08, ease: "power2.out" }, 
+          s.start
+        );
+
+        tl.set(el, { display: "none", opacity: 0 }, s.end);
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

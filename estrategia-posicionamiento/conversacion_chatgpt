@@ -1,0 +1,944 @@
+A ver, ayúdame a investigar cómo clonar, no, cómo extraer la información de videos reels virales, extraer el guion, extraer el hook utilizando a ChatGPT o a Claude o a cualquiera de estas inteligencias artificiales. La idea no es que me pases un video de cómo hacer este proceso, los prompts que puedo utilizar para extraer. Quiero investigar lo más actual en 2026, que estén utilizando esto.
+
+Lo que están haciendo muchos creadores y agencias en 2026 ya no es simplemente "transcribir un Reel". El proceso evolucionó a algo mucho más avanzado:
+
+Extraen el transcript.
+Identifican el hook exacto.
+Detectan patrones psicológicos.
+Descomponen la estructura de retención.
+Reescriben el video manteniendo la lógica viral pero adaptándolo a otro nicho.
+
+Han aparecido herramientas específicas para esto como TokScript MCP, TransClipper, ClipDecode y Viral Hook Analyzer, que justamente venden el concepto de "desarmar" videos virales para entender por qué funcionan.
+
+Pero la realidad es que ChatGPT y Claude pueden hacer gran parte de esto si les das el transcript o el enlace junto con la transcripción.
+
+Prompt 1: Extraer la ingeniería inversa de un Reel viral
+
+Este es probablemente el más importante.
+
+Actúa como un analista de crecimiento especializado en TikTok, Instagram Reels y YouTube Shorts.
+
+Voy a darte el guion/transcripción de un video viral.
+
+Tu trabajo NO es resumirlo.
+
+Quiero que hagas ingeniería inversa completa del contenido.
+
+Analiza:
+
+1. Hook utilizado
+- Tipo de hook
+- Patrón psicológico
+- Curiosity gap utilizado
+- Por qué detiene el scroll
+
+2. Estructura narrativa
+- Apertura
+- Desarrollo
+- Escalamiento
+- Clímax
+- Cierre
+
+3. Mecanismos de retención
+- Open loops
+- Promesas implícitas
+- Cambios emocionales
+- Micro recompensas
+
+4. Gatillos psicológicos
+- Curiosidad
+- Miedo
+- Estatus
+- Validación
+- Deseo
+- Dolor
+- Urgencia
+
+5. Momentos exactos donde el espectador sentiría:
+- Intriga
+- Sorpresa
+- Identificación
+- Deseo de compartir
+
+6. Explica por qué este contenido puede hacerse viral.
+
+Finalmente genera una fórmula reutilizable del video.
+Prompt 2: Extraer solamente el Hook
+
+Muchos creadores ya no analizan el video completo.
+
+Analizan únicamente los primeros 3 segundos.
+
+Analiza únicamente el hook de este Reel.
+
+Identifica:
+
+- Primera frase
+- Primera idea
+- Primera emoción
+- Patrón interrupt utilizado
+- Curiosity gap
+- Contradicción utilizada
+- Nivel de agresividad del hook
+- Tipo de audiencia que atrapa
+
+Luego clasifica el hook en una de estas categorías:
+
+- Shock
+- Contradicción
+- Error común
+- Secreto
+- Historia
+- Prueba social
+- Autoridad
+- Resultado extremo
+- Miedo
+- Oportunidad
+
+Finalmente crea:
+
+- 10 variaciones mejores
+- 10 variaciones más agresivas
+- 10 variaciones más emocionales
+Prompt 3: Convertir un Reel viral en una plantilla
+
+Este es muy utilizado por agencias.
+
+Extrae la plantilla universal detrás de este video.
+
+No me expliques el contenido.
+
+Explícame la estructura.
+
+Utiliza este formato:
+
+HOOK:
+[estructura]
+
+TRANSICIÓN:
+[estructura]
+
+DESARROLLO:
+[estructura]
+
+PRUEBA:
+[estructura]
+
+CTA:
+[estructura]
+
+Después convierte toda la estructura en un framework reutilizable que pueda aplicarse a cualquier nicho.
+Prompt 4: Encontrar el ADN viral
+Actúa como un estratega de crecimiento de TikTok.
+
+Analiza esta transcripción.
+
+Quiero descubrir el ADN viral del contenido.
+
+Responde:
+
+¿Qué emoción genera?
+
+¿Qué sesgo cognitivo utiliza?
+
+¿Qué mecanismo hace que la gente siga mirando?
+
+¿Qué hace que la gente comente?
+
+¿Qué hace que la gente comparta?
+
+¿Qué hace que la gente guarde?
+
+¿Qué hace que el algoritmo premie este contenido?
+
+Califica cada factor del 1 al 10.
+Prompt 5: Clonar la lógica viral para otro nicho
+
+Aquí es donde realmente está el dinero.
+
+Analiza este Reel viral.
+
+No copies el contenido.
+
+Extrae únicamente la mecánica psicológica.
+
+Después reescribe el video para el nicho:
+
+[NICHO]
+
+Manteniendo:
+
+- Ritmo
+- Hook
+- Intensidad emocional
+- Curiosity gaps
+- Estructura narrativa
+- Patrón de retención
+
+Pero cambiando completamente el tema.
+Prompt 6: El prompt que están usando para detectar patrones repetidos
+
+Cuando analizan varios videos virales juntos.
+
+Voy a darte 10 transcripciones de videos virales.
+
+Analízalas como un conjunto.
+
+Encuentra:
+
+- Hooks repetidos
+- Patrones repetidos
+- Estructuras repetidas
+- Gatillos emocionales repetidos
+- CTAs repetidos
+- Frases recurrentes
+
+Después crea:
+
+1. El patrón maestro.
+2. La fórmula viral común.
+3. Un framework replicable.
+4. Un sistema para generar videos similares.
+Prompt 7: Extraer escenas y storyboard
+
+Muy potente para recrear videos.
+
+Analiza este Reel.
+
+Divide el contenido escena por escena.
+
+Para cada escena indica:
+
+- Qué ocurre visualmente
+- Qué se dice
+- Qué emoción provoca
+- Qué objetivo tiene
+- Qué mecanismo de retención activa
+
+Después genera un storyboard profesional.
+Prompt 8: Prompt avanzado estilo Claude Opus 2026
+
+Este es más sofisticado.
+
+Actúa como si fueras un equipo formado por:
+
+- MrBeast (retención)
+- Alex Hormozi (hooks)
+- Gary Vee (social media)
+- Un ingeniero de recomendación de TikTok
+- Un estratega de neuromarketing
+
+Analiza este Reel viral.
+
+Debatan internamente.
+
+Luego entreguen:
+
+1. Por qué funciona.
+2. Qué partes son responsables del 80% del rendimiento.
+3. Qué eliminarían.
+4. Qué potenciarían.
+5. Cómo duplicarían los resultados.
+6. Cómo adaptarlo para otra industria.
+Flujo que veo más fuerte para 2026
+
+Los creadores avanzados están usando algo parecido a esto:
+
+REEL VIRAL
+↓
+Transcript
+↓
+Extraer Hook
+↓
+Extraer Curiosity Gaps
+↓
+Extraer Retention Loops
+↓
+Extraer Story Structure
+↓
+Crear Framework
+↓
+Adaptar Framework
+↓
+Generar 20 versiones nuevas
+
+Y justamente varias herramientas nuevas están construidas alrededor de ese concepto de "Video → Blueprint" o "Video → Framework", no simplemente "Video → Transcript".
+
+Para tus proyectos de contenido, especialmente para Aroma de Montaña, Automatizo Tu Negocio y César Reyes, incluso iría un paso más allá y crearía un "Prompt Maestro de Ingeniería Inversa Viral" que tome un Reel, detecte automáticamente el framework y devuelva 30 versiones adaptadas a tu marca personal, ventas, espiritualidad o automatización. Ese enfoque está mucho más alineado con cómo trabajan las agencias de crecimiento en 2026.
+
+Después de investigar lo que ya existe, te diría algo importante:
+
+No estás llegando tarde.
+Pero tampoco estás llegando a un terreno vacío.
+
+Lo interesante es que casi nadie está construyendo exactamente lo que tú describes.
+
+La mayoría de herramientas actuales hacen una de estas tres cosas:
+
+Transcripción
+↓
+Clips automáticos
+
+o
+
+Análisis de hooks
+↓
+Reescritura
+
+o
+
+Generación de shorts
+
+Pero casi ninguna está construyendo una verdadera:
+
+Base de conocimiento viral
+↓
+Patrones estadísticos
+↓
+Generación basada en evidencia
+
+Y ahí está la oportunidad.
+
+Lo que encontré que sí vale la pena estudiar
+1. Video Wizard (GitHub)
+
+Video Wizard GitHub
+
+Probablemente es de los más interesantes para ti.
+
+Ya tiene:
+
+Whisper
+Procesamiento de video
+Subtítulos
+Cola de trabajos
+Arquitectura moderna
+
+Su enfoque es:
+
+Video
+↓
+Transcripción
+↓
+Subtítulos
+↓
+Video vertical
+
+No hace inteligencia viral profunda, pero puede ahorrarte muchísimo trabajo base.
+
+2. ViralClip Swarm
+
+ViralClip Swarm
+
+Este sí me llamó bastante la atención.
+
+Utiliza:
+
+WhisperX
+OpenCV
+Detección de momentos virales
+Audio peaks
+Laughter spikes
+Chat velocity
+
+Básicamente intenta detectar automáticamente los clips con más potencial viral.
+
+Lo estudiaría porque está muy cerca de tu idea de:
+
+Detección de patrones
+3. OpenShorts
+
+OpenShorts
+
+Muy interesante.
+
+Tiene:
+
+Código abierto
+Detección de clips
+Face tracking
+Crop vertical
+Subtítulos
+
+Pero sigue enfocado en:
+
+Crear shorts
+
+No en:
+
+Entender por qué funcionan
+
+Aun así podría servirte para la parte visual.
+
+Lo que sí está apareciendo en 2026
+
+Aquí encontré algo MUY relevante.
+
+TransClipper
+
+TransClipper Viral Analyzer
+
+Ya hacen:
+
+Hook analysis
+Retention analysis
+Viral rewrites
+Pattern extraction
+
+Y están vendiendo exactamente la narrativa que tú mencionaste:
+
+Video
+↓
+Framework
+↓
+Nuevo video
+
+Lo cual valida muchísimo tu idea.
+
+ReelWise
+
+ReelWise
+
+Muy parecido.
+
+Analiza:
+
+Hook
+Pacing
+Psicología
+Reescritura
+
+Pero parece más una capa IA encima de transcripciones.
+
+TokCaption
+
+TokCaption
+
+Esto me interesa por otra razón.
+
+Tiene:
+
+URL TikTok
+↓
+Transcript
+↓
+Timestamps
+↓
+Análisis
+
+Y tiene versión gratuita limitada.
+
+Podrías incluso usarlo al inicio para validar procesos sin programar nada.
+
+Lo que NO encontré
+
+Y esto es lo que más me llamó la atención.
+
+No encontré prácticamente ninguna herramienta que haga:
+
+100 videos
+↓
+Clasificación psicológica
+↓
+Detección estadística
+↓
+Base de conocimiento
+↓
+Generación basada en patrones históricos
+
+Todas se quedan en:
+
+Analizar UN video
+
+Tú estás pensando en:
+
+Analizar TODO un nicho
+
+Y eso cambia completamente el juego.
+
+Lo que haría mañana mismo
+
+No programaría nada todavía.
+
+Haría una prueba de concepto.
+
+MVP
+
+Base de datos:
+
+20 videos virales
+20 medios
+20 malos
+
+Total:
+
+60 videos
+
+Campos:
+
+URL
+Nicho
+Vistas
+Likes
+Comentarios
+Guardados (si existe)
+Duración
+Transcript
+
+Luego IA:
+
+Hook
+Framework
+Emoción
+Open loops
+Curiosity gaps
+Tipo CTA
+
+Después haces la pregunta más importante:
+
+¿La IA encuentra patrones diferentes entre los virales y los malos?
+
+Si la respuesta es sí:
+
+Construyes.
+
+Si la respuesta es no:
+
+Pivotas.
+
+La parte de transcripción
+
+Aquí te ahorro semanas de pruebas.
+
+Si fuera tu sistema hoy:
+
+Opción local
+
+WhisperX.
+
+Sigue siendo de las mejores opciones para:
+
+timestamps
+velocidad
+precisión
+
+Opción ultra rápida
+
+Insanely Fast Whisper.
+
+Está explotando muchísimo este año.
+
+La comunidad lo está usando precisamente para pipelines masivos.
+
+Mi conclusión
+
+No construiría desde cero.
+
+Tomaría piezas ya hechas:
+
+yt-dlp
+↓
+WhisperX
+↓
+GPT / Claude
+↓
+Postgres
+↓
+Vector DB
+
+Y construiría únicamente la capa que no existe:
+
+Viral Intelligence Layer
+
+Porque descargar videos ya existe.
+
+Transcribir ya existe.
+
+Analizar hooks ya existe.
+
+Lo raro todavía es esto:
+
+Analizar cientos de videos
+↓
+Extraer patrones estadísticos
+↓
+Construir conocimiento privado del nicho
+
+Y precisamente ahí veo el verdadero valor de tu proyecto.
+
+¿Cuántas horas crees que tome hacerlo? Lo que pasa es que aquí en estos equipos también trabajan en paralelo, es decir, con un buen planteamiento, un buen PDR, bien diseñado, la gente podría trabajar en paralelo y armarlo simultáneamente, digamos, varias cosas. pero no tengo mucha experiencia. Bueno, igual solo dirijo, ¿no? ¿Cuántas crees que puede tomarle?
+
+Voy a darte una estimación como si estuviera dirigiendo el proyecto, no como desarrollador optimista.
+
+La gran pregunta es:
+
+¿Qué versión quieres construir?
+
+Porque hay tres proyectos completamente distintos escondidos dentro de tu idea.
+
+Nivel 1: MVP funcional
+
+Objetivo:
+
+Pegar URL
+↓
+Descargar video
+↓
+Transcribir
+↓
+Enviar a IA
+↓
+Guardar análisis
+↓
+Consultar resultados
+
+Sin estadísticas avanzadas.
+
+Sin análisis visual.
+
+Sin panel sofisticado.
+
+Sin embeddings.
+
+Tiempo
+
+Con IA moderna (Claude, GPT, Gemini, MiniMax, Cursor, Windsurf, etc.)
+
+Un desarrollador competente:
+
+20 a 40 horas
+
+Un desarrollador junior:
+
+40 a 80 horas
+
+Tú dirigiendo y la IA programando:
+
+1 fin de semana largo a 1 semana
+
+Nivel 2: Lo que realmente te interesa
+
+Aquí ya entra:
+
+Video
+↓
+Transcripción
+↓
+Extracción de patrones
+↓
+Clasificación psicológica
+↓
+Base de datos
+↓
+Comparación entre videos
+↓
+Dashboard
+↓
+Reportes
+
+Ya empiezas a responder:
+
+¿Qué patrones aparecen en los videos exitosos?
+
+¿Qué emociones predominan?
+
+¿Qué hooks se repiten?
+
+Tiempo
+
+Con una arquitectura limpia:
+
+80 a 150 horas
+
+Si hay dos personas trabajando en paralelo:
+
+40 a 80 horas reales
+
+Nivel 3: La versión que yo construiría
+
+Esta es la que tiene potencial de convertirse en producto.
+
+Incluye:
+
+Captura de video
+↓
+Transcripción
+↓
+Análisis textual
+↓
+Análisis visual
+↓
+Extracción de patrones
+↓
+Embeddings
+↓
+Vector DB
+↓
+Motor estadístico
+↓
+Generador de guiones
+↓
+Aprendizaje continuo
+
+Ahora preguntas:
+
+Muéstrame los 10 patrones más efectivos en espiritualidad.
+
+o
+
+Genera un guion basado en los 50 videos con mejor rendimiento del nicho.
+
+Tiempo
+
+Aquí ya estamos hablando de:
+
+200 a 400 horas
+
+Dependiendo del nivel de refinamiento.
+
+Lo que haría si fuera tu CTO
+
+No construiría el Nivel 3.
+
+Todavía no.
+
+Primero validaría que realmente aparecen patrones útiles.
+
+Porque existe un riesgo.
+
+El riesgo oculto
+
+Supón que analizas:
+
+20 virales
+20 medios
+20 malos
+
+Y descubres:
+
+No hay diferencias claras.
+
+Entonces te acabas de ahorrar meses.
+
+Por eso yo haría primero:
+
+Fase 1
+
+Objetivo:
+
+Responder una sola pregunta.
+
+¿Existen patrones estadísticamente visibles?
+
+Eso implica:
+
+Descargar
+Transcribir
+Analizar
+Guardar
+Comparar
+
+Nada más.
+
+Mi estimación para ti
+
+Conociendo cómo trabajas y que ya tienes experiencia coordinando automatizaciones:
+
+Semana 1
+Arquitectura
+Base de datos
+Pipeline
+Descarga
+Transcripción
+
+≈ 15 horas
+
+Semana 2
+Prompts
+Extracción de patrones
+Guardado
+
+≈ 15 horas
+
+Semana 3
+Dashboard
+Consultas
+Estadísticas
+
+≈ 15 horas
+
+Semana 4
+Correcciones
+Pruebas
+Optimización
+
+≈ 15 horas
+
+Total:
+
+50 a 70 horas reales de trabajo bien dirigido.
+
+Y te diré algo que probablemente te guste escuchar:
+
+El 80% del valor no está en el software.
+
+Está en el esquema de clasificación.
+
+La mayoría de desarrolladores construirían la plataforma en pocos días.
+
+Lo difícil es diseñar:
+
+¿Qué es un hook?
+¿Qué es un patrón?
+¿Qué es una emoción?
+¿Qué es un framework?
+¿Cómo se mide?
+¿Cómo se compara?
+
+Ahí está la propiedad intelectual.
+
+El código es relativamente fácil. El modelo mental que estás imaginando es la parte realmente valiosa.
+
+Entonces, como necesito hacer ya unos videos para mañana, porque a partir de mañana publico, creo que voy a utilizar el Pipelines simplemente, hacerlo de forma manual por el momento. Eso sería, me parece que lo más óptimo para ahorita.
+
+Sí, de hecho creo que es la decisión correcta.
+
+No por falta de capacidad técnica, sino porque todavía estás en una fase de descubrimiento.
+
+Hay una regla que suele funcionar muy bien en automatización:
+
+Primero demuéstralo manualmente. Después automatízalo.
+
+Porque ahora mismo todavía no sabes exactamente qué campos vas a guardar.
+
+Por ejemplo, hoy crees que necesitas:
+
+Hook
+Emoción
+Open loops
+Framework
+
+Pero después de analizar 30 videos podrías descubrir que lo realmente importante es:
+
+Hook
+Primera recompensa
+Cambio emocional
+Patrón visual
+Velocidad narrativa
+
+Y entonces todo el sistema cambia.
+
+Para los videos que quieres publicar mañana, yo haría algo extremadamente simple:
+
+Carpeta 1: Virales
+
+Guarda 10 videos que te hayan llamado la atención.
+
+Carpeta 2: Análisis
+
+Por cada video extrae:
+
+Título
+
+Hook
+
+Promesa principal
+
+Problema que ataca
+
+Emoción dominante
+
+Estructura
+
+CTA
+
+Por qué creo que funcionó
+
+No más.
+
+Carpeta 3: Patrones
+
+Después de los 10 videos pregúntate:
+
+¿Qué hooks se repiten?
+
+¿Qué emociones se repiten?
+
+¿Qué tipo de historias se repiten?
+
+¿Qué tipo de CTA se repiten?
+
+Aquí suele aparecer la magia.
+
+Lo que yo probaría mañana
+
+No intentaría crear 10 videos nuevos.
+
+Intentaría crear solamente 3.
+
+Pero cada uno basado en un patrón distinto.
+
+Por ejemplo:
+
+Video 1
+
+Patrón:
+
+Error común
+↓
+Consecuencia
+↓
+Solución
+Video 2
+
+Patrón:
+
+Historia personal
+↓
+Fracaso
+↓
+Descubrimiento
+↓
+Transformación
+Video 3
+
+Patrón:
+
+Contradicción
+↓
+Demostración
+↓
+Revelación
+
+Luego observas cuál responde mejor.
+
+Porque ahí empiezas a construir tu propio dataset.
+
+Y hay algo que me parece especialmente interesante para ti.
+
+No analizaría videos genéricos de marketing.
+
+Analizaría únicamente:
+
+Espiritualidad
+Desarrollo personal
+Emprendimiento
+Automatización de negocios
+Agricultura regenerativa
+Turismo experiencial
+
+Que son los mundos donde te mueves.
+
+Porque los patrones de un influencer fitness o de humor pueden tener millones de vistas, pero probablemente aporten poco para proyectos como Aroma de Montaña o tu marca personal.
+
+Si mañana necesitas publicar, una buena meta no es construir el sistema completo. Es terminar el día con:
+
+10 videos analizados
+↓
+3 patrones detectados
+↓
+3 guiones nuevos creados
+↓
+3 publicaciones listas
+
+Si eso funciona, ya tendrás evidencia real para decidir qué parte del proceso merece ser automatizada primero. Ahí el desarrollo deja de ser una apuesta y pasa a ser una optimización de algo que ya está produciendo resultados.

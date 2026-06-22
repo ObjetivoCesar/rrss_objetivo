@@ -1,0 +1,65 @@
+{
+  "id": "daniel-vivanco-central-market-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Catálogo Digital",
+    "titulo_principal": "Central Market merece estar en el teléfono de sus clientes.",
+    "titulo_destacado": "En pleno centro de Loja, las 24 horas.",
+    "subtitulo": "Preparado para el Sr. Daniel Vivanco | Junio 2026",
+    "preparado_para": "Sr. Daniel Vivanco",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=1974&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Una bodega en el centro merece un catálogo que trabaje solo.",
+    "parrafos": [
+      "Daniel, me comentas que tienes una bodega llamada 'Central Market' en pleno centro de Loja (Rocafuerte y 18 de Noviembre) y que te gustó la idea del catálogo digital. Entiendo perfectamente: tienes un negocio con movimiento constante y necesitas que tus productos estén al alcance de tus clientes incluso cuando no están físicamente en tu local.",
+      "Esta propuesta es directa, funcional y se pone en marcha en pocos días."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Implementación · 1-2 semanas",
+      "nombre": "Catálogo Digital para Central Market",
+      "eslogan": "\"Deja de perder ventas por no estar en el momento correcto.\"",
+      "precio": "$200",
+      "precio_subtitulo": "primer año / $100 renovación",
+      "descripcion": "El catálogo digital que necesitas para dejar de perder ventas. Hasta 20 productos organizados y accesibles desde el teléfono de cada cliente. Primer año $200, renovación $100.",
+      "entregables": [
+        "Catálogo Digital hasta 20 productos",
+        "Código QR para tu local",
+        "Pedidos por WhatsApp estructurados",
+        "Control de stock en 10 segundos",
+        "Actualizaciones sin costo",
+        "Capacitación para que manejes todo"
+      ],
+      "nota_especial": "Incluye diseño del catálogo con tu marca, instalación del QR y configuración completa. Primer año $200, renovación $100.",
+      "detalles_pie": ["⏱ 1-2 semanas", "📋 Facturación: RUC 1103421531001"]
+    }
+  ],
+  "comparativa": {
+    "titulo": "Lo que ganas",
+    "filas": [
+      {
+        "antes": "El cliente pregunta por un producto, no lo tienes, se va a otro lado",
+        "despues": "El cliente ve el catálogo y pide lo que hay disponible"
+      },
+      {
+        "antes": "Pierdes ventas porque no estás en el momento correcto",
+        "despues": "Tu catálogo está 24/7 en el teléfono de tus clientes"
+      },
+      {
+        "antes": "Dependes de que el cliente venga al local",
+        "despues": "Tus clientes pueden pedir por WhatsApp y pasar a recoger"
+      }
+    ]
+  },
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 20 minutos para que puedas tener tu catálogo funcionando esta semana.",
+    "frase_final": "Central Market tiene ubicación privilegiada. Con este catálogo, <span>cada persona que pase</span> frente a tu bodega tendrá todos tus productos en su bolsillo."
+  }
+}

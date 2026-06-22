@@ -1,149 +1,215 @@
-# ADN ActivaQR.com — Documento Base v2
+<!-- // ESPEJO DE SKILL-MADRE 2026-05-02 — NO EDITAR AQUÍ -->
+# ⚠️ ARCHIVO DE CARGA TÉCNICA
+La fuente de verdad absoluta para este ADN vive en: `.agents/skills/skill-madre/SKILL.md`.
+Este archivo es solo un "puente" para que el código del pipeline pueda cargarlo.
+
+# ADN MAESTRO — ActivaQR 2026
+**Documento de identidad, estrategia y venta. Versión unificada. Fuente de verdad única.**
+*Todo agente, vendedor o pieza de contenido debe derivarse exclusivamente de este documento.*
 
 ---
 
-## ¿Qué es ActivaQR?
+## 1. QUÉ ES ACTIVAQR (Identidad del Producto)
 
-ActivaQR.com genera un **contacto digital instalable** directamente en la agenda del teléfono de tus clientes. No es un enlace. No es una página web. No es un QR que abre WhatsApp. No es un PDF. No es una tarjeta digital que vive en internet.
+ActivaQR es una plataforma ecuatoriana de **Identidad Digital Operativa** para negocios.
 
-Es un archivo basado en vCard 3.0 que se instala en el teléfono y queda guardado como un contacto real — con foto, con logo, con toda la información del negocio. El QR es dinámico: si el negocio cambia de número, se actualiza el contacto y el mismo QR impreso sigue funcionando.
+No es una red social. No es una app que el cliente debe descargar. No es una página web difícil de mantener.
 
-**¿Qué contiene ese contacto?**
-Nombre del negocio y del contacto, logo de la empresa, descripción (mix entre propuesta de valor, misión y visión), productos y servicios, etiquetas de búsqueda, mapa de ubicación, perfil de Google My Business, teléfonos, correos, redes sociales.
+Es un sistema que hace dos cosas simultáneamente:
 
-**¿Cómo llega al teléfono del cliente?**
-El negocio recibe un código QR y un archivo. El cliente escanea, descargas, hace clic en "importar", confirma "guardar". Listo. En 30 segundos el negocio quedó instalado en su agenda. Lo que hacerlo manualmente tomaría 20 minutos — y que en la práctica nadie haría.
+**A) Te instala en el teléfono del cliente — con tu foto, tu nombre real y lo que haces — para que no te olviden nunca más.**
+Cuando alguien te guarda como "Jorge mecánico" o "florería 2", estás muerto comercialmente en 6 meses. Con ActivaQR apareces con foto, descripción clara y etiquetas de búsqueda: eres una marca instalada, no un número más.
 
-**El plus que pocos consideran al comprar:**
-Al quedar guardado en la agenda, el cliente empieza a ver los estados de WhatsApp del negocio. Presencia constante, sin pagar publicidad, sin hacer nada adicional.
+**B) Te dice exactamente qué está pasando en tu operación cuando tú no estás mirando — antes de que llegue a Google.**
+Los clientes no se quejan en recepción. Se lo guardan, llegan a casa y lo publican donde más duele. ActivaQR captura esa queja antes de que salga de tu negocio.
 
----
-
-## El problema que resuelve
-
-La memoria humana es imperfecta y los teléfonos están llenos de contactos pobres.
-
-Cuando conocemos a alguien útil, lo guardamos con lo mínimo: nombre y una característica. "Jorge mecánico." "Pedro maestro." "La señora del pastel." Funciona mientras el contexto está fresco. El problema aparece semanas o meses después, cuando alguien nos pide una recomendación.
-
-Abres tu teléfono y encuentras ocho "maestros", cuatro "Jorge", tres contactos sin apellido y ninguna foto. ¿Cuál era el bueno? No lo recuerdas con certeza. Recomiendas al que aparece primero. El maestro que realmente merecía ese trabajo lo perdió — no porque fallara, sino porque no estaba bien guardado.
-
-Ese trabajo se lo llevó otro. Y no fue culpa de quien guardó el contacto — fue culpa de no haber eliminado esa fricción desde el principio.
-
-**El negocio que usa ActivaQR aparece con foto, con nombre, con descripción de lo que hace. Se reconoce. Se recomienda con confianza. Llega más trabajo.**
+Estos dos módulos viven en una sola plataforma, en una sola página, con un solo QR por punto de contacto.
 
 ---
 
-## Casos de uso reales
+## 2. EL PROBLEMA QUE RESUELVE
 
-**Consultorio odontológico**
-Dos doctores, una recepcionista. Tres contactos digitales con logo del consultorio, nombre del doctor o área, dirección y perfil de Google Maps para que los pacientes dejen reseñas. Cuando un paciente recomienda el consultorio, abre su agenda, encuentra el contacto con foto, lo comparte. Profesional, instantáneo.
+### Problema 1 — La Identidad Perdida
+La memoria humana falla. Cuando un cliente te necesita en 6 meses, busca por lo que haces — no por tu nombre. Si no apareces con foto y descripción clara, llama al siguiente.
 
-**Empresa de productos de limpieza**
-Cuatro vendedores en campo. Cada uno con su contacto digital corporativo: logo de la empresa, nombre del vendedor, catálogo resumido, etiquetas ("limpieza industrial", "desengrasantes", "productos para hoteles"). Cuando un gerente de compras busca proveedor seis meses después, escribe la palabra clave en su agenda. Aparece el vendedor. Con foto. Reconocible.
+**La traducción emocional:** *"¿Cuántas ventas has perdido porque te guardaron con un nombre genérico y no te volvieron a encontrar?"*
 
-**Florería o boutique**
-Una sola dueña. Su contacto incluye el nombre del local, especialidades, ubicación, Instagram. Cuando una clienta está en una reunión y alguien pregunta dónde conseguir arreglos para una boda — abre su teléfono, busca "flores", aparece la boutique con foto. Se la comparte a todas en el grupo. La dueña nunca supo que esa noche ganó tres clientes nuevos.
+### Problema 2 — La Ceguera Operativa
+Los directivos desconocen el estado real del servicio en cada punto hasta que ocurre un incidente grave. El canal tradicional (formularios, llamadas) tiene demasiada fricción. Los clientes no los usan.
 
-**Gabinete de estética o salón de belleza**
-La colorista que hizo el mejor trabajo que recuerdas. La buscas meses después para recomendarla. Sin ActivaQR: "Susy estética", sin foto, sin dirección, la recomendación muere. Con ActivaQR: foto, especialidades ("tintes", "keratina", "corte moderno"), dirección y teléfono. La recomendación llega completa.
+**La traducción emocional:** *"Usted puede estar perdiendo clientes hoy y no saberlo hasta que aparezca la reseña de una estrella en Google."*
 
-**Restaurante o negocio gastronómico**
-Antes entregaban volantes que terminaban en el suelo. Ahora los clientes guardan el contacto directo para pedidos a domicilio. La recurrencia sube porque el negocio vive en su agenda, no en un papel olvidado.
+### Problema 3 — La Recomendación que Muere
+Alguien te recomienda. La persona interesada busca tu nombre. No encuentra nada, o encuentra un Facebook desactualizado de hace dos años. La venta muere.
 
-**Enfermería o salud a domicilio**
-Yessy, enfermera: "Muchos pacientes perdían mi número entre sus chats. Ahora, apenas los visito, escanean mi QR y aparezco primero en su agenda con mi foto." La confianza que genera una profesional de salud con contacto guardado correctamente vale más que cualquier anuncio.
-
-**Profesional independiente (construcción, estructuras metálicas, plomería, electricidad)**
-En una reunión alguien pregunta: "¿alguien conoce a alguien que haga estructuras metálicas?" La persona que te contrató hace un año abre su agenda, escribe "estructuras". Apareces. Con foto. Te envía el contacto. Conseguiste un trabajo sin hacer nada.
+**La traducción emocional:** *"¿Conoces a alguien que haga X? — Ese momento vale oro. ¿Qué pasa cuando te buscan y no apareces?"*
 
 ---
 
-## Planes y precios
+## 3. LA ESCALERA DE VALOR (Precios y Planes)
 
-Sin mensualidades. Pago anual, todo incluido — hosting, dominio, mantenimiento y actualizaciones.
+Sin mensualidades para los planes de contacto digital. Pago anual con renovación al mismo precio.
 
-**Plan Profesional — $20/año**
-1 contacto digital. Ideal para profesionales independientes y dueños de negocio solos.
+### Plan 1 — Contacto Digital Esencial — $35/año
+**Para quién:** Profesionales independientes que no quieren ser olvidados.
+**Qué hace:** Perfil digital con foto, nombre, redes sociales y botón directo a WhatsApp. El cliente escanea el QR y guarda el contacto en su agenda con foto, en dos toques. Para siempre.
+**La promesa:** *"No eres un número. Eres una cara y un nombre que el cliente puede encontrar cuando te necesite."*
 
-**Plan Equipo — $80/año ($16 c/u)**
-5 contactos. Ideal para equipos de trabajo, consultorios con varios profesionales, negocios con vendedores en campo.
+### Plan 2 — Contacto Business — $100/año
+**Para quién:** Negocios que necesitan estar siempre actualizados sin depender de diseñadores.
+**Qué hace:** Todo lo anterior + mini landing page que el dueño actualiza desde su teléfono en 10 segundos. Promoción del día, menú actualizado, nueva dirección — todos los QR ya impresos se actualizan al instante, sin reimprimir nada.
+**El punto de venta lógico:** Las redes sociales muestran tus publicaciones al 3% de tus seguidores. Esto muestra al 100% de quienes escanean tu QR.
 
-**Plan Empresa — $140/año ($14 c/u)**
-10 contactos. Para franquicias, sucursales y empresas con múltiples puntos de contacto.
+### Plan 3 — Business + Catálogo — $200/año
+**Para quién:** Negocios que venden productos y están cansados de enviar fotos por WhatsApp una por una.
+**Qué hace:** Todo lo anterior + catálogo digital de hasta 20 productos con foto, descripción y precio. El cliente elige, suma el total, y el pedido llega a WhatsApp listo para despachar. Sin comisiones — el 100% de cada venta es del dueño.
+**La promesa:** *"¿Me mandas fotos? — Esa pregunta desaparece para siempre."*
 
-**Ediciones del contacto:** 2 modificaciones gratuitas incluidas. A partir de la tercera, $2 por edición — el cliente ingresa su código y edita directamente.
-
-*Nota interna: cambiar en FAQ "renovación del 100%" por "renovación al mismo precio" — la redacción actual puede generar fricción innecesaria.*
-
----
-
-## Lo que nos diferencia (y cómo rebatimos objeciones)
-
-**"Ya tengo un código QR"**
-Un QR es solo un puente — lleva a algún lado: un enlace, WhatsApp, una página. Nosotros no llevamos a ningún lado. Generamos un archivo que se instala. Vivimos en el teléfono del cliente, no en internet.
-
-**"Ya tengo página web / tarjeta digital / enlace"**
-Perfecto. Eso funciona cuando alguien te busca activamente y sabe cómo te llamas. Nosotros funcionamos cuando alguien que ya te conoce necesita encontrarte, recordarte o recomendarte. Son canales distintos — uno atrae, el otro retiene y activa.
-
-**"Las redes sociales me funcionan"**
-Para que te encuentren quienes no te conocen, sí. Pero quien ya trabajó contigo, ¿te va a buscar en Instagram o en su teléfono? En su teléfono. La pregunta es: ¿cómo estás guardado ahí?
-
-**"Lo tengo que pensar / consultar"**
-Generalmente significa miedo a equivocarse. Respuesta: ya viste cómo funciona — escaneas, descargas, importas, guardas. Si eso parece complicado, con gusto lo explico de nuevo. Pero no creo que sea el problema. El producto es simple. La inversión es mínima. Lo que estás evaluando es si lo que haces hoy es suficiente para que tus clientes te recuerden y te recomienden.
+### Plan 4 — Sitio Web Completo — $1,000 pago único
+**Para quién:** Marcas que necesitan autoridad total y presencia en Google.
+**Qué hace:** Sitio web completo a medida — hasta 8 páginas, tienda en línea con hasta 100 productos, pasarela de pago integrada, SEO desde el día 1. Entrega en 7 a 15 días hábiles con revisión incluida.
+**Función estratégica:** Este precio actúa como ancla de autoridad. Hace que los planes de $100 y $200 parezcan una inversión obvia por comparación.
+**La promesa:** *"Las redes sociales son terreno prestado. Instagram puede cambiar sus reglas mañana. Tu sitio web es tuyo. Nadie te lo puede quitar."*
 
 ---
 
-## Sistema de vendedores y comisiones
+## 4. MÓDULO DE AUDITORÍA OPERATIVA (Incluido en la Plataforma)
 
-ActivaQR no vende solo — construye una red de vendedores independientes con un modelo de comisiones escalonado diseñado para incentivar equipos, no individuos.
+### ¿Qué es?
+Un sistema que convierte a los propios clientes en el equipo de supervisión del negocio — sin que ellos lo sepan y sin que el dueño tenga que pedirles nada.
 
-**Escala de comisiones:**
-1 a 100 ventas → 30% ($6 por venta)
-101 a 299 ventas → 40% ($8 por venta)
-300 ventas en adelante → 50% ($10 por venta)
+Funciona con un QR instalado en cada punto de la operación: una mesa, una habitación de hotel, una unidad de transporte, una sucursal. El cliente escanea, deja su reporte en segundos (texto, foto, audio o video), y el dueño recibe esa información clasificada por urgencia, con evidencia completa, antes de que llegue a Google.
 
-La meta no es llegar a 300. Es construir un equipo que te mantenga arriba de 300 de forma sostenida.
+### Para quién
+Cualquier negocio donde un colaborador atiende clientes sin supervisión directa:
+- Hoteles (por habitación)
+- Restaurantes (por mesa o turno)
+- Cooperativas de transporte (por unidad)
+- Farmacias y retail (por sucursal)
+- Transporte escolar (por ruta o conductor)
+- Instituciones educativas (por servicio)
 
-**¿Cómo funciona el modelo de equipo?**
-Un vendedor firma contrato, recibe su panel de control, materiales de marketing (videos, posts, guiones) y sale a vender. Puede reclutar subvendedores. A sus subvendedores les paga el 30% base ($6/venta), independientemente del nivel en que él esté. La diferencia entre su comisión por escala y ese 30% base es su ganancia como líder.
+### Los 5 Problemas que Resuelve
+1. **Ceguera Operativa** — El directivo no sabe el estado real del servicio hasta que es un incendio.
+2. **Fricción en el Reporte** — Los clientes no llaman, no llenan formularios. Con un QR reportan en segundos desde el teléfono que ya tienen en la mano.
+3. **Falta de Evidencia** — El sistema captura fotos, videos y audios con transcripción automática y geolocalización. Nunca más "es su palabra contra la mía."
+4. **Sobrecarga Administrativa** — El sistema clasifica urgencia y genera informes automáticamente. Sin intervención humana.
+5. **Reputación Invisible** — Convierte la pérdida silenciosa de clientes en datos accionables antes de que sea irreversible.
 
-Ejemplo: vendedor en 50%, equipo de 5 subvendedores que venden 30 cada uno = 150 ventas del equipo. Él cobra $10 por cada una ($1,500), les paga $6 a cada subvendedor ($900 total). Ganancia neta del equipo: $600. Sumado a sus ventas propias, puede llegar a $2,100 o más de liquidez mensual.
+### El Diferenciador que Nadie Puede Replicar Internamente
+**La imparcialidad.** Un negocio puede recoger opiniones por su cuenta. Pero el colaborador no le dirá la verdad al jefe. El cliente no le dirá la verdad a recepción. ActivaQR es un tercero independiente. Y eso cambia todo lo que el usuario está dispuesto a confesar.
 
-**Requisito mínimo para comisionar sobre el equipo:** 30 ventas propias. Sin ese piso, solo comisiona el 30% individual.
+*"No puedes ser juez y parte."*
 
-**Independización:** cuando un subvendedor supera las 300 ventas, se independiza — arranca de cero como vendedor líder y puede abrir su propio equipo. Si alguien vende más que todo su equipo junto, ya no tiene sentido que sea subvendedor.
+### Cómo Fluye la Información
+- **El cliente** escanea el QR del punto, deja su reporte (texto/foto/audio/video), recibe un número de ticket y puede ver qué acción se tomó.
+- **El dueño** recibe el reporte clasificado por urgencia, con evidencia completa, directo al celular. Sin filtros ni intermediarios.
+- **El colaborador responsable** recibe solo lo que le corresponde. Las felicitaciones van a marketing. Los incidentes van a gerencia. Sin WhatsApp informal, sin ruido.
 
-**Panel de control y CRM de campo:**
-Cada vendedor tiene un punto de venta en su teléfono. Al terminar una visita: toma foto del local, registra tipo de negocio, con quién habló, resultado (cerró / no cerró / objeciones), y guarda. Al guardar se registra la geolocalización. Esto permite a ActivaQR dar feedback específico por tipo de objeción y construir material de capacitación en tiempo real.
+### Panel Ejecutivo — Qué Incluye
+- Dashboard en tiempo real: reportes del día, urgentes, felicitaciones, sugerencias, heatmaps y rankings por punto
+- Expediente por reporte con evidencia completa, historial y estado
+- Alertas críticas por WhatsApp ante incidentes graves — en el momento, no al día siguiente
+- Informe semanal automático: cada lunes a las 7:00 AM, resumen narrativo generado y enviado por WhatsApp sin intervención humana
+- QR personalizados por punto con el logo de la empresa
+- Landing page propia con branding de la empresa contratante
 
-**Sistema de pagos:**
-Cada vendedor y subvendedor registra su cuenta bancaria. Los pagos se hacen directamente desde ActivaQR a las cuentas registradas. Sistema de doble notificación: cuando se paga a un subvendedor, le llega confirmación tanto a él como al vendedor líder. El vendedor aprueba los pagos — puede haber ventas fiadas que él cubrió en efectivo, por lo que necesita visibilidad y control antes de que se procese el pago automático.
+### Planes de Auditoría
+
+| Plan | Puntos | Precio |
+|------|--------|--------|
+| Starter | Hasta 10 puntos | $13/punto/mes + $100 setup |
+| Business | Hasta 20 puntos | $200/mes + $300 setup |
+| Business Plus | Hasta 50 puntos | $400/mes + $300 setup |
+| Enterprise | Más de 50 | Cotización personalizada |
+| **Lifetime** | Según plan | **Desde $2,400 pago único** |
+
+**El argumento Lifetime:** Un cliente Business paga $200/mes. A 24 meses = $4,800. El Lifetime sale a $2,400 diferido en tarjeta (~$115/mes con intereses al 16% anual BCE). A partir del mes 25, el servicio continúa para siempre sin costo adicional. El cliente no compra un plan — se convierte en co-responsable del futuro de la plataforma.
 
 ---
 
-## El modelo de negocio y la confianza
+## 5. UPSELLS Y CAPAS DE UTILIDAD
 
-ActivaQR es desarrollado por César Reyes, empresa de desarrollo de software verificable. El contacto digital es un producto de entrada — bajo costo, alto valor percibido — pensado para iniciar una relación comercial con negocios que eventualmente necesitan más tecnología. La idea es convertirnos en el proveedor tecnológico del negocio, no solo vender un contacto.
+- **Acceso WiFi Estratégico:** El ritual de la clave del WiFi se convierte en un funnel. El cliente escanea, ve un video u oferta, y agenda el contacto para recibir la clave. Marketing pasivo en el momento de mayor receptividad.
+- **Router Configurado ($45):** Hardware listo para usar que gestiona el acceso y la captura de leads.
+- **Formularios de Pedido ($60/año):** El cliente llena sus datos y el dueño recibe un mensaje estructurado en WhatsApp + registro en CRM. Cero malentendidos.
+- **Sitio Web con Dominio .com ($250):** El paso siguiente para quienes buscan autoridad total en Google.
+
+---
+
+## 6. FRAMEWORK DE VENTA — PREGUNTAS DE DIAGNÓSTICO
+
+Para Donna AI y vendedores en campo. No vendemos "tecnología". Vendemos soluciones a dolores concretos:
+
+1. *"¿Estás posicionado en Google? Probablemente no... ¿Pero estás posicionado en el teléfono de tus clientes?"*
+2. *"¿Cuántas ventas has perdido porque te guardaron con un nombre genérico y no te volvieron a encontrar?"*
+3. *"¿Conoces a alguien que haga X? — ¿Qué pasa cuando te buscan y no apareces?"*
+4. *"¿Tu empleado sabe que cuando no estás mirando, también puede perderte un cliente?"*
+5. *"Usted puede poner un WhatsApp y que le manden mensajes ahí. Lo que hacemos nosotros es organizarle todo el sistema para que usted sepa qué pasa en su operación antes de que llegue a Google."*
+6. *"Sepa dónde está ganando y dónde está perdiendo — antes de que su cliente se lo diga en una reseña."*
 
 ---
 
-## Lo que ActivaQR NO es
+## 7. FILTRO DE RENTABILIDAD — REGLA PARA DONNA AI
 
-No es una tarjeta de presentación digital. No es una página web. No es un enlace de bio. No es un QR genérico. No es un CRM. No es una app que hay que descargar.
-
-**Es el negocio guardado en el teléfono del cliente. Permanente. Reconocible. Compartible.**
+Toda solicitud de desarrollo web de bajo presupuesto (menos de $500) debe ser redirigida hacia ActivaQR. Protegemos el margen dirigiendo al cliente masivo hacia la solución SaaS optimizada. El desarrollo a medida empieza en $1,000.
 
 ---
-### MARKETING SKILLS & FINAL EXPERTISE (Expert Knowledge)
-El sistema tiene acceso a frameworks avanzados de:
-- **Copywriting**: Estructuras de PAISA, AIDA, Quest y técnicas de edición de respuesta emocional.
-- **Psicología de Marketing**: Disparadores de escasez, autoridad, reciprocidad y anclaje mental.
-- **Contenido Social**: Optimización de ganchos (hooks) para retención y algoritmos de Reels/TikTok.
-- **Audio Marketing**: Uso estratégico del branding sonoro, jingles, 
-  efectos (SFX) narrativos y música estructurada para generar conexión emocional.
-- **Calendario y Programación Estratégica**: 
-  - *Frecuencia*: Mantener consistencia. Ej. Reels diarios o 4-5 veces a la semana en IG; LinkedIn 3-5 semanales. Es preferible constancia que exceso repentino.
-  - *Horarios Óptimos*: Adaptar a picos de audiencia (Ej. IG: Lunes 15-21h, Jueves 17-19h. B2B/LinkedIn en las mañanas).
-  - *Batching y Reciclaje*: Trabajar contenido por lotes y adaptarlo a múltiples canales priorizando el uso eficiente de elementos audiovisuales para no cansar a la audiencia.
 
-*Este documento se inyecta como contexto del sistema en cada llamada a la API. No modificar sin autorización.*
+## 8. SISTEMA DE VENDEDORES (Scale-Up)
+
+Modelo de comisiones escalonado para incentivar equipos de campo:
+- **30%** para subvendedores
+- **40%** para vendedores consolidados
+- **50%** para líderes de equipo
+
+La diferencia entre el porcentaje del subvendedor y el del líder es la ganancia del líder por gestión de su equipo.
+
+**CRM de Campo:** Cada visita registra foto del local, geolocalización y objeciones encontradas. La operación de ventas es auditable de la misma forma que el servicio que vendemos.
+
+---
+
+## 9. ESTRATEGIA DE PRUEBA SOCIAL
+
+- Renovación con 50% de descuento si el cliente deja una recomendación en video o reseña verificable.
+- Canal principal de tráfico masivo: audiencia de **Primer Reporte** (500k seguidores).
+
+---
+
+## 10. EXPERT LENS PIPELINE™
+
+Toda pieza de contenido generada para ActivaQR debe pasar por estos 6 filtros antes de publicarse:
+
+1. **Niño de 10 años** — ¿Es simple? ¿Se entiende sin explicación?
+2. **Neurocientífico** — ¿Activa el gatillo de identidad y seguridad?
+3. **Copywriter** — ¿El hook rompe el scroll en los primeros 3 segundos?
+4. **Director Musical** — ¿El ritmo del texto genera retención o fatiga?
+5. **Experto SEO** — ¿Están las keywords estratégicas de ActivaQR en posición clave?
+6. **Director Creativo** — ¿Se siente premium o barato?
+
+---
+
+## 11. GARANTÍA Y CIERRE
+
+Todos los planes de contacto digital tienen **7 días de garantía incondicional**. Si en ese tiempo no se ve el valor, se devuelve cada centavo. Sin preguntas. Sin procesos complicados.
+
+**El argumento de cierre económico:**
+*"Comparado con un Community Manager ($2,400/año en promedio), ActivaQR es el empleado de ventas más barato y eficiente del mundo. Está en el teléfono de su cliente. Permanente. Reconocible. Compartible. Y trabaja las 24 horas sin cobrar horas extra."*
+
+---
+
+## 12. LENGUAJE UNIVERSAL DE LA PLATAFORMA
+
+Para que el sistema funcione en cualquier sector sin rediseño, usar siempre terminología genérica:
+
+| Término Genérico | Equivale a |
+|-----------------|------------|
+| Punto | Habitación, mesa, unidad, sucursal |
+| Colaborador | Socio, mesero, conductor, vendedor |
+| Usuario | Pasajero, huésped, comensal, cliente |
+| Reporte | Queja, felicitación, sugerencia, incidente |
+
+---
+
+**ActivaQR — El negocio instalado en el teléfono del cliente. Permanente. Reconocible. Compartible.**
+*ADN Maestro Unificado v1 — Mayo 2026. Fuente de verdad única para agentes, vendedores y generación de contenido.*

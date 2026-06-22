@@ -1,0 +1,84 @@
+{
+  "id": "doris-segarra-caricias-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Tienda Online y Automatización",
+    "titulo_principal": "Caricias merece estar donde sus clientas están.",
+    "titulo_destacado": "Las 24 horas del día, los 7 días.",
+    "subtitulo": "Preparado para Doris Segarra | Junio 2026",
+    "preparado_para": "Doris Segarra",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=2067&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Su tienda de ropa interior merece un sistema que venda solo.",
+    "parrafos": [
+      "Doris, cuenta con una tienda de ropa interior llamada 'Caricias' y busca tener un espacio digital donde sus clientas puedan ver el catálogo completo, comprar sin dificultad y que además le permita posicionarse mejor que la competencia. Esta propuesta está diseñada en etapas progresivas. Usted decide hasta dónde llegar, cuándo avanzar y quién ejecuta cada fase.",
+      "Mi rol es asegurar que cada paso sea técnicamente correcto, estratégicamente coherente y medible en resultados reales."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno · 2-3 semanas",
+      "nombre": "Ecommerce Completo para Caricias",
+      "eslogan": "\"Su tienda en el teléfono de cada clienta, las 24 horas.\"",
+      "precio": "$1,000",
+      "precio_subtitulo": "hasta 40 páginas",
+      "descripcion": "Tu tienda de ropa interior merece estar donde tus clientas están: en su teléfono, las 24 horas. Catálogo completo con hasta 40 páginas, pasarela de pagos y gestión de inventario.",
+      "entregables": [
+        "Sitio web de hasta 40 páginas",
+        "Catálogo Digital Completo por categorías, talles y colores",
+        "Pasarela de Pagos Integrada (transferencias, depósitos, tarjeta)",
+        "Gestión de Inventario en tiempo real",
+        "Diseño profesional que transmite calidad",
+        "Blindaje Legal LOPDP incluido",
+        "Pasarela de pagos Payphone incluida"
+      ],
+      "nota_especial": "Incluye configuración completa, puesta en marcha y capacitación.",
+      "detalles_pie": ["⏱ 2-3 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos · Gestión continua",
+      "nombre": "Manejo de Página Web y Posicionamiento",
+      "eslogan": "\"Su negocio siempre visible, siempre actualizado.\"",
+      "precio": "Desde $250",
+      "precio_subtitulo": "al mes",
+      "descripcion": "Manejo profesional de su página web y posicionamiento en redes sociales. No incluye reels ni publicaciones tradicionales. El servicio cubre la gestión técnica y la optimización continua de su presencia digital.",
+      "entregables": [
+        "Manejo de página web",
+        "Posicionamiento desde redes",
+        "Optimización continua",
+        "Reportes de rendimiento"
+      ],
+      "nota_especial": "No incluye reels ni publicaciones tradicionales.",
+      "detalles_pie": ["📈 Posicionamiento continuo", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres · Automatización",
+      "nombre": "Automatización de WhatsApp Business",
+      "eslogan": "\"Su WhatsApp trabajando 24/7, vendiendo mientras usted duerme.\"",
+      "precio": "$500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Su WhatsApp como herramienta de ventas y atención, trabajando 24/7. La automatización responde consultas, envía catálogos y segmenta clientas automáticamente. El costo de la API de WhatsApp es cubierto directamente por el cliente y se explica en detalle al momento de la implementación.",
+      "entregables": [
+        "Respuestas Automáticas Inteligentes",
+        "Catálogo por WhatsApp",
+        "Segmentación de Clientas",
+        "Base de datos de clientes frecuentes",
+        "Capacitación completa"
+      ],
+      "nota_especial": "El costo mensual de la API de WhatsApp es cubierto directamente por el cliente.",
+      "detalles_pie": ["🤖 Automatización completa", "📊 Sin costo mensual del servicio"]
+    }
+  ],
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 30 minutos para revisar juntos esta propuesta, resolver cualquier duda y definir por dónde empezamos.",
+    "frase_final": "Usted no necesita solo una página web. Necesita un <span>sistema que venda solo.</span>"
+  }
+}

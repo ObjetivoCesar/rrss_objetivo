@@ -1,0 +1,89 @@
+{
+  "id": "sideledi-loja",
+  "portada": {
+    "etiqueta": "Propuesta de Posicionamiento Digital",
+    "titulo_principal": "SIDELEDI Loja merece estar",
+    "titulo_destacado": "donde la encuentran sus pacientes.",
+    "subtitulo": "Presencia digital que funciona cuando Google ya no es el único搜索引擎.",
+    "preparado_para": "Lectura Rápida SIDELEDI Loja",
+    "preparado_por": "César Reyes — OBJETIVO",
+    "fecha": "junio de 2026",
+    "url_fondo": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=2000",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "El problema que nadie te ha dicho.",
+    "parrafos": [
+      "SIDELEDI Loja tiene algo que pocas empresas en la ciudad pueden presumir: 15.000 seguidores en Facebook, presencia activa en redes y una reputación de 5 estrellas en Google. Eso no es poca cosa. Sin embargo, hay una grieta silenciosa que está creciendo justo debajo de ese éxito.",
+      "Hoy, cuando alguien escribe 'lectura rápida Loja' en Google, apareces. Cuando lo escribe en ChatGPT, también apareces. Pero cuando lo escribe en Gemini, el buscador de inteligencia artificial de Google con más de 1.000 millones de usuarios activos, SIDELEDI no existe. En su lugar aparecen ILVEM, Lectio y alternativas online que operan desde Quito y Cuenca.",
+      "Las búsquedas están migrando aceleradamente hacia los asistentes de inteligencia artificial. Y estos asistentes no leen Facebook. Leen páginas web con contenido estructurado, testimonios, preguntas frecuentes y autoridad digital. Quien no tenga eso construido cuando llegue esa ola, simplemente no va a existir para miles de clientes potenciales."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Nivel 1 · 10 días laborables",
+      "nombre": "Presencia Web Profesional",
+      "eslogan": "\"Tu reputación merece una casa propia en internet.\"",
+      "precio": "$500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Una página web de hasta 8 secciones construida sobre tu identidad actual: quiénes son, qué ofrecen, a quién va dirigido, resultados, testimonios, precios y contacto directo. Incluye SEO básico: velocidad de carga, etiquetas correctas, integración con Google Business y configuración inicial para que los motores de búsqueda —incluidos los LLMs— empiecen a leer y entender quién es SIDELEDI.",
+      "entregables": [
+        "Página web de hasta 8 secciones",
+        "SEO básico (velocidad, etiquetas, estructura)",
+        "Integración con Google Business",
+        "Formulario de contacto funcional"
+      ],
+      "nota_especial": "Esto convierte tu tráfico actual de redes en algo concreto. Cuando alguien llega desde Facebook o desde una búsqueda, encuentra una página que cierra, no un perfil que informa.",
+      "detalles_pie": [
+        "⏱ Duración: 10 días laborables",
+        "📄 Facturación: Ing. César Reyes Jaramillo / RUC 1103421531001"
+      ]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Nivel 2 · 18 días laborables",
+      "nombre": "Estrategia Competitiva Completa",
+      "eslogan": "\"El territorio se defiende antes de que llegue la competencia.\"",
+      "precio": "$1.500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Incluye todo lo del Nivel 1, más un análisis profundo de tu competencia local y nacional: qué palabras clave usan, cómo están posicionados, dónde están sus brechas. Con esa información construimos un plan estratégico de 6 meses con objetivos claros, contenido orientado a posicionamiento y una arquitectura web diseñada para aparecer cuando alguien le pregunta a un LLM quién enseña lectura rápida en Loja.",
+      "entregables": [
+        "Todo lo del Nivel 1",
+        "Auditoría de competencia completa",
+        "Plan estratégico de 6 meses",
+        "Arquitectura web optimizada para LLMs"
+      ],
+      "nota_especial": "Este nivel no es gasto. Es la diferencia entre reaccionar cuando ILVEM abra una sede en Loja o tener el territorio ganado antes de que eso ocurra.",
+      "detalles_pie": [
+        "⏱ Duración: 18 días laborables",
+        "📄 Facturación: Ing. César Reyes Jaramillo / RUC 1103421531001"
+      ]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Nivel 3 · Mensual",
+      "nombre": "Gestión Mensual de Posicionamiento",
+      "eslogan": "\"El posicionamiento no es un evento. Es un proceso.\"",
+      "precio": "$250",
+      "precio_subtitulo": "por mes",
+      "descripcion": "Para quienes entienden que el posicionamiento no es un evento sino un proceso. Incluye mantenimiento y actualización de la web, gestión de contenido orientado a SEO, reporte mensual de métricas y ajustes estratégicos según el comportamiento de las búsquedas.",
+      "entregables": [
+        "Mantenimiento y actualización de la web",
+        "Contenido orientado a SEO (2 publicaciones mensuales)",
+        "Reporte mensual de métricas",
+        "Ajustes estratégicos según comportamiento de búsquedas"
+      ],
+      "nota_especial": "SIDELEDI sigue enfocado en enseñar. Nosotros nos encargamos de que te sigan encontrando.",
+      "detalles_pie": [
+        "📄 Facturación: Ing. César Reyes Jaramillo / RUC 1103421531001",
+        "Compromiso mínimo: 6 meses"
+      ]
+    }
+  ],
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Esta propuesta tiene vigencia de 7 días. Si quieres conversar sobre cuál nivel se ajusta mejor a tus objetivos actuales, estoy disponible para una llamada esta semana.",
+    "frase_final": "Tienes la reputación. Te falta el activo digital que la sostenga cuando el terreno <span>cambie.</span>"
+  }
+}

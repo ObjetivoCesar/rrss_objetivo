@@ -1,0 +1,87 @@
+{
+  "id": "centro-comercial-toa-2026",
+  "portada": {
+    "etiqueta": "Propuesta Estratégica de Digitalización",
+    "titulo_principal": "Centro Comercial TOA: El foco de atención digital.",
+    "titulo_destacado": "Posicionamiento multicanal y atención automatizada.",
+    "subtitulo": "Preparado para el Centro Comercial TOA | Junio 2026",
+    "preparado_para": "Centro Comercial TOA",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://cesarweb.b-cdn.net/activaqr/toa.webp",
+    "url_fondo": "https://cesarweb.b-cdn.net/activaqr/toa.webp",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Un sistema digital completo, no solo una página web.",
+    "parrafos": [
+      "Conversamos sobre la necesidad crítica de que el Centro Comercial TOA cuente con un portal web de alta velocidad y diseño premium que muestre toda su oferta, integrando landing pages individuales para cada uno de sus arrendatarios.",
+      "Este espacio funciona como un plus exclusivo para sus inquilinos. Además, al posicionar el portal en buscadores tradicionales y motores de búsqueda de Inteligencia Artificial (LLMs), el centro comercial recuperará y multiplicará su inversión al captar la atención en internet. Esto le permitirá aumentar el canon arrendatario, ya que el local no paga solo por la ubicación física, sino por la visibilidad y el tráfico de clientes garantizados por el centro comercial.",
+      "Adicionalmente, se incluye un recepcionista virtual inteligente (asistente de IA) que atiende 24/7 y delega automáticamente las conversaciones de clientes e inquilinos a sus WhatsApp correspondientes."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno · 2-3 semanas",
+      "nombre": "Portal Web Principal + 40 Landing Pages",
+      "eslogan": "\"Su vitrina digital unificada para todos los inquilinos.\"",
+      "precio": "$1,500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Portal corporativo del centro comercial que integra páginas individuales (landing pages) para cada inquilino (hasta 40 locales). Funciona como un beneficio directo y monetizable que el centro comercial ofrece a sus arrendatarios.",
+      "entregables": [
+        "Portal Web Corporativo Premium del Centro Comercial",
+        "Hasta 40 Landing Pages individuales para inquilinos",
+        "Optimización móvil de alta velocidad de carga",
+        "Diseño de interfaz responsive enfocado en conversión",
+        "Mapa del centro comercial digital y directorio completo",
+        "Sección de Eventos y Campañas de temporada"
+      ],
+      "nota_especial": "Configuración del beneficio digital para los locales arrendados.",
+      "detalles_pie": ["⏱ 2-3 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos · Integración IA",
+      "nombre": "Asistente Call Center IA de Atención 24/7",
+      "eslogan": "\"Atención inmediata, derivación inteligente al instante.\"",
+      "precio": "$850",
+      "precio_subtitulo": "pago único (+ API de pago)",
+      "descripcion": "Un recepcionista virtual inteligente que garantiza una atención inmediata 24/7 y deriva de forma eficiente las oportunidades de negocio, redireccionando chats de clientes potenciales directamente al WhatsApp de cada inquilino.",
+      "entregables": [
+        "Atención rápida de consultas sobre locales, horarios y ubicación",
+        "Redirección de chats al WhatsApp personal de cada inquilino (leads calificados)",
+        "Derivación inteligente de quejas y consultas de administración",
+        "Filtro de quejas interno para proteger la reputación digital en Google",
+        "Configuración y entrenamiento de la base de datos de IA",
+        "Historial de interacciones y analítica de consultas"
+      ],
+      "nota_especial": "El costo de consumo de APIs (Meta/OpenAI) se factura por separado según uso real.",
+      "detalles_pie": ["🤖 Automatización completa", "📊 Pago de APIs según consumo"]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres · Posicionamiento",
+      "nombre": "Manejo Web y Posicionamiento Multicanal",
+      "eslogan": "\"El centro comercial visible en Google, Redes y motores de IA.\"",
+      "precio": "$500",
+      "precio_subtitulo": "al mes (IVA incluido)",
+      "descripcion": "Posicionamiento SEO y en modelos de IA (LLMs) para convertir al centro comercial en el foco de atención digital. Garantiza tráfico de clientes a los locales, justificando el incremento del canon arrendatario.",
+      "entregables": [
+        "Optimización para incrementar y justificar el canon arrendatario",
+        "Manejo de la página web y actualizaciones continuas",
+        "Posicionamiento SEO Local en Google Maps y Google Search",
+        "Posicionamiento SEO en Motores de Búsqueda de IA (LLMs)",
+        "Trabajo semipresencial con planificaciones mensuales",
+        "Coordinación y cobertura de la parte digital de eventos"
+      ],
+      "nota_especial": "Coordinación digital de eventos en modalidad semipresencial.",
+      "detalles_pie": ["📈 Posicionamiento continuo", "📋 Facturación: RUC 1103421531001"]
+    }
+  ],
+  "cierre": {
+    "titulo": "El Centro Comercial en la palma de la mano",
+    "texto": "Con este sistema, sus inquilinos venderán más y valorarán su espacio comercial, mientras que los visitantes recibirán una atención de nivel internacional.",
+    "frase_final": "El Centro Comercial TOA posicionado <span>en el mapa digital.</span>"
+  }
+}

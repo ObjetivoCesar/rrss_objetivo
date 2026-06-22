@@ -1,0 +1,114 @@
+{
+  "id": "propuesta-clinica-abendano",
+  "portada": {
+    "etiqueta": "Propuesta de Posicionamiento Web",
+    "titulo_principal": "La Cl\u00ednica Abenda\u00f1o merece estar a la altura de su nombre.",
+    "titulo_destacado": "Ser el primer resultado en Google.",
+    "subtitulo": "Preparado para el Dr. Claudio Abenda\u00f1o | Abril 2026",
+    "preparado_para": "Dr. Claudio Abenda\u00f1o",
+    "preparado_por": "Ing. C\u00e9sar Augusto Reyes Jaramillo",
+    "fecha": "Abril 2026",
+    "imagen_url": "https://cesarweb.b-cdn.net/activaqr/clinica_abenda%C3%B1o.webp",
+    "url_fondo": "https://cesarweb.b-cdn.net/activaqr/clinica_abenda%C3%B1o.webp",
+    "url_logo_cliente": "https://fcfsexddgupnvbvntgyz.supabase.co/storage/v1/object/public/posts-assets/logo-clinica-abendano.jpg"
+  },
+  "introduccion": {
+    "titulo": "Es el momento de ganar tambi\u00e9n en lo digital.",
+    "parrafos": [
+      "La Cl\u00ednica Abenda\u00f1o tiene lo que ninguna campa\u00f1a de marketing puede fabricar: a\u00f1os de trayectoria, una subespecialidad \u00fanica en la regi\u00f3n y una comunidad de pacientes que conf\u00eda en usted. Lo que existe hoy en internet no refleja eso \u2014 y eso tiene soluci\u00f3n.",
+      "Esta propuesta est\u00e1 dise\u00f1ada en etapas progresivas. Usted decide hasta d\u00f3nde llegar, cu\u00e1ndo avanzar y qui\u00e9n ejecuta cada fase. Mi rol es asegurar que cada paso sea t\u00e9cnicamente correcto, estrat\u00e9gicamente coherente y medible en resultados reales."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "0",
+      "etiqueta_tiempo": "Etapa Cero \u00b7 4\u20135 semanas",
+      "nombre": "Consultor\u00eda Estrat\u00e9gica de Marketing Digital",
+      "eslogan": "\"Primero el diagn\u00f3stico. Luego, cada peso invertido tiene un destino claro.\"",
+      "precio": "$3,500",
+      "precio_subtitulo": "servicio completo",
+      "descripcion": "Antes de construir cualquier cosa, estudiamos a fondo su mercado, su competencia y sus pacientes ideales. El resultado es una hoja de ruta que convierte cada etapa siguiente en una inversi\u00f3n calculada \u2014 no un gasto a ciegas.",
+      "entregables": [
+        "Estudio de competencia directa",
+        "FODA digital detallado",
+        "An\u00e1lisis de palabras clave con volumen real de b\u00fasqueda",
+        "Perfil de paciente ideal",
+        "Plan estrat\u00e9gico de posicionamiento",
+        "Sesi\u00f3n de presentaci\u00f3n presencial"
+      ],
+      "nota_especial": "Etapa independiente: si decide ejecutar con su equipo, el plan es suyo.",
+      "detalles_pie": [
+        "\u23f1 4\u20135 semanas",
+        "\ud83d\udcc4 Facturaci\u00f3n: RUC 1103421531001"
+      ]
+    },
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno \u00b7 4\u20135 semanas",
+      "nombre": "Arquitectura Web Profesional",
+      "eslogan": "\"Un sitio construido con inteligencia, no con suposiciones.\"",
+      "precio": "$1,000",
+      "precio_subtitulo": "hasta 40 p\u00e1ginas",
+      "descripcion": "Con el estudio en mano, cada p\u00e1gina, cada palabra y cada bot\u00f3n de su sitio web tiene un prop\u00f3sito espec\u00edfico: atraer al paciente correcto y convertir esa visita en una cita agendada.",
+      "entregables": [
+        "Sitio web de hasta 40 p\u00e1ginas",
+        "SEO t\u00e9cnico avanzado",
+        "Integraci\u00f3n WhatsApp Business",
+        "Carga ultra-r\u00e1pida y diseño mobile-first",
+        "P\u00e1gina dedicada a su subespecialidad"
+      ],
+      "nota_especial": "Los entregables se basan en los hallazgos de la Etapa 0.",
+      "detalles_pie": [
+        "\u23f1 4\u20135 semanas",
+        "\u2705 Construcci\u00f3n inteligente"
+      ]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos \u00b7 Automatizaci\u00f3n",
+      "nombre": "Sistema de Automatizaci\u00f3n de Contenido",
+      "eslogan": "\"Contenido estrat\u00e9gico public\u00e1ndose solo.\"",
+      "precio": "$2,500",
+      "precio_subtitulo": "licencia + configuraci\u00f3n",
+      "descripcion": "Software configurado a medida que distribuye contenido SEO de forma autom\u00e1tica, liberando tiempo valioso para usted y su equipo.",
+      "entregables": [
+        "Software configurado e integrado",
+        "10 art\u00edculos iniciales optimizados",
+        "Primer mes de gesti\u00f3n SEO y redes sociales",
+        "Manual de operaci\u00f3n",
+        "Capacitaci\u00f3n presencial"
+      ],
+      "nota_especial": "Ahorro estimado: $4.000\u2013$5.000 anuales.",
+      "detalles_pie": [
+        "\ud83d\udcb0 Alta rentabilidad",
+        "\ud83d\udd04 Distribuci\u00f3n continua"
+      ]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres \u00b7 Direcci\u00f3n",
+      "nombre": "Arquitecto Digital del Proyecto",
+      "eslogan": "\"Supervisi\u00f3n t\u00e9cnica permanente. Resultados medibles cada mes.\"",
+      "precio": "$650",
+      "precio_subtitulo": "por mes",
+      "descripcion": "Un director t\u00e9cnico dedicado que coordina, supervisa y rinde cuentas directamente a usted \u2014 para que nada quede al azar.",
+      "entregables": [
+        "Direcci\u00f3n t\u00e9cnica permanente",
+        "Supervisi\u00f3n de equipo interno",
+        "Monitoreo continuo de resultados",
+        "Reporte ejecutivo mensual",
+        "Sesi\u00f3n estrat\u00e9gica mensual"
+      ],
+      "nota_especial": "Garant\u00eda de ejecuci\u00f3n sobre la hoja de ruta.",
+      "detalles_pie": [
+        "\ud83d\udccd Semipresencial Loja",
+        "\u23f1 Atenci\u00f3n continua"
+      ]
+    }
+  ],
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo 45 minutos para revisar juntos esta propuesta, resolver cualquier duda y definir por d\u00f3nde empezamos.",
+    "frase_final": "Usted no necesita una p\u00e1gina web. Necesita que su nombre aparezca <span>primero.</span>"
+  }
+}

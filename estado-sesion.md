@@ -1,26 +1,32 @@
 # 📓 Estado de Sesión — RRSS_OBJETIVO
 
 ## Sesión Actual
-- **Fecha:** 2026-06-21
+- **Fecha:** 2026-06-22
 - **Iniciada por:** César
-- **Tema:** Integración de Sistema de Marca Personal y Protocolo Semanal
+- **Tema:** Producción completa Semana 1 — Guiones + Copys de los 7 días
 
 ## Progreso del día
-- [x] Integrar las directrices de marca personal y el filtro de 3 interacciones de Alejandra en `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md`.
-- [x] Incorporar la psicología del calendario semanal y el protocolo de 5 hitos en la estrategia oficial.
-- [x] Establecer la regla de precio por contexto de lead (ActivaQR vs. Consultoría de $2,000+) en la documentación maestro.
-- [x] Eliminar archivos obsoletos y redundantes (`PLAN_DISTRIBUCION_SOCIAL_2026.md` y `ESTRATEGIA_STORIES_OPERATIVAS.md`) de `docs/estrategia-posicionamiento/`.
-- [x] Diseñar un [MAPA.md](file:///c:/Users/Cesar/Documents/GRUPO%20EMPRESARIAL%20REYES/PROYECTOS/RRSS_objetivo/Jarvis/MAPA.md) unificado y limpio para que sirva de guía única de posicionamiento a los agentes (Donna y Jarvis).
-- [x] Diseñar y redactar en detalle los guiones, copys e historias de **Sábado y Domingo** para iniciar la Semana 1 en [SEMANA-01-MARCA-PERSONAL.md](file:///c:/Users/Cesar/Documents/GRUPO%20EMPRESARIAL%20REYES/PROYECTOS/RRSS_objetivo/Jarvis/SEMANA-01-MARCA-PERSONAL.md).
+- [x] Integrar directrices de marca personal, filtro Alejandra y regla de precio por contexto en `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` (v3.1).
+- [x] Diseñar guiones de Sábado y Domingo (Carril Dual: Serie + Captación).
+- [x] Diseñar guion completo **Lunes — Video Cero** ("Construyéndome desde cero", Episodio 1).
+- [x] Diseñar guion completo **Martes — Caso de Estudio Titanos Gym Loja** (hook estructura @josefoley.co, trigger `TITANOS`).
+- [x] Diseñar guion completo **Miércoles — Testimonio Comentado Yessy** (dolor de identidad, trigger `YESSY`).
+- [x] Diseñar guion completo **Jueves — Reacción / Mito alcance orgánico** (trigger `ALCANCE`).
+- [x] Diseñar secuencia completa **Viernes — CTA Consultivo Alejandra** (5 historias, trigger `DIAGNÓSTICO`).
+- [x] Tabla de activaciones ManyChat Semana 1 (4 triggers con primer mensaje de bot definido).
+- [x] Tabla de estado de producción — 7 días auditados y listos para grabar.
 
 ## Archivos tocados
-- `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` — [MODIFICADO] Versión 3.0 de la estrategia de marca personal.
-- `Jarvis/SEMANA-01-MARCA-PERSONAL.md` — [MODIFICADO] Llenado con guiones y copys de Sábado y Domingo (Semana 1).
-- `Jarvis/MAPA.md` — [MODIFICADO] Mapa maestro de posicionamiento limpio y unificado.
-- `estado-sesion.md` — [MODIFICADO] Registro de la sesión y limpieza.
+- `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` — [MODIFICADO] v3.1 con carril dual y precio por contexto.
+- `Jarvis/SEMANA-01-MARCA-PERSONAL.md` — [MODIFICADO] **COMPLETO** — 7 días con guiones, copys, historias y triggers ManyChat.
+- `Jarvis/MAPA.md` — [MODIFICADO] Mapa maestro de posicionamiento unificado.
+- `.agents/skills/Sistema de Ingeniería de Contenido/video-script-engine/SKILL.md` — [MODIFICADO] Reglas de ganchos inyectadas.
+- `estado-sesion.md` — [MODIFICADO] Registro de la sesión actualizado.
 
 ## Pendientes para la próxima sesión
-- [ ] Diseñar el guion y copy de Lunes (Video Cero de la serie "Construyéndome desde cero") y Martes (Caso de Estudio de Titanos Gym Loja).
+- [ ] **ACCIÓN INMEDIATA:** Confirmar si Yessy tiene video/audio de 10-15s para usar en el reel del Miércoles (de lo contrario el guion funciona con voz de César + texto).
+- [ ] **ACCIÓN INMEDIATA:** Conseguir screenshot de Titanos Gym en primera posición de Google para el Martes.
+- [ ] Configurar los 4 triggers ManyChat (`TITANOS`, `YESSY`, `ALCANCE`, `DIAGNÓSTICO`) con los primeros mensajes definidos en la tabla.
 - [ ] Enviar propuesta a Ing. Carlos Rafael Reyes por WhatsApp.
 
 ---

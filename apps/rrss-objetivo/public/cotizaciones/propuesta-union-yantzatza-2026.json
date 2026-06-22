@@ -1,0 +1,89 @@
+{
+  "id": "propuesta-union-yantzatza-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Inteligencia Operativa y Calidad",
+    "titulo_principal": "Unión Yantzatza merece una gestión de prestigio",
+    "titulo_destacado": "a la altura de su visión AAA.",
+    "subtitulo": "Preparado para el Ing. Jose Luis Medina | Abril 2026",
+    "preparado_para": "Ing. Jose Luis Medina",
+    "preparado_por": "Ing. César Augusto Reyes Jaramillo",
+    "fecha": "Abril 2026",
+    "imagen_url": "https://cesarweb.b-cdn.net/activaqr/Gemini_Generated_Image_x9c8pvx9c8pvx9c8.webp",
+    "url_fondo": "https://cesarweb.b-cdn.net/activaqr/Gemini_Generated_Image_x9c8pvx9c8pvx9c8.webp",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Transformando el 'Buen Trato' en un activo medible.",
+    "parrafos": [
+      "Ing. Jose Luis Medina, la misión de Unión Yantzatza habla de 'buen trato' y su visión apunta a la acreditación AAA. La única forma de medir si eso ocurre en cada una de sus unidades, en cada ventanilla y en cada punto de retiro — es escuchar directamente a quien vive la experiencia: el pasajero y el remitente.",
+      "Esta propuesta no es sobre tecnología. Es sobre darle a su administración los ojos que hoy no tiene cuando sus unidades están en ruta o cuando un cliente espera en la ventanilla de encomiendas. Convertimos cada queja en un expediente de defensa y cada felicitación en un activo de marketing."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno \u00b7 Implementación",
+      "nombre": "Auditoría en Unidades de Ruta",
+      "eslogan": "\"Sus ojos en cada unidad, sin importar la distancia.\"",
+      "precio": "$300",
+      "precio_subtitulo": "configuración inicial",
+      "descripcion": "Instalación de códigos QR únicos en cada unidad. El pasajero reporta trato, limpieza y puntualidad directo a su WhatsApp con evidencia multimedia inalterable.",
+      "entregables": [
+        "Códigos QR únicos por unidad",
+        "Dashboard de ranking de unidades",
+        "Alertas críticas por WhatsApp",
+        "Respaldo de fotos, audios y ubicación"
+      ],
+      "nota_especial": "El conductor tiene derecho a réplica mediante su propio panel digital.",
+      "detalles_pie": [
+        "\u23f1 Reportes en tiempo real",
+        "\ud83d\udcc4 Facturaci\u00f3n: RUC 1103421531001"
+      ]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos \u00b7 Control de Puntos",
+      "nombre": "Ventanillas y Encomiendas",
+      "eslogan": "\"Calidad total desde el despacho hasta la entrega.\"",
+      "precio": "$9.80",
+      "precio_subtitulo": "mensual por unidad/punto",
+      "descripcion": "Control exhaustivo en ventanillas de venta y puntos de retiro de encomiendas. Medimos la atención al cliente y el estado de los envíos en el momento de la entrega.",
+      "entregables": [
+        "QR en ventanillas de pasajes",
+        "QR en centros de encomiendas",
+        "Reporte diferenciado de servicios",
+        "Control de tiempos de espera"
+      ],
+      "nota_especial": "Escala cooperativa para flotas de 11 a 50 unidades.",
+      "detalles_pie": [
+        "\u2705 Operación multi-punto",
+        "\ud83d\udcb0 Ahorro administrativo"
+      ]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres \u00b7 Inteligencia",
+      "nombre": "Gestión de Expedientes y Marketing",
+      "eslogan": "\"Decisiones basadas en datos, no en versiones.\"",
+      "precio": "Incluido",
+      "precio_subtitulo": "en el servicio",
+      "descripcion": "Transformamos los reportes en expedientes legales de defensa para el personal y en testimonios de alta calidad para su área de marketing.",
+      "entregables": [
+        "Software de gestión de expedientes",
+        "Ticket de seguimiento para el usuario",
+        "Reporte narrativo semanal con IA",
+        "Banco de testimonios positivos"
+      ],
+      "nota_especial": "Los testimonios positivos se entregan listos para publicar en redes.",
+      "detalles_pie": [
+        "\ud83d\udccd Reporte cada Lunes 7:00 AM",
+        "\ud83d\udd04 Mejora continua"
+      ]
+    }
+  ],
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 20 minutos para mostrarle cómo el sistema ya está protegiendo operaciones similares y cómo podemos iniciar hoy mismo.",
+    "frase_final": "Usted no necesita m\u00e1s vigilancia. Necesita que el sistema de <span>calidad trabaje solo.</span>"
+  }
+}

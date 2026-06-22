@@ -45,7 +45,8 @@ export async function runBrainstormPipeline(options: RunPipelineOptions): Promis
     process.env.DEEPSEEK_MODEL = 'deepseek-reasoner'
 
     const adn = loadPrompt('adn-activaqr')
-    const brainstormPrompt = loadPrompt('draft-brainstorm')
+    // const brainstormPrompt = loadPrompt('draft-brainstorm') // DEPRECADO 2026-05-02
+    const brainstormPrompt = loadPrompt('video-script-engine-v2') // ACTUALIZADO 2026-05-02
 
     const userMessage = [
         brainstormPrompt,
@@ -195,7 +196,8 @@ export async function generateInitialDraft(options: {
 }): Promise<string> {
     const { idea, duration, style, preferredProvider } = options
     const adn = loadPrompt('adn-activaqr')
-    const draftPrompt = loadPrompt('draft-initial')
+    // const draftPrompt = loadPrompt('draft-initial') // DEPRECADO 2026-05-02
+    const draftPrompt = loadPrompt('video-script-engine-v2') // ACTUALIZADO 2026-05-02
 
     const executeCall = async (providerName?: string) => {
         const llm = getLLMProvider(providerName)

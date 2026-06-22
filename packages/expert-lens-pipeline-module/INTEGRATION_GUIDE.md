@@ -50,7 +50,7 @@ expert-lens-pipeline-module/
 │       └── export.ts            ← Exportar guion a Markdown
 ├── prompts/                     ← Prompts en texto (NO hardcodeados en código)
 │   ├── adn-activaqr.md          ← ADN base de ActivaQR (contexto permanente)
-│   ├── draft-brainstorm.md      ← Prompt maestro del debate de expertos
+│   ├── video-script-engine-v2.md ← Motor único de guiones (v2.0)
 │   ├── production-video.md      ← Genera prompts de video por escena
 │   ├── production-voice.md      ← Genera narración limpia con marcadores
 │   └── production-music.md      ← Genera brief musical

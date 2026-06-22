@@ -1,0 +1,131 @@
+{
+  "id": "yovanny-vivanco-olimpus-puntografico-2026",
+  "portada": {
+    "etiqueta": "Propuesta Estratégica de Digitalización Integral",
+    "titulo_principal": "¿Quieres salir primero cuando alguien busque \"Gimnasios en Loja\"? Con nosotros es el inicio.",
+    "titulo_destacado": "",
+    "subtitulo": "Olimpus y Punto Gráfico merecen un sistema que trabaje para ellos — no al revés. | Preparado para Yovanny Vivanco | Junio 2026",
+    "preparado_para": "Yovanny Vivanco — Gimnasio Olimpus & Punto Gráfico",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://cesarweb.b-cdn.net/activaqr/olimpus.webp",
+    "url_fondo": "https://cesarweb.b-cdn.net/activaqr/olimpus.webp",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Un sistema integral para dos negocios, no solo dos páginas web.",
+    "parrafos": [
+      "Conversamos sobre la necesidad de dotar a Gimnasio Olimpus y Punto Gráfico de una presencia digital moderna, profesional y orientada a resultados. Ambos negocios merecen sistemas que trabajen para ti — no que te requieran presente 24/7.",
+      "La propuesta integra dos sitios web de 8 páginas cada uno (uno por negocio), un sistema de cumplimiento de la Ley de Protección de Datos (LOPDP) para el gimnasio, y un asistente virtual de WhatsApp unificado que recibe, filtra y deriva conversaciones de ambos negocios desde un solo punto. Así no pierdes oportunidades, tus clientes reciben atención inmediata y tú tienes control total.",
+      "Adicionalmente, conversamos la posibilidad de un acuerdo de intercambio por servicios de rotulación e impresión de Punto Gráfico — algo que puedo explorar con gusto."
+    ],
+    "preguntas_retoricas": [
+      "¿Cuántos clientes potenciales has perdido porque nadie contestaba WhatsApp a las 8PM?",
+      "¿Cuántos nuevos miembros pudieron haber llegado si tu gimnasio apareciera en Google antes que la competencia?",
+      "¿Te gustaría que cuando alguien en Loja busque \"gimnasio en Loja\", Olimpus sea el PRIMER resultado?"
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno · 2-3 semanas",
+      "nombre": "Sitio Web Gimnasio Olimpus (8 páginas)",
+      "eslogan": "\"Tu gimnasio visible, profesional y orientado a resultados.\"",
+      "precio": "$500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Web profesional de 8 páginas que posiciona al gimnasio como un espacio serio, moderno y orientado a resultados. Estructura pensada para convertir visitantes en miembros: Home, Servicios por disciplina, Galería con stories de clientes, y Blog.",
+      "entregables": [
+        "Home con lo principal de la empresa",
+        "Servicios: páginas individuales para pesas, bailoterapia, funcional y más",
+        "Galería con stories — tus clientes pueden subir sus fotos directamente a la página",
+        "Blog de tips健身acionales y nutrición (SEO)",
+        "Diseño responsive, optimizado para móviles (90% del tráfico)"
+      ],
+      "nota_especial": "Galería con stories es el plus diferenciador: tus miembros participan activamente en la página.",
+      "detalles_pie": ["⏱ 2-3 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos · 2-3 semanas",
+      "nombre": "Sitio Web Punto Gráfico (máx 8 páginas)",
+      "eslogan": "\"Portafolio técnico que cierra cotizaciones antes de hablar.\"",
+      "precio": "$500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Web de hasta 8 páginas que muestra la capacidad técnica y el portafolio de servicios de rotulación e impresión. Cada servicio tiene su página propia para posicionar mejor en buscadores.",
+      "entregables": [
+        "Home con portafolio destacado y llamado a cotizar",
+        "Rotulación (página propia)",
+        "Gigantografías (página propia)",
+        "Neones (página propia)",
+        "Señalética (página propia)",
+        "Contacto con mapa, WhatsApp y formulario de cotización rápida",
+        "Diseño responsive, optimizado para móviles"
+      ],
+      "nota_especial": "Punto Gráfico ya tiene buen posicionamiento en rotulación — cada página propia refuerza esa autoridad.",
+      "detalles_pie": ["⏱ 2-3 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres · Instalación",
+      "nombre": "Sistema de Protección de Datos (LOPDP) — Gimnasio Olimpus",
+      "eslogan": "\"Blindaje legal y control de datos de tus miembros.\"",
+      "precio": "$300",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Cumplimiento de la Ley Orgánica de Protección de Datos Personales para el Gimnasio Olimpus. Incluye un sistema de QR para que los miembros firmen su consentimiento digital y puedan darse de baja de la base de datos de forma autónoma.",
+      "entregables": [
+        "Aviso de Privacidad publicado en la web del gimnasio",
+        "Consentimiento informado con firma digital vía QR",
+        "Sistema de baja autónoma: el socio se da de baja cuando quiera sin necesitar intermediarios",
+        "Base de datos de miembros conectada al sistema",
+        "Cláusulas de habeas data en formularios de registro",
+        "Asesoría básica sobre obligaciones como responsable del tratamiento"
+      ],
+      "nota_especial": "El QR de firma y baja autónoma genera confianza y te protege legalmente ante cualquier reclamo.",
+      "detalles_pie": ["⚖️ Cumplimiento legal", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "4",
+      "etiqueta_tiempo": "Etapa Cuatro · Integración IA",
+      "nombre": "Asistente de WhatsApp Corporativo Unificado",
+      "eslogan": "\"Un solo número, dos negocios, cero oportunidades perdidas.\"",
+      "precio": "$850",
+      "precio_subtitulo": "pago único (+ APIs según uso)",
+      "descripcion": "Recepcionista virtual inteligente que atiende WhatsApp de Olimpus y Punto Gráfico desde un solo número, derivando cada conversación al interlocutor correcto según el negocio. Fichas de clientes, historial completo y derivación automática.",
+      "entregables": [
+        "Recepción 24/7 unificada para ambos negocios en un solo número WhatsApp",
+        "Fichas de clientes por negocio: nombre, origen, intereses y estado",
+        "Derivación inteligente: mensajes de gimnasio → manager Olimpus, mensajes de rotulación → Punto Gráfico",
+        "Canalización y registro de quejas antes de que lleguen a Google",
+        "Call center interno centralizado: panel con métricas de atención y tasa de respuesta",
+        "Configuración y entrenamiento de la base de datos de IA",
+        "Historial de interacciones y analítica de consultas"
+      ],
+      "nota_especial": "El costo de consumo de APIs (Meta/OpenAI) se factura por separado según uso real.",
+      "detalles_pie": ["🤖 Automatización completa", "📊 APIs según consumo"]
+    }
+  ],
+  "resumen": {
+    "inversion_total": "$2,150",
+    "inversion_total_label": "inversión total",
+    "nota_adicional": "(+ APIs de WhatsApp/Meta según consumo real)",
+    "desglose": [
+      { "componente": "Sitio Web Olimpus (8 páginas)", "precio": "$500", "tipo": "pago único" },
+      { "componente": "Sitio Web Punto Gráfico (máx 8 páginas)", "precio": "$500", "tipo": "pago único" },
+      { "componente": "Sistema LOPDP Gimnasio Olimpus", "precio": "$300", "tipo": "pago único" },
+      { "componente": "Asistente WhatsApp Corporativo", "precio": "$850", "tipo": "pago único (+ APIs)" }
+    ]
+  },
+  "forma_pago": {
+    "anticipo": "50% al inicio ($1,075)",
+    "financiamiento": "50% restante financiado a 12 meses sin intereses con tarjeta de crédito",
+    "intercambio": "Posible acuerdo de intercambio por servicios de rotulación/impresión de Punto Gráfico (por definir)",
+    "cta_texto": "Le propongo una visita a nuestra oficina en Loja para mostrarle el sistema en vivo. Sin presentaciones largas, sin compromisos. Solo 20 minutos.",
+    "cta_url": "https://wa.me/593963410409?text=Hola%20C%C3%A9sar%2C%20vi%20la%20propuesta%20de%20Olimpus%20y%20Punto%20Gr%C3%A1fico.%20Quiero%20agendar%20la%20reuni%C3%B3n."
+  },
+  "tiempo_entrega": "21 días hábiles desde la confirmación del anticipo",
+  "cta": {
+    "tipo": "presencial",
+    "frase_bisagra": "Le propongo una visita a nuestra oficina en Loja para mostrarle el sistema en vivo. Sin presentaciones largas, sin compromisos. Solo 20 minutos.",
+    "url": "https://wa.me/593963410409?text=Hola%20C%C3%A9sar%2C%20vi%20la%20propuesta%20de%20Olimpus%20y%20Punto%20Gr%C3%A1fico.%20Quiero%20agendar%20la%20reuni%C3%B3n."
+  }
+}

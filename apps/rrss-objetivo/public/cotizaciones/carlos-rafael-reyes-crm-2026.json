@@ -1,0 +1,127 @@
+{
+  "id": "carlos-rafael-reyes-crm-2026",
+  "portada": {
+    "etiqueta": "Sistema CRM a Medida",
+    "titulo_principal": "Gestión Integral de Leads, Agenda y Redes Sociales para tu Negocio",
+    "titulo_destacado": "Ing. Carlos Rafael Reyes",
+    "subtitulo": "Propuesta técnica y comercial | Junio 2026",
+    "preparado_para": "Ing. Carlos Rafael Reyes",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "",
+    "url_fondo": "https://cesarweb.b-cdn.net/cotizaciones/seguros_whatsapp_automation.png",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Centralice su atención, organice su agenda y derive sin perder oportunidades.",
+    "parrafos": [
+      "Ing. Carlos, gestionar un negocio con múltiples canales de comunicación — WhatsApp, redes sociales, página web — sin un sistema centralizado genera pérdida de leads, olvidos en seguimientos y derivaciones desorganizadas.",
+      "Le presento dos opciones diseñadas a su medida: un CRM básico para comenzar con el control de leads y agenda, o un sistema completo que además integra la gestión de sus redes sociales desde un solo lugar."
+    ],
+    "preguntas_retoricas": []
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Opción 1 · 1 mes",
+      "nombre": "CRM Básico — Gestión de Leads y Agenda",
+      "eslogan": "\"Control total de leads, agenda y mensajería.\"",
+      "precio": "$850",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Sistema CRM con manejo de leads de WhatsApp, organización de agenda, recordatorios automáticos y redirección de mensajería a los miembros de tu empresa. Funciona con API propia y base de datos independiente.",
+      "entregables": [
+        "Módulo de Leads de WhatsApp (captura, segmentación, historial)",
+        "Módulo de Agenda y Recordatorios (calendario, notificaciones)",
+        "Módulo de Redirección de Mensajería (derivación inteligente)",
+        "API REST personalizada + Base de datos independiente",
+        "Panel de administración web"
+      ],
+      "no_incluye": [
+        "Módulo de redes sociales",
+        "Integración con Facebook/Instagram"
+      ],
+      "detalles_pie": [
+        "⏱ Opción 1 · 1 mes",
+        "✅ API y Base de datos"
+      ]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Opción 2 · 3 meses",
+      "nombre": "CRM Completo + Módulo de Redes Sociales",
+      "eslogan": "\"Todo lo anterior + gestión integral de redes sociales.\"",
+      "precio": "$1,400",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Todo lo del CRM Básico más un módulo integral de gestión de redes sociales con planificador de publicaciones e integraciones con Facebook, Instagram, WhatsApp y página web. Utiliza herramientas externas de pago como APIs y servicios de terceros.",
+      "entregables": [
+        "Todos los módulos del CRM Básico",
+        "Planificador de publicaciones (calendarización)",
+        "Integración con Facebook Business e Instagram",
+        "Integración con WhatsApp Business API",
+        "Gestión de comentarios y mensajes desde un solo lugar",
+        "Atribución de leads de redes sociales al CRM",
+        "Reportes y Analytics (engagement, conversión, ROI)"
+      ],
+      "no_incluye": [
+        "Creación de contenido",
+        "Campañas pagadas de ads",
+        "Nuevos módulos no especificados"
+      ],
+      "nota_especial": "APIs de terceros (Meta, WhatsApp, scheduling) incluidas en la integración. Costos de suscripción a dichas plataformas correrán por cuenta del cliente.",
+      "detalles_pie": [
+        "⏱ Opción 2 · 3 meses",
+        "✅ API y Base de datos"
+      ]
+    }
+  ],
+  "cierre": {
+    "titulo": "¿Comenzamos?",
+    "texto": "Danos luz verde y comenzamos a hacer realidad su visión",
+    "frase_final": "Usted no necesita solo un CRM. Necesita un <span>sistema que organice su negocio.</span>"
+  },
+  "resumen": {
+    "titulo": "Resumen de Inversión",
+    "items": [
+      {
+        "opcion": "Opción 1",
+        "descripcion": "CRM Básico (Leads, Agenda, Redirección)",
+        "plazo": "1 mes",
+        "precio": "$850"
+      },
+      {
+        "opcion": "Opción 2",
+        "descripcion": "CRM Completo + Módulo de Redes",
+        "plazo": "3 meses",
+        "precio": "$1,400"
+      }
+    ]
+  },
+  "forma_pago": {
+    "titulo": "Forma de Pago",
+    "items": [
+      "50% anticipo al inicio del proyecto",
+      "50% restante a la entrega final"
+    ]
+  },
+  "tiempo_entrega": {
+    "titulo": "Tiempo de Entrega",
+    "items": [
+      "Opción 1: 1 mes hábil desde la confirmación del anticipo",
+      "Opción 2: 3 meses hábiles desde la confirmación del anticipo"
+    ]
+  },
+  "garantia": {
+    "titulo": "Garantía",
+    "descripcion": "6 meses por defectos de programación. No incluye nuevos módulos ni cambios de alcance."
+  },
+  "cta": {
+    "titulo": "¿Comenzamos?",
+    "descripcion": "Agendemos una videollamada para revisar los detalles de cada opción y definir cuál se ajusta mejor a lo que necesita.",
+    "whatsapp": "https://wa.me/593963410409"
+  },
+  "footer": {
+    "preparado_por": "César Reyes Jaramillo",
+    "rol": "Constructor de Sistemas | Ecuador",
+    "contacto": "0963410409"
+  }
+}

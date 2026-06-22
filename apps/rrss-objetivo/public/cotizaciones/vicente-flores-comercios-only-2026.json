@@ -1,0 +1,86 @@
+{
+  "id": "vicente-flores-comercios-only-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Catálogo Digital y Ecommerce",
+    "titulo_principal": "Comercios Only merece mostrar toda su variedad.",
+    "titulo_destacado": "Trajes, calzado, mochilas y sombreros — todo en un solo lugar.",
+    "subtitulo": "Preparado para el Sr. Vicente Flores | Junio 2026",
+    "preparado_para": "Sr. Vicente Flores",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Variedad, calidad y todo en un solo lugar — eso es Comercios Only.",
+    "parrafos": [
+      "Vicente, me comentas que tienes un almacén llamado 'Comercios Only' con una variedad increíble: trajes, calzado, mochilas y sombreros. Es un negocio con mucho potencial y entiendo que necesitas una presencia digital que refleje esa variedad sin perder la esencia de tu marca.",
+      "Le presento dos opciones para que elija la que mejor se ajuste a sus necesidades y presupuesto."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Opción 1 · 1-2 semanas",
+      "nombre": "Catálogo Digital",
+      "eslogan": "\"El primer paso: muestra tu variedad sin complicarte.\"",
+      "precio": "$200",
+      "precio_subtitulo": "primer año / $100 renovación",
+      "descripcion": "El primer paso para que tus productos estén donde tus clientes están. Organizamos toda tu variedad — trajes, calzado, mochilas y sombreros — en categorías claras y fáciles de navegar. Primer año $200, renovación $100.",
+      "entregables": [
+        "Catálogo Digital hasta 20 productos",
+        "Código QR en tu local",
+        "Pedidos por WhatsApp estructurados",
+        "Control de stock por categoría",
+        "Actualizaciones sin costo",
+        "Capacitación para manejo propio"
+      ],
+      "nota_especial": "La forma más rápida de mostrarle a tu cliente que tienes exactamente lo que buscan — antes de que entren al local. Primer año $200, renovación $100.",
+      "detalles_pie": ["⏱ 1-2 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Opción 2 · 7-15 días",
+      "nombre": "Sitio Web Completo",
+      "eslogan": "\"Tu marca, tu tienda, tu sistema de ventas 24/7.\"",
+      "precio": "$1,000",
+      "precio_subtitulo": "hasta 40 páginas",
+      "descripcion": "Si quieres ir más allá y tener tu tienda online bajo el nombre de Comercios Only, con pasarela de pagos y gestión de inventario completa. Hasta 40 páginas, 100 productos, blindaje legal LOPDP y pasarela Payphone incluidos.",
+      "entregables": [
+        "Sitio web hasta 40 páginas",
+        "Tienda Online Profesional",
+        "Catálogo por Categorías (trajes, calzado, mochilas, sombreros)",
+        "Gestión de Inventario por categoría, talles y colores",
+        "Pasarela de Pagos Payphone incluida",
+        "Blindaje Legal LOPDP incluido",
+        "Reportes de Ventas por categoría",
+        "Marca propia sin intermediarios"
+      ],
+      "nota_especial": "Con 40 páginas tienes espacio de sobra para toda tu variedad de productos.",
+      "detalles_pie": ["⏱ 7-15 días hábiles", "🛒 Escalable"]
+    }
+  ],
+  "comparativa": {
+    "titulo": "Lo que ganaría Comercios Only",
+    "filas": [
+      {
+        "antes": "El cliente entra al almacén, ve algo, pregunta por tallas y se va si no hay",
+        "despues": "El cliente ve el catálogo completo, sabe qué hay disponible y pide lo que necesita"
+      },
+      {
+        "antes": "Dependes del tráfico en el local",
+        "despues": "Tu catálogo está en el teléfono de cada cliente, disponible 24/7"
+      },
+      {
+        "antes": "No sabes qué productos preguntan más",
+        "despues": "Tienes reportes claros de qué vende y qué no"
+      }
+    ]
+  },
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 20 minutos para ajustar los detalles y que puedas tener tu catálogo funcionando esta semana.",
+    "frase_final": "Comercios Only tiene propuesta de valor clara. Empezar con el Catálogo de $200 te permite <span>probar que funciona</span> y luego escalar al Ecommerce."
+  }
+}

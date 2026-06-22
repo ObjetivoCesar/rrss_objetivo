@@ -1,0 +1,96 @@
+{
+  "id": "nancy-torres-galtor-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Sistema Completo de Digitalización",
+    "titulo_principal": "Galtor merece un sistema a la altura de su volumen.",
+    "titulo_destacado": "Contacto digital + Ecommerce + Automatización.",
+    "subtitulo": "Preparado para la Sra. Nancy Torres | Junio 2026",
+    "preparado_para": "Sra. Nancy Torres",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1581007871115-f14bc016e0a4?q=80&w=1965&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Una bodega grande necesita un sistema que escale con ella.",
+    "parrafos": [
+      "Nancy, me comentas que tienes una bodega grande llamada 'Galtor' en la 18 de Noviembre entre Rocafuerte y Miguel Riofrío, y que te encantó la idea del contacto digital, el ecommerce y la automatización. Es un negocio de alto volumen y entiendo que necesitas algo que te ayude a manejar esa operación de forma más inteligente.",
+      "Esta propuesta cubre las tres áreas que mencionaste, en etapas progresivas para que puedas decidir hasta dónde llegar."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Etapa Uno · 1 semana",
+      "nombre": "Contacto Digital Profesional",
+      "eslogan": "\"Que tus clientes nunca te olviden y te encuentren siempre.\"",
+      "precio": "$35",
+      "precio_subtitulo": "anual",
+      "descripcion": "El primer paso para que tus clientes nunca te olviden y te encuentren siempre. Tu marca instalada en el teléfono de cada cliente con foto, redes y botón de WhatsApp.",
+      "entregables": [
+        "Marca instalada en el teléfono de cada cliente",
+        "Logo, fotos, ubicación, redes sociales",
+        "Presencia en Google cuando busquen tu zona",
+        "Código QR personalizado",
+        "Actualizaciones sin costo desde tu celular"
+      ],
+      "nota_especial": "La base de cualquier estrategia digital seria.",
+      "detalles_pie": ["⏱ 1 semana", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Etapa Dos · 7-15 días",
+      "nombre": "Sitio Web Completo para Galtor",
+      "eslogan": "\"Una tienda online seria para una bodega seria.\"",
+      "precio": "$1,000",
+      "precio_subtitulo": "hasta 40 páginas",
+      "descripcion": "Una tienda online seria para una bodega seria. Hasta 40 páginas, hasta 100 productos, pasarela de pagos Payphone y blindaje legal LOPDP incluidos.",
+      "entregables": [
+        "Sitio web hasta 40 páginas",
+        "Tienda online hasta 100 productos",
+        "Pasarela de pagos Payphone incluida",
+        "Blindaje Legal LOPDP incluido",
+        "Gestión de Inventario en tiempo real",
+        "Pedidos Online desde la web",
+        "Reportes de Ventas detallados",
+        "SEO desde el día 1"
+      ],
+      "nota_especial": "Inversión que se paga sola cuando dejes de perder ventas por desorganización.",
+      "detalles_pie": ["⏱ 7-15 días hábiles", "📈 Escalable"]
+    },
+    {
+      "numero": "3",
+      "etiqueta_tiempo": "Etapa Tres · Automatización",
+      "nombre": "Automatización de WhatsApp Business",
+      "eslogan": "\"Su WhatsApp como herramienta de ventas, trabajando 24/7.\"",
+      "precio": "$500",
+      "precio_subtitulo": "pago único",
+      "descripcion": "Tu WhatsApp como herramienta de ventas y atención, trabajando 24/7. La automatización responde consultas, envía catálogos y segmenta clientes automáticamente. El costo de la API de WhatsApp es cubierto directamente por el cliente.",
+      "entregables": [
+        "Respuestas Automáticas Inteligentes",
+        "Catálogo por WhatsApp",
+        "Segmentación de Clientes",
+        "Base de Datos de Clientes",
+        "Campañas Dirigidas por segmento",
+        "Capacitación completa"
+      ],
+      "nota_especial": "El costo mensual de la API de WhatsApp es cubierto directamente por el cliente.",
+      "detalles_pie": ["🤖 Automatización completa", "📊 Sin costo mensual del servicio"]
+    }
+  ],
+  "comparativa": {
+    "titulo": "Comparativa de Valor",
+    "filas": [
+      {
+        "antes": "Seguimiento manual: tu tiempo + errores = pierdes ventas",
+        "despues": "Sistema completo Galtor: $40/mes = ventas organizadas, clientes controlados"
+      }
+    ]
+  },
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 30 minutos para revisar los detalles y ajustar la propuesta a sus prioridades.",
+    "frase_final": "Galtor es un negocio con potencial enorme. Con este sistema completo, puede manejar <span>más ventas</span>, atender mejor y tener control total."
+  }
+}

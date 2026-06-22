@@ -1,0 +1,69 @@
+{
+  "id": "omar-palacio-brazier-2026",
+  "portada": {
+    "etiqueta": "Propuesta de Catálogo Digital y Ecommerce",
+    "titulo_principal": "Palacio del Brazier merece una presencia digital.",
+    "titulo_destacado": "Que el dueño decida hasta dónde llegar.",
+    "subtitulo": "Preparado para el Sr. Omar (Administrador) | Junio 2026",
+    "preparado_para": "Sr. Omar (Administrador)",
+    "preparado_por": "César Reyes Jaramillo",
+    "fecha": "Junio 2026",
+    "imagen_url": "https://images.unsplash.com/photo-1544148103-0773bf10d330?q=80&w=2070&auto=format&fit=crop",
+    "url_fondo": "",
+    "url_logo_cliente": ""
+  },
+  "introduccion": {
+    "titulo": "Dos opciones, un mismo objetivo: que el negocio venda más.",
+    "parrafos": [
+      "Omar, me comentas que estás administrando el 'Palacio del Brazier' y que quieres presentar una propuesta al dueño del negocio. Entiendo perfectamente: necesitas algo concreto, con opciones claras y que sea fácil de explicar.",
+      "Le presento dos alternativas diseñadas específicamente para este tipo de negocio. La recomendación es empezar con la opción más accesible y una vez que el dueño vea resultados, dar el salto a la opción completa."
+    ]
+  },
+  "etapas": [
+    {
+      "numero": "1",
+      "etiqueta_tiempo": "Opción 1 · 1-2 semanas",
+      "nombre": "Catálogo Digital",
+      "eslogan": "\"El primer paso, el más accesible, el que funciona.\"",
+      "precio": "$200",
+      "precio_subtitulo": "primer año / $100 renovación",
+      "descripcion": "El primer paso para que el negocio tenga presencia digital. Catálogo profesional hasta 20 productos, código QR y pedidos por WhatsApp. Primer año $200, renovación $100.",
+      "entregables": [
+        "Catálogo Digital hasta 20 productos",
+        "Código QR en punto de venta",
+        "WhatsApp como canal de ventas",
+        "Gestión de inventario en 10 segundos",
+        "Diseño funcional y profesional",
+        "Capacitación para el dueño"
+      ],
+      "nota_especial": "Es la mejor opción para presentar al dueño y probar que funciona antes de invertir más. Primer año $200, renovación $100.",
+      "detalles_pie": ["⏱ 1-2 semanas", "📋 Facturación: RUC 1103421531001"]
+    },
+    {
+      "numero": "2",
+      "etiqueta_tiempo": "Opción 2 · 7-15 días",
+      "nombre": "Sitio Web Completo",
+      "eslogan": "\"Su tienda online bajo su propia marca. Para crecer en serio.\"",
+      "precio": "$1,000",
+      "precio_subtitulo": "hasta 40 páginas",
+      "descripcion": "Si el dueño quiere ir más allá y tener su tienda online bajo su propia marca, con pasarela de pagos y gestión de inventario completa. Hasta 40 páginas, 100 productos, blindaje legal LOPDP y pasarela Payphone incluidos.",
+      "entregables": [
+        "Sitio web hasta 40 páginas",
+        "Tienda online hasta 100 productos",
+        "Pasarela de pagos Payphone incluida",
+        "Blindaje Legal LOPDP incluido",
+        "Gestión de Inventario en tiempo real",
+        "Reportes de ventas detallados",
+        "SEO desde el día 1",
+        "Marca propia sin intermediarios"
+      ],
+      "nota_especial": "Incluye diseño, desarrollo, configuración, puesta en marcha completa y capacitación.",
+      "detalles_pie": ["⏱ 7-15 días hábiles", "🛒 Escalable"]
+    }
+  ],
+  "cierre": {
+    "titulo": "El siguiente paso",
+    "texto": "Le propongo una breve sesión de 20 minutos para ajustar los detalles y que puedas presentar esto con confianza al dueño.",
+    "frase_final": "No necesita una página web básica. Necesita un <span>sistema que venda</span> — y puede empezar con $200."
+  }
+}

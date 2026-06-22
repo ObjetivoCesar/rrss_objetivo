@@ -55,7 +55,8 @@ async function runBrainstormTest(): Promise<{ content: string, tokens: number, e
 
     const { getLLMProvider } = await import('@/lib/llm/provider')
     const adn              = loadPrompt('adn-activaqr')
-    const brainstormPrompt = loadPrompt('draft-brainstorm')
+    // const brainstormPrompt = loadPrompt('draft-brainstorm') // DEPRECADO 2026-05-02
+    const brainstormPrompt = loadPrompt('video-script-engine-v2') 
 
     const userMessage = [
         brainstormPrompt,
