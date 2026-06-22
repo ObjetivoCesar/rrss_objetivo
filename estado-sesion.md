@@ -15,12 +15,16 @@
 - [x] Diseñar secuencia completa **Viernes — CTA Consultivo Alejandra** (5 historias, trigger `DIAGNÓSTICO`).
 - [x] Tabla de activaciones ManyChat Semana 1 (4 triggers con primer mensaje de bot definido).
 - [x] Tabla de estado de producción — 7 días auditados y listos para grabar.
+- [x] Corregir error 404 del planificador en producción (/api/brand-planner) y error de hidratación #418.
 
 ## Archivos tocados
 - `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` — [MODIFICADO] v3.1 con carril dual y precio por contexto.
 - `Jarvis/SEMANA-01-MARCA-PERSONAL.md` — [MODIFICADO] **COMPLETO** — 7 días con guiones, copys, historias y triggers ManyChat.
 - `Jarvis/MAPA.md` — [MODIFICADO] Mapa maestro de posicionamiento unificado.
 - `.agents/skills/Sistema de Ingeniería de Contenido/video-script-engine/SKILL.md` — [MODIFICADO] Reglas de ganchos inyectadas.
+- `apps/rrss-objetivo/next.config.ts` — [MODIFICADO] Tracing de assets para bundler en Vercel.
+- `apps/rrss-objetivo/src/app/api/brand-planner/route.ts` — [MODIFICADO] Rutas de datos dinámicas.
+- `apps/rrss-objetivo/src/components/brand/BrandSpreadsheet.tsx` — [MODIFICADO] Guarda de montaje para evitar error de hidratación.
 - `estado-sesion.md` — [MODIFICADO] Registro de la sesión actualizado.
 
 ## Pendientes para la próxima sesión
