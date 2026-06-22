@@ -1,9 +1,24 @@
-import { Metadata } from "next";
+'use client';
 
-export const metadata: Metadata = {
-  title: "Entre Ríos 360 | Estrategia de Transformación Digital",
-  description: "Propuesta de Plataforma de Gestión y Rentabilidad para la Cooperativa Entre Ríos.",
-};
+import { Metadata } from "next";
+import { 
+  ChevronRight, 
+  BarChart3, 
+  Clock, 
+  Users, 
+  TrendingUp, 
+  Zap, 
+  ShieldCheck, 
+  ArrowRight, 
+  Cpu, 
+  Smartphone, 
+  Globe, 
+  PlayCircle, 
+  Lock 
+} from "lucide-react";
+
+// Remuevo el objeto metadata estático ya que en Client Components de Next.js se debe usar de forma dinámica o omitir si no es crítico, para evitar errores de compilación.
+
 
 const EntreRios360 = () => {
   return (

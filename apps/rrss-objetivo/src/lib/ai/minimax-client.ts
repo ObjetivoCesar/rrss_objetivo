@@ -6,7 +6,7 @@
  *      const results = await minimaxSearch("query de búsqueda");
  */
 
-import { ImageProvider } from "../types";
+import { ImageProvider } from "./types";
 
 // ============================================================
 // TIPOS COMPARTIDOS

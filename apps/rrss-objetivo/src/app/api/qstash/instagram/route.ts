@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { verifySignatureAppRouter } from '@upstash/qstash/dist/nextjs';
 import { MetaApiClient, getSocialAccount } from '@/lib/meta-api/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { logDebug } from '@/lib/logger';
+import { logger } from '@/lib/logger';
+
+async function logDebug(message: string, severity: 'info' | 'error' | 'warn' = 'info') {
+  if (severity === 'error') logger.error(message);
+  else if (severity === 'warn') logger.warn(message);
+  else logger.info(message);
+}
 
 /**
  * Webhook de QStash para publicar Reels de Instagram una vez procesados.
