@@ -19,6 +19,7 @@ interface ContentRow {
 }
 
 export default function BrandSpreadsheet() {
+  const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<ContentRow[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -37,8 +38,18 @@ export default function BrandSpreadsheet() {
   const [fontSize, setFontSize] = useState(24); // Tamaño de letra inicial grande
 
   useEffect(() => {
+    setMounted(true);
     fetchPlannerData();
   }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[200px] text-white">
+        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mb-3" />
+        <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">Cargando...</p>
+      </div>
+    );
+  }
 
   async function fetchPlannerData() {
     try {

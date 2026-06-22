@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/api/brand-planner": [
+      "../../Jarvis/**/*"
+    ]
+  },
   async headers() {
     return [
       {

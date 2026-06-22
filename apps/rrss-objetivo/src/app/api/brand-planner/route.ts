@@ -2,10 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-// Rutas absolutas a los archivos del repositorio
-const PROJECT_ROOT = "c:/Users/Cesar/Documents/GRUPO EMPRESARIAL REYES/PROYECTOS/RRSS_objetivo";
-const CSV_PATH = path.join(PROJECT_ROOT, "Jarvis/SEMANA-01-MARCA-PERSONAL.csv");
-const MD_PATH = path.join(PROJECT_ROOT, "Jarvis/SEMANA-01-MARCA-PERSONAL.md");
+// Resolver rutas de forma dinámica
+const resolvePath = (relPath: string) => {
+  const pathsToTry = [
+    // Local/Monorepo
+    path.join(process.cwd(), "..", "..", relPath),
+    // Vercel serverless functions (donde el cwd puede variar)
+    path.join(process.cwd(), relPath),
+    // Ruta absoluta local de respaldo
+    path.join("c:/Users/Cesar/Documents/GRUPO EMPRESARIAL REYES/PROYECTOS/RRSS_objetivo", relPath)
+  ];
+
+  for (const p of pathsToTry) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return pathsToTry[0];
+};
+
+const CSV_PATH = resolvePath("Jarvis/SEMANA-01-MARCA-PERSONAL.csv");
+const MD_PATH = resolvePath("Jarvis/SEMANA-01-MARCA-PERSONAL.md");
 
 // Helper robusto para parsear archivos CSV tolerando saltos de línea internos en las celdas
 function parseCSV(text: string) {
