@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
       "../../Jarvis/**/*"
     ]
   },
+  outputFileTracingExcludes: {
+    "/api/brand-planner": [
+      "../../packages/expert-lens-pipeline-module/public/**/*",
+      "../../packages/expert-lens-pipeline-module.zip",
+      "../../hyper-demo/**/*",
+      "../../Audios/**/*",
+      "../../tmp/**/*",
+      "../../tmp_orig.wav",
+      "../../public/**/*",
+      "./public/**/*"
+    ]
+  },
   async headers() {
     return [
       {
