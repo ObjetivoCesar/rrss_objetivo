@@ -2,23 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-// Resolver rutas de forma dinámica
-const resolvePath = (relPath: string) => {
+export const runtime = "nodejs";
+
+// Resolver rutas de forma dinámica — funciona en local, retorna undefined en Vercel
+const resolvePath = (relPath: string): string | null => {
   const pathsToTry = [
-    // Local/Monorepo
+    // Monorepo local: sube dos niveles desde apps/rrss-objetivo
     path.join(process.cwd(), "..", "..", relPath),
-    // Vercel serverless functions (donde el cwd puede variar)
+    // Vercel: raíz del proyecto deployado
     path.join(process.cwd(), relPath),
-    // Ruta absoluta local de respaldo
-    path.join("c:/Users/Cesar/Documents/GRUPO EMPRESARIAL REYES/PROYECTOS/RRSS_objetivo", relPath)
+    // Ruta absoluta de respaldo (solo funciona en la máquina de César)
+    path.join("c:/Users/Cesar/Documents/GRUPO EMPRESARIAL REYES/PROYECTOS/RRSS_objetivo", relPath),
   ];
 
   for (const p of pathsToTry) {
-    if (fs.existsSync(p)) {
-      return p;
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch {
+      // Ignorar errores de existsSync en entornos restrictivos
     }
   }
-  return pathsToTry[0];
+  return null; // No encontrado en ninguna ruta
 };
 
 const CSV_PATH = resolvePath("Jarvis/SEMANA-01-MARCA-PERSONAL.csv");
@@ -105,8 +109,13 @@ function writeCSV(data: any[]) {
 // GET: Cargar el CSV
 export async function GET() {
   try {
-    if (!fs.existsSync(CSV_PATH)) {
-      return NextResponse.json({ error: "No se encuentra el archivo CSV de planificación." }, { status: 404 });
+    // En Vercel, el CSV vive en tu máquina local y no está disponible remotamente.
+    // Este endpoint solo funciona cuando la app corre en localhost.
+    if (!CSV_PATH) {
+      return NextResponse.json(
+        { error: "El archivo CSV de planificación no está disponible en este entorno. El Spreadsheet solo funciona en ejecución local." },
+        { status: 503 }
+      );
     }
     const text = fs.readFileSync(CSV_PATH, "utf-8");
     const data = parseCSV(text);
@@ -120,6 +129,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { rowIndex, column, newValue } = await req.json();
+
+    if (!CSV_PATH) {
+      return NextResponse.json(
+        { error: "El archivo CSV no está disponible en este entorno. El Spreadsheet solo funciona en ejecución local." },
+        { status: 503 }
+      );
+    }
 
     if (!fs.existsSync(CSV_PATH)) {
       return NextResponse.json({ error: "El archivo CSV de planificación no existe." }, { status: 404 });

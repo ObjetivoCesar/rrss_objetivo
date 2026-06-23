@@ -2,30 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
-  LayoutDashboard, // Keep for Dashboard
-  Calendar, // Keep for Calendar, will be aliased
-  ListChecks, // Keep for Publicaciones
-  PenSquare, // Keep for Nuevo Post
-  BookOpen, // Keep for Blog Admin
-  BarChart2, // Keep for Métricas
-  Settings, // Keep for Configuración
-  DatabaseZap, // Keep for Logo
-  BrainCircuit, // Keep for Expert Lens
-  Target, // Keep for Campañas
-  Sparkles, // Keep for Donna AI
-  Sun, // Keep for ThemeToggle
-  Moon, // Keep for ThemeToggle
-  BarChart3, // New icon for Metrics
-  MessageSquare, // New icon for Editor de Posts
-  FileText, // New icon for Blog
-  Network, // New icon for Estrategia
-  Map, // New icon for Map
-  PenTool, // New icon for Strategy Planner
-  Briefcase, // New icon for Cotizaciones
-  Megaphone // Icon for Marketing
+  LayoutDashboard,
+  Calendar,
+  ListChecks,
+  PenSquare,
+  BookOpen,
+  BarChart2,
+  Settings,
+  DatabaseZap,
+  BrainCircuit,
+  Target,
+  Sparkles,
+  Sun,
+  Moon,
+  BarChart3,
+  MessageSquare,
+  FileText,
+  Network,
+  Map,
+  PenTool,
+  Briefcase,
+  Megaphone,
+  LogOut,
+  Loader2
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { href: "/",          label: "Dashboard",     icon: LayoutDashboard },
@@ -46,6 +50,14 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   return (
     <>
@@ -88,13 +100,23 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Make.com Status & Theme Control */}
-        <div className="px-4 py-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800/60 rounded-xl px-3 py-2 flex-1 mr-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.4)] dark:shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
-            <span className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">Make.com activo</span>
+        {/* Make.com Status, Logout & Theme Control */}
+        <div className="px-4 py-4 border-t border-neutral-200 dark:border-neutral-800 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800/60 rounded-xl px-3 py-2 flex-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.4)] dark:shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
+              <span className="text-xs text-neutral-600 dark:text-neutral-400 font-medium">Make.com activo</span>
+            </div>
+            <ThemeToggle />
           </div>
-          <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all disabled:opacity-50"
+          >
+            {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+            {isLoggingOut ? 'Cerrando...' : 'Cerrar sesión'}
+          </button>
         </div>
       </aside>
 

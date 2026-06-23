@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Rutas de API que son públicas (webhooks de Make.com, callbacks de auth, etc.)
+const PUBLIC_API_ROUTES = [
+  '/api/qstash',
+  '/api/auth',
+  '/api/cron',
+]
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -32,13 +39,29 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/api')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  const pathname = request.nextUrl.pathname
+
+  if (!user) {
+    // Rutas de login y auth → siempre públicas
+    if (pathname.startsWith('/login') || pathname.startsWith('/auth')) {
+      return supabaseResponse
+    }
+
+    // Rutas de API públicas (webhooks externos, cron, etc.)
+    const isPublicApi = PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))
+    if (isPublicApi) {
+      return supabaseResponse
+    }
+
+    // Rutas de API privadas → retornar 401 JSON (no redirect)
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json(
+        { error: 'No autorizado. Sesión requerida.' },
+        { status: 401 }
+      )
+    }
+
+    // Páginas protegidas → redirigir al login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
