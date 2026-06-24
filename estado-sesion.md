@@ -16,6 +16,7 @@
 - [x] Tabla de activaciones ManyChat Semana 1 (4 triggers con primer mensaje de bot definido).
 - [x] Tabla de estado de producción — 7 días auditados y listos para grabar.
 - [x] Corregir error 404 del planificador en producción (/api/brand-planner) y error de hidratación #418.
+- [x] Migrar el almacenamiento del Spreadsheet (Brand Planner) desde CSV a Supabase para evitar fallos de lectura (`fs.readFileSync`) en Vercel.
 
 ## Archivos tocados
 - `Jarvis/ESTRATEGIA-MARCA-PERSONAL-30DIAS.md` — [MODIFICADO] v3.1 con carril dual y precio por contexto.

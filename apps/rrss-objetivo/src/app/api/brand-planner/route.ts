@@ -30,8 +30,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   seo_keywords:       "SEO Keywords",
 };
 
-function getSupabase() {
-  const cookieStore = cookies();
+async function getSupabase() {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -47,7 +47,7 @@ function getSupabase() {
 // ── GET: Cargar todas las filas del plan ─────────────────────────────────────
 export async function GET() {
   try {
-    const supabase = getSupabase();
+    const supabase = await getSupabase();
 
     const { data, error } = await supabase
       .from("brand_plan_entries")
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = getSupabase();
+    const supabase = await getSupabase();
 
     const { data, error } = await supabase
       .from("brand_plan_entries")
@@ -120,7 +120,7 @@ export async function PUT(req: NextRequest) {
       newRow[col] = body[col] ?? "";
     });
 
-    const supabase = getSupabase();
+    const supabase = await getSupabase();
 
     const { data, error } = await supabase
       .from("brand_plan_entries")
@@ -150,7 +150,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Falta el campo: id." }, { status: 400 });
     }
 
-    const supabase = getSupabase();
+    const supabase = await getSupabase();
 
     const { error } = await supabase
       .from("brand_plan_entries")
