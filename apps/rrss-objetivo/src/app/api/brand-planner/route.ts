@@ -1,209 +1,170 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-export const runtime = "nodejs";
+// Columnas del spreadsheet tal como eran en el CSV original
+export const COLUMNS = [
+  "dia",
+  "fecha",
+  "hora",
+  "formato",
+  "hook_tema",
+  "descripcion_visual",
+  "copy_sugerido",
+  "cta",
+  "guion_grabacion",
+  "seo_keywords",
+] as const;
 
-// Resolver rutas de forma dinámica — funciona en local, retorna undefined en Vercel
-const resolvePath = (relPath: string): string | null => {
-  const pathsToTry = [
-    // Monorepo local: sube dos niveles desde apps/rrss-objetivo
-    path.join(process.cwd(), "..", "..", relPath),
-    // Vercel: raíz del proyecto deployado
-    path.join(process.cwd(), relPath),
-    // Ruta absoluta de respaldo (solo funciona en la máquina de César)
-    path.join("c:/Users/Cesar/Documents/GRUPO EMPRESARIAL REYES/PROYECTOS/RRSS_objetivo", relPath),
-  ];
-
-  for (const p of pathsToTry) {
-    try {
-      if (fs.existsSync(p)) return p;
-    } catch {
-      // Ignorar errores de existsSync en entornos restrictivos
-    }
-  }
-  return null; // No encontrado en ninguna ruta
+// Etiquetas legibles (para el frontend — mapeo inverso)
+export const COLUMN_LABELS: Record<string, string> = {
+  dia:                "Día",
+  fecha:              "Fecha",
+  hora:               "Hora",
+  formato:            "Formato",
+  hook_tema:          "Hook / Tema",
+  descripcion_visual: "Descripción Visual",
+  copy_sugerido:      "Copy Sugerido",
+  cta:                "CTA",
+  guion_grabacion:    "Guion Grabación",
+  seo_keywords:       "SEO Keywords",
 };
 
-const CSV_PATH = resolvePath("Jarvis/SEMANA-01-MARCA-PERSONAL.csv");
-const MD_PATH = resolvePath("Jarvis/SEMANA-01-MARCA-PERSONAL.md");
-
-// Helper robusto para parsear archivos CSV tolerando saltos de línea internos en las celdas
-function parseCSV(text: string) {
-  const result: string[][] = [];
-  let row: string[] = [];
-  let current = "";
-  let insideQuote = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const nextChar = text[i + 1];
-
-    if (char === '"') {
-      // Manejar comilla doble de escape ("")
-      if (insideQuote && nextChar === '"') {
-        current += '"';
-        i++; // Saltar la siguiente comilla
-      } else {
-        insideQuote = !insideQuote;
-      }
-    } else if (char === ',' && !insideQuote) {
-      row.push(current.trim());
-      current = "";
-    } else if ((char === '\r' || char === '\n') && !insideQuote) {
-      // Fin de línea real fuera de comillas
-      if (char === '\r' && nextChar === '\n') {
-        i++; // Saltar \n
-      }
-      row.push(current.trim());
-      if (row.some(val => val !== "")) {
-        result.push(row);
-      }
-      row = [];
-      current = "";
-    } else {
-      current += char;
+function getSupabase() {
+  const cookieStore = cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: () => {}, // Solo lectura en route handlers
+      },
     }
-  }
-
-  // Agregar la última fila pendiente si existe
-  if (current || row.length > 0) {
-    row.push(current.trim());
-    if (row.some(val => val !== "")) {
-      result.push(row);
-    }
-  }
-
-  if (result.length === 0) return [];
-
-  // Transformar a objetos con la cabecera
-  const headers = result[0];
-  const dataRows = [];
-  for (let i = 1; i < result.length; i++) {
-    const rowData = result[i];
-    const obj: Record<string, string> = {};
-    headers.forEach((header, idx) => {
-      obj[header] = rowData[idx] || "";
-    });
-    dataRows.push(obj);
-  }
-  
-  return dataRows;
+  );
 }
 
-// Helper para convertir JSON de vuelta a CSV
-function writeCSV(data: any[]) {
-  const headers = ["Día", "Fecha", "Hora", "Formato", "Hook / Tema", "Descripción Visual", "Copy Sugerido", "CTA", "Guion Grabación", "SEO Keywords"];
-  let csvText = headers.map(h => `"${h}"`).join(",") + "\n";
-  
-  data.forEach(row => {
-    csvText += headers.map(h => {
-      const val = (row[h] || "").replace(/"/g, '""');
-      return `"${val}"`;
-    }).join(",") + "\n";
-  });
-  
-  return csvText;
-}
-
-// GET: Cargar el CSV
+// ── GET: Cargar todas las filas del plan ─────────────────────────────────────
 export async function GET() {
   try {
-    // En Vercel, el CSV vive en tu máquina local y no está disponible remotamente.
-    // Este endpoint solo funciona cuando la app corre en localhost.
-    if (!CSV_PATH) {
-      return NextResponse.json(
-        { error: "El archivo CSV de planificación no está disponible en este entorno. El Spreadsheet solo funciona en ejecución local." },
-        { status: 503 }
-      );
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from("brand_plan_entries")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("BRAND PLANNER GET ERROR:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    const text = fs.readFileSync(CSV_PATH, "utf-8");
-    const data = parseCSV(text);
-    return NextResponse.json({ data });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    return NextResponse.json({ data: data ?? [] });
+  } catch (err: any) {
+    console.error("BRAND PLANNER GET EXCEPTION:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// POST: Modificar una celda y sincronizar tanto CSV como MD
+// ── POST: Actualizar una celda específica ─────────────────────────────────────
+// Body: { id: string, column: string, newValue: string }
 export async function POST(req: NextRequest) {
   try {
-    const { rowIndex, column, newValue } = await req.json();
+    const { id, column, newValue } = await req.json();
 
-    if (!CSV_PATH) {
+    if (!id || !column) {
       return NextResponse.json(
-        { error: "El archivo CSV no está disponible en este entorno. El Spreadsheet solo funciona en ejecución local." },
-        { status: 503 }
+        { error: "Faltan campos: id y column son requeridos." },
+        { status: 400 }
       );
     }
 
-    if (!fs.existsSync(CSV_PATH)) {
-      return NextResponse.json({ error: "El archivo CSV de planificación no existe." }, { status: 404 });
+    // Validar que la columna es una columna permitida
+    if (!COLUMNS.includes(column as any)) {
+      return NextResponse.json(
+        { error: `Columna inválida: "${column}". Columnas válidas: ${COLUMNS.join(", ")}` },
+        { status: 400 }
+      );
     }
 
-    const text = fs.readFileSync(CSV_PATH, "utf-8");
-    const data = parseCSV(text);
+    const supabase = getSupabase();
 
-    if (rowIndex < 0 || rowIndex >= data.length) {
-      return NextResponse.json({ error: "Index de fila fuera de rango." }, { status: 400 });
+    const { data, error } = await supabase
+      .from("brand_plan_entries")
+      .update({ [column]: newValue })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("BRAND PLANNER POST ERROR:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Actualizar el valor en la memoria de la base de datos CSV
-    const oldRow = { ...data[rowIndex] };
-    data[rowIndex][column] = newValue;
+    return NextResponse.json({ success: true, updatedRow: data });
+  } catch (err: any) {
+    console.error("BRAND PLANNER POST EXCEPTION:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
 
-    // Guardar el nuevo CSV de forma atómica en el disco
-    const newCSVText = writeCSV(data);
-    fs.writeFileSync(CSV_PATH, newCSVText, "utf-8");
+// ── PUT: Crear una nueva fila ─────────────────────────────────────────────────
+// Body: objeto con los campos de la fila (sin id)
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
 
-    // Sincronizar en caliente el archivo MD si afecta al guion (Hook / Tema, Copy Sugerido o Guion Grabación)
-    if (fs.existsSync(MD_PATH) && (column === "Hook / Tema" || column === "Copy Sugerido" || column === "Descripción Visual" || column === "Guion Grabación")) {
-      let mdText = fs.readFileSync(MD_PATH, "utf-8");
-      
-      const day = data[rowIndex]["Día"]?.toUpperCase();
-      
-      // Buscar la sección del día en el MD (ej: ## 📅 LUNES o ## 📅 MARTES)
-      const daySectionHeader = `## 📅 ${day}`;
-      
-      if (mdText.includes(daySectionHeader)) {
-        // Dividir el archivo MD por secciones para reescribir solo el fragmento de ese día
-        const sections = mdText.split("## 📅 ");
-        const updatedSections = sections.map(section => {
-          if (section.startsWith(day)) {
-            let sectionLines = section.split("\n");
-            
-            if (column === "Copy Sugerido") {
-              const searchIndex = sectionLines.findIndex(line => line.includes(oldRow["Copy Sugerido"]) || line.includes("Copy Sugerido:"));
-              if (searchIndex !== -1) {
-                sectionLines[searchIndex] = `> **[Copy Sugerido]** "${newValue}"`;
-              }
-            } else if (column === "Hook / Tema") {
-              const searchIndex = sectionLines.findIndex(line => line.includes(oldRow["Hook / Tema"]) || line.includes("Hook:"));
-              if (searchIndex !== -1) {
-                sectionLines[searchIndex] = `> **[Hook / Tema]** "${newValue}"`;
-              }
-            } else if (column === "Guion Grabación") {
-              // Buscar e inyectar el guion de grabación en la sección correspondiente en el Markdown
-              const searchIndex = sectionLines.findIndex(line => line.includes("Guion de Grabación:") || line.includes("Guion de Grabación"));
-              if (searchIndex !== -1) {
-                // Inyectar el guion nuevo con formato Markdown
-                const formattedNewValue = newValue.split("\n").map((l: string) => `> ${l}`).join("\n");
-                sectionLines[searchIndex + 1] = formattedNewValue;
-              }
-            }
-            return sectionLines.join("\n");
-          }
-          return section;
-        });
-        
-        mdText = updatedSections.join("## 📅 ");
-        fs.writeFileSync(MD_PATH, mdText, "utf-8");
-      }
+    // Filtrar solo las columnas válidas
+    const newRow: Record<string, string> = {};
+    COLUMNS.forEach((col) => {
+      newRow[col] = body[col] ?? "";
+    });
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from("brand_plan_entries")
+      .insert(newRow)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("BRAND PLANNER PUT ERROR:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, updatedRow: data[rowIndex] });
-  } catch (error: any) {
-    console.error("BRAND PLANNER API POST ERROR:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, newRow: data });
+  } catch (err: any) {
+    console.error("BRAND PLANNER PUT EXCEPTION:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// ── DELETE: Eliminar una fila ────────────────────────────────────────────────
+// Body: { id: string }
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ error: "Falta el campo: id." }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+
+    const { error } = await supabase
+      .from("brand_plan_entries")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("BRAND PLANNER DELETE ERROR:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("BRAND PLANNER DELETE EXCEPTION:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
